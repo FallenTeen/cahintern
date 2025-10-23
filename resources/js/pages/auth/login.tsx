@@ -18,10 +18,7 @@ interface LoginProps {
 
 export default function Login({ status, canResetPassword }: LoginProps) {
     return (
-        <AuthLayout
-            title="Log in to your account"
-            description="Enter your email and password below to log in"
-        >
+        <AuthLayout title="Masuk" description="">
             <Head title="Log in" />
 
             <Form
@@ -31,6 +28,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             >
                 {({ processing, errors }) => (
                     <>
+                        <div className="-mt-6 text-center text-sm hidden lg:block">
+                            Belum punya akun?{' '}
+                            <TextLink
+                                href={register()}
+                                tabIndex={5}
+                                className="font-bold text-red-600/80 no-underline"
+                            >
+                                Daftar
+                            </TextLink>
+                        </div>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
@@ -56,7 +63,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            Lupa password?
                                         </TextLink>
                                     )}
                                 </div>
@@ -78,12 +85,12 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember">Ingat saya</Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-4 w-full bg-red-600 font-medium text-white hover:bg-red-700"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
@@ -91,14 +98,17 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 {processing && (
                                     <LoaderCircle className="h-4 w-4 animate-spin" />
                                 )}
-                                Log in
+                                Masuk
                             </Button>
                         </div>
-
-                        <div className="text-center text-sm text-muted-foreground">
-                            Don't have an account?{' '}
-                            <TextLink href={register()} tabIndex={5}>
-                                Sign up
+                        <div className="-mt-6 text-center text-sm lg:hidden mt-1">
+                            Belum punya akun?{' '}
+                            <TextLink
+                                href={register()}
+                                tabIndex={5}
+                                className="font-bold text-red-600/80 no-underline"
+                            >
+                                Daftar
                             </TextLink>
                         </div>
                     </>

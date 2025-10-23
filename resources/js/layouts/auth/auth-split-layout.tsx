@@ -1,7 +1,7 @@
 import AppLogoIcon from '@/components/app-logo-icon';
 import { home } from '@/routes';
-import { type SharedData } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
+import { GraduationCap } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
 interface AuthLayoutProps {
@@ -12,46 +12,59 @@ interface AuthLayoutProps {
 export default function AuthSplitLayout({
     children,
     title,
-    description,
 }: PropsWithChildren<AuthLayoutProps>) {
-    const { name, quote } = usePage<SharedData>().props;
-
     return (
-        <div className="relative grid h-dvh flex-col items-center justify-center px-8 sm:px-0 lg:max-w-none lg:grid-cols-2 lg:px-0">
-            <div className="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r">
-                <div className="absolute inset-0 bg-zinc-900" />
-                <Link
-                    href={home()}
-                    className="relative z-20 flex items-center text-lg font-medium"
-                >
-                    <AppLogoIcon className="mr-2 size-8 fill-current text-white" />
-                    {name}
-                </Link>
-                {quote && (
-                    <div className="relative z-20 mt-auto">
-                        <blockquote className="space-y-2">
-                            <p className="text-lg">
-                                &ldquo;{quote.message}&rdquo;
-                            </p>
-                            <footer className="text-sm text-neutral-300">
-                                {quote.author}
-                            </footer>
-                        </blockquote>
-                    </div>
-                )}
-            </div>
-            <div className="w-full lg:p-8">
-                <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+        <div className="flex min-h-screen bg-gray-50 dark:bg-zinc-900">
+            {/* === Left Section === */}
+            <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden lg:flex">
+                {/* Background gradient & texture */}
+                <div className="absolute inset-0 bg-gradient-to-br from-red-700 via-red-600 to-red-400" />
+                <div className="absolute inset-0 bg-black/30" />
+
+                {/* Header logo */}
+                <div className="relative z-10 flex items-center gap-3 p-10">
                     <Link
                         href={home()}
-                        className="relative z-20 flex items-center justify-center lg:hidden"
+                        className="rounded-full bg-white/20 p-3 shadow-md"
+                        aria-label="Home"
                     >
-                        <AppLogoIcon className="h-10 fill-current text-black sm:h-12" />
+                        <GraduationCap className="h-10 w-10 text-white" />
                     </Link>
-                    <div className="flex flex-col items-start gap-2 text-left sm:items-center sm:text-center">
-                        <h1 className="text-xl font-medium">{title}</h1>
-                        <p className="text-sm text-balance text-muted-foreground">
-                            {description}
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-wide text-white">
+                            Dinas Pendidikan
+                        </h1>
+                        <p className="text-sm text-gray-200 opacity-90">
+                            Kabupaten Banyumas
+                        </p>
+                    </div>
+                </div>
+
+                {/* Welcome Section */}
+                <div className="relative z-10 mt-8 px-10">
+                    <h2 className="text-4xl leading-snug font-extrabold text-white drop-shadow-sm">
+                        Selamat Datang di{' '}
+                        <span className="block text-yellow-200">
+                            Portal Magang
+                        </span>
+                    </h2>
+                    <p className="mt-4 max-w-sm text-sm leading-relaxed text-gray-100">
+                        Sistem digital untuk pengelolaan kegiatan magang,
+                        laporan harian, dan presensi peserta di lingkungan Dinas
+                        Pendidikan Banyumas.
+                    </p>
+                </div>
+                <div className="flex-grow" />
+            </div>
+
+            {/* === Right Section (Form) === */}
+            <div className="flex w-full items-center justify-center px-6 backdrop-blur-sm lg:w-1/2 lg:px-12">
+                <div className="w-full max-w-md space-y-8 rounded-2xl bg-white/80 p-8 shadow-xl dark:bg-zinc-800/80">
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                            {title}
+                        </h2>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         </p>
                     </div>
                     {children}

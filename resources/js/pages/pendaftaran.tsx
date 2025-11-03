@@ -1,29 +1,75 @@
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
 import {
-    CheckCircle,
-    ChevronLeft,
-    ChevronRight,
-    FileText,
-    Send,
-    Upload,
-    User,
-} from 'lucide-react';
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
+import { ChevronDownIcon, FileText, School, University } from 'lucide-react';
 import { useState } from 'react';
-import Header from './LandingPage/Header';
 import FooterSection from './LandingPage/FooterSection';
+import Header from './LandingPage/Header';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const DatePicker = ({ id, label, date, setDate }) => {
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+    return (
+        <div className="flex flex-col gap-1 mt-3">
+            <Label htmlFor={id} className="font-medium">
+                {label}
+            </Label>
+            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        id={id}
+                        className="w-full justify-between text-left font-normal"
+                    >
+                        {date
+                            ? date.toLocaleDateString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric',
+                              })
+                            : 'Pilih tanggal'}
+                        <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                    className="w-auto overflow-hidden p-0"
+                    align="start"
+                >
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        captionLayout="dropdown"
+                        onSelect={(newDate) => {
+                            setDate(newDate);
+                            setIsPopoverOpen(false);
+                        }}
+                        initialFocus
+                    />
+                </PopoverContent>
+            </Popover>
+        </div>
+    );
+};
 
 export default function Pendaftaran() {
-    const [step, setStep] = useState(1);
+    const [schoolType, setSchoolType] = useState<'university' | 'smk'>(
+        'university',
+    );
 
-    const nextStep = () => setStep((s) => Math.min(s + 1, 4));
-    const prevStep = () => setStep((s) => Math.max(s - 1, 1));
+    const [dob, setDob] = useState<Date | undefined>(undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+    const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-    const steps = [
-        { id: 1, title: 'Data Diri', icon: <User size={18} /> },
-        { id: 2, title: 'Data Pendidikan', icon: <FileText size={18} /> },
-        { id: 3, title: 'Upload Berkas', icon: <Upload size={18} /> },
-        { id: 4, title: 'Konfirmasi', icon: <Send size={18} /> },
-    ];
+    const handleSubmit = (e: { preventDefault: () => void }) => {
+        e.preventDefault();
+        alert('Form Submitted (Data masih belum dikirim)');
+    };
 
     return (
         <section className="bg-white py-8 text-gray-800">
@@ -33,298 +79,250 @@ export default function Pendaftaran() {
                 <div className="relative mx-auto mt-8 max-w-4xl px-4 pb-16">
                     {/* Main Card */}
                     <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-sm backdrop-blur-sm">
-                        {/* Header Section */}
-                        <div className="bg-gray-600 p-8 text-center text-white">
-                            <h1 className="mb-2 text-3xl font-bold">
-                                Formulir Pendaftaran Magang
-                            </h1>
-                            <p className="text-blue-100 opacity-90">
-                                Lengkapi data diri Anda untuk proses pendaftaran
-                                yang lebih mudah
-                            </p>
-                        </div>
+                        <div className="mx-auto max-w-3xl rounded-2xl border bg-white p-6 shadow-md">
+                            {/* Tabs */}
+                            <div className="mb-6 flex overflow-hidden rounded-lg border">
+                                <button
+                                    type="button"
+                                    onClick={() => setSchoolType('university')}
+                                    aria-pressed={schoolType === 'university'}
+                                    className={`flex flex-1 items-center justify-center gap-2 py-3 font-medium transition focus:ring-2 focus:ring-red-600 focus:outline-none ${
+                                        schoolType === 'university'
+                                            ? 'bg-red-600 text-white'
+                                            : 'bg-gray-100 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    <University className="h-5 w-5" />
+                                    <span>Universitas</span>
+                                </button>
 
-                        <div className="p-8">
-                            {/* STEP INDICATOR - Improved Design */}
-                            <div className="relative mb-12">
-                                <div className="flex items-center justify-between">
-                                    {steps.map((item, index) => (
-                                        <div
-                                            key={item.id}
-                                            className="z-10 flex flex-col items-center"
-                                        >
-                                            {/* Step Circle */}
-                                            <div
-                                                className={`flex h-12 w-12 items-center justify-center rounded-full border-2 transition-all duration-500 ${
-                                                    step === item.id
-                                                        ? 'scale-110 border-blue-600 bg-blue-600 shadow-lg'
-                                                        : step > item.id
-                                                          ? 'border-red-500 bg-red-500'
-                                                          : 'border-gray-300 bg-white'
-                                                } `}
-                                            >
-                                                {step > item.id ? (
-                                                    <CheckCircle className="h-6 w-6 text-white" />
-                                                ) : (
-                                                    <div
-                                                        className={
-                                                            step === item.id
-                                                                ? 'text-white'
-                                                                : 'text-gray-500'
-                                                        }
-                                                    >
-                                                        {item.icon}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Step Title */}
-                                            <p
-                                                className={`hidden md:block mt-3 text-sm font-semibold transition-colors ${
-                                                    step === item.id ? 'text-blue-600' : step > item.id ? 'text-red-600' : 'text-gray-500'
-                                                }`}
-                                            >
-                                                {item.title}
-                                            </p>
-
-                                            {/* Step Number */}
-                                            <div
-                                                className={`absolute -bottom-8 text-xs font-medium transition-colors ${
-                                                    step === item.id
-                                                        ? 'text-blue-600'
-                                                        : step > item.id
-                                                          ? 'text-red-600'
-                                                          : 'text-gray-400'
-                                                } `}
-                                            >
-                                                Step {item.id}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Progress Bar */}
-                                <div className="absolute top-6 right-0 left-0 -z-10 h-2 rounded-full bg-gray-200">
-                                    <div
-                                        className="h-2 rounded-full bg-red-500 transition-all duration-500 ease-out"
-                                        style={{
-                                            width: `${((step - 1) / (steps.length - 1)) * 100}%`,
-                                        }}
-                                    ></div>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setSchoolType('smk')}
+                                    aria-pressed={schoolType === 'smk'}
+                                    className={`flex flex-1 items-center justify-center gap-2 py-3 font-medium transition focus:ring-2 focus:ring-red-600 focus:outline-none ${
+                                        schoolType === 'smk'
+                                            ? 'bg-red-600 text-white'
+                                            : 'bg-gray-100 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    <School className="h-5 w-5" />
+                                    <span>Sekolah Menengah Kejuruan (SMK)</span>
+                                </button>
                             </div>
 
-                            {/* STEP FORM - Enhanced Design */}
-                            <div className="min-h-[300px] transition-all duration-300">
-                                {step === 1 && (
-                                    <div className="animate-fade-in space-y-6">
-                                        <div className="mb-8 text-center">
-                                            <h2 className="mb-2 text-2xl font-bold text-gray-800">
-                                                Data Diri
-                                            </h2>
-                                            <p className="text-gray-600">
-                                                Isi informasi pribadi Anda
-                                                dengan benar
-                                            </p>
+                            {/* Form Fields */}
+                            <form className="space-y-5" onSubmit={handleSubmit}>
+                                {schoolType === 'university' ? (
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <div>
+                                            <label
+                                                htmlFor="nim"
+                                                className="mb-1 block font-medium"
+                                            >
+                                                NIM (Nomer Induk Mahasiswa)
+                                            </label>
+                                            <input
+                                                id="nim"
+                                                type="text"
+                                                placeholder="Masukan NIM"
+                                                className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-red-600 focus:outline-none"
+                                                required
+                                            />
                                         </div>
-                                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                            {[
-                                                {
-                                                    placeholder: 'Nama Lengkap',
-                                                    type: 'text',
-                                                },
-                                                {
-                                                    placeholder: 'NIM / NIS',
-                                                    type: 'text',
-                                                },
-                                                {
-                                                    placeholder: 'Email',
-                                                    type: 'email',
-                                                },
-                                                {
-                                                    placeholder:
-                                                        'Nomor Telepon',
-                                                    type: 'tel',
-                                                },
-                                            ].map((field, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="space-y-2"
-                                                >
-                                                    <label className="text-sm font-medium text-gray-700">
-                                                        {field.placeholder}
-                                                    </label>{" "}
-                                                    <span className="text-red-600">*</span>
-                                                    <input
-                                                        type={field.type}
-                                                        className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                                                        placeholder={`Masukkan ${field.placeholder.toLowerCase()}`}
-                                                    />
-                                                </div>
-                                            ))}
+                                        <div>
+                                            <label
+                                                htmlFor="nama-univ"
+                                                className="mb-1 block font-medium"
+                                            >
+                                                Nama Universitas
+                                            </label>
+                                            <input
+                                                id="nama-univ"
+                                                type="text"
+                                                placeholder="Masukan nama universitas"
+                                                className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-red-600 focus:outline-none"
+                                                required
+                                            />
                                         </div>
                                     </div>
-                                )}
-
-                                {step === 2 && (
-                                    <div className="animate-fade-in space-y-6">
-                                        <div className="mb-8 text-center">
-                                            <h2 className="mb-2 text-2xl font-bold text-gray-800">
-                                                Data Pendidikan
-                                            </h2>
-                                            <p className="text-gray-600">
-                                                Informasi mengenai latar
-                                                belakang pendidikan Anda
-                                            </p>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                            {[
-                                                {
-                                                    placeholder:
-                                                        'Asal Kampus / Sekolah',
-                                                    type: 'text',
-                                                },
-                                                {
-                                                    placeholder:
-                                                        'Program Studi / Jurusan',
-                                                    type: 'text',
-                                                },
-                                                {
-                                                    placeholder: 'Semester',
-                                                    type: 'number',
-                                                },
-                                                {
-                                                    placeholder: 'IPK Terakhir',
-                                                    type: 'number',
-                                                    step: '0.01',
-                                                },
-                                            ].map((field, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="space-y-2"
-                                                >
-                                                    <label className="text-sm font-medium text-gray-700">
-                                                        {field.placeholder}
-                                                    </label>{" "}
-                                                    <span className="text-red-600">*</span>
-                                                    <input
-                                                        type={field.type}
-                                                        step={field.step}
-                                                        className="w-full rounded-xl border border-gray-300 px-4 py-3 transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                                                        placeholder={`Masukkan ${field.placeholder.toLowerCase()}`}
-                                                    />
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {step === 3 && (
-                                    <div className="animate-fade-in space-y-6">
-                                        <div className="mb-8 text-center">
-                                            <h2 className="mb-2 text-2xl font-bold text-gray-800">
-                                                Upload Berkas
-                                            </h2>
-                                            <p className="text-gray-600">
-                                                Unggah dokumen yang diperlukan
-                                                untuk pendaftaran
-                                            </p>
-                                        </div>
-                                        <div className="space-y-6">
-                                            {[
-                                                'CV/Resume (PDF, max 2MB)',
-                                                'Transkrip Nilai (PDF, max 2MB)',
-                                                'Surat Pengantar (PDF, max 2MB)',
-                                                'Portfolio (Opsional, PDF/ZIP, max 5MB)',
-                                            ].map((label, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="space-y-3"
-                                                >
-                                                    <label className="text-sm font-medium text-gray-700">
-                                                        {label}
-                                                    </label>{" "}
-                                                    {!label.toLowerCase().includes('opsional') && (
-                                                        <span className="text-red-600">*</span>
-                                                    )}
-                                                    <div className="rounded-2xl border-2 border-dashed border-gray-300 p-6 text-center transition-colors duration-200 hover:border-blue-400">
-                                                        <Upload className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-                                                        <p className="mb-2 text-sm text-gray-600">
-                                                            Drag & drop file
-                                                            atau klik untuk
-                                                            memilih
-                                                        </p>
-                                                        <input
-                                                            type="file"
-                                                            className="hidden"
-                                                            id={`file-${index}`}
-                                                        />
-                                                        <Button
-                                                            variant="outline"
-                                                            onClick={() =>
-                                                                document
-                                                                    .getElementById(
-                                                                        `file-${index}`,
-                                                                    )
-                                                                    ?.click()
-                                                            }
-                                                        >
-                                                            Pilih File
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {step === 4 && (
-                                    <div className="animate-fade-in py-8 text-center">
-                                        <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                                            <CheckCircle className="h-10 w-10 text-green-600" />
-                                        </div>
-                                        <h2 className="mb-3 text-2xl font-bold text-gray-800">
-                                            Konfirmasi Data
-                                        </h2>
-                                        <p className="mx-auto mb-8 max-w-md leading-relaxed text-gray-600">
-                                            Selamat! Data pendaftaran Anda sudah
-                                            lengkap. Pastikan seluruh informasi
-                                            yang Anda berikan sudah benar
-                                            sebelum mengirimkan formulir.
-                                        </p>
-                                        <Button className="rounded-xl bg-blue-600 px-8 py-3 text-white shadow-lg transition-all duration-300 hover:bg-blue-700">
-                                            <Send className="mr-2 h-4 w-4" />
-                                            Kirim Pendaftaran
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* NAVIGATION - Enhanced Buttons */}
-                            <div className="mt-12 flex items-center justify-between border-t border-gray-200 pt-6">
-                                {step > 1 ? (
-                                    <Button
-                                        onClick={prevStep}
-                                        variant="outline"
-                                        className="flex items-center gap-2 rounded-xl border-2 px-6 py-2 transition-all duration-200 hover:scale-105"
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                        Kembali
-                                    </Button>
                                 ) : (
-                                    <div></div>
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <div>
+                                            <label
+                                                htmlFor="nis"
+                                                className="mb-1 block font-medium"
+                                            >
+                                                NIS (Nomor Induk Siswa)
+                                            </label>
+                                            <input
+                                                id="nis"
+                                                type="text"
+                                                placeholder="Masukan NIS"
+                                                className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-red-600 focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                htmlFor="nama-sekolah"
+                                                className="mb-1 block font-medium"
+                                            >
+                                                Nama Sekolah
+                                            </label>
+                                            <input
+                                                id="nama-sekolah"
+                                                type="text"
+                                                placeholder="Masukan nama sekolah"
+                                                className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-red-600 focus:outline-none"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
                                 )}
 
-                                {step < 4 && (
-                                    <Button
-                                        onClick={nextStep}
-                                        className="flex items-center gap-2 rounded-xl bg-blue-600 px-8 py-2 text-white hover:bg-blue-700"
+                                <div>
+                                    <label
+                                        htmlFor="nama-lengkap"
+                                        className="mb-1 block font-medium"
                                     >
-                                        Lanjut
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                )}
-                            </div>
+                                        Nama Lengkap
+                                    </label>
+                                    <input
+                                        id="nama-lengkap"
+                                        type="text"
+                                        placeholder="Masukan nama lengkap"
+                                        className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-red-600 focus:outline-none"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    {/* Tempat Lahir */}
+                                    <div>
+                                        <label
+                                            htmlFor="tempat-lahir"
+                                            className="mb-1 block font-medium"
+                                        >
+                                            Tempat Lahir
+                                        </label>
+                                        <input
+                                            id="tempat-lahir"
+                                            type="text"
+                                            placeholder="City"
+                                            className="w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-red-600 focus:outline-none"
+                                            required
+                                        />
+                                    </div>
+
+                                    {/* Tanggal Lahir */}
+                                    <DatePicker
+                                        id="tanggal-lahir"
+                                        label="Tanggal Lahir"
+                                        date={dob}
+                                        setDate={setDob}
+                                    />
+
+                                    {/* Jenis Kelamin */}
+                                    <form className="mx-auto max-w-sm">
+                                        <label
+                                            htmlFor="jenis-kelamin"
+                                            className="mb-1 block font-medium"
+                                        >
+                                            Jenis Kelamin
+                                        </label>
+                                        <Select>
+                                            <SelectTrigger className="w-[180px]">
+                                                <SelectValue placeholder="Pilih Jenis Kelamin" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    <SelectLabel>
+                                                        Jenis Kelamin
+                                                    </SelectLabel>
+                                                    <SelectItem value="P">
+                                                        Perempuan
+                                                    </SelectItem>
+                                                    <SelectItem value="L">
+                                                        Laki-laki
+                                                    </SelectItem>
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </form>
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <DatePicker
+                                        id="tgl-mulai"
+                                        label="Tanggal Mulai Magang"
+                                        date={startDate}
+                                        setDate={setStartDate}
+                                    />
+
+                                    <DatePicker
+                                        id="tgl-selesai"
+                                        label="Tanggal Selesai Magang"
+                                        date={endDate}
+                                        setDate={setEndDate}
+                                    />
+                                </div>
+
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div className="rounded-lg border-2 border-dashed border-red-300 p-4 text-center">
+                                        <label
+                                            htmlFor="upload-cv"
+                                            className="cursor-pointer"
+                                        >
+                                            <div className="flex flex-col items-center">
+                                                <FileText className="mb-2 h-6 w-6 text-gray-500" />
+                                                <p className="text-sm text-gray-600">
+                                                    Click to upload{' '}
+                                                    <b>CV (PDF only)</b>
+                                                </p>
+                                            </div>
+                                            <input
+                                                id="upload-cv"
+                                                type="file"
+                                                accept="application/pdf"
+                                                className="hidden"
+                                                required
+                                            />
+                                        </label>
+                                    </div>
+
+                                    <div className="rounded-lg border-2 border-dashed border-red-300 p-4 text-center">
+                                        <label
+                                            htmlFor="upload-surat"
+                                            className="cursor-pointer"
+                                        >
+                                            <div className="flex flex-col items-center">
+                                                <FileText className="mb-2 h-6 w-6 text-gray-500" />
+                                                <p className="text-sm text-gray-600">
+                                                    Click to upload{' '}
+                                                    <b>
+                                                        Surat rekomendasi (PDF
+                                                        only)
+                                                    </b>
+                                                </p>
+                                            </div>
+                                            <input
+                                                id="upload-surat"
+                                                type="file"
+                                                accept="application/pdf"
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full rounded-lg bg-red-600 py-3 font-semibold text-white transition hover:bg-red-700"
+                                >
+                                    Submit
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

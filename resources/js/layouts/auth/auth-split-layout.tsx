@@ -1,7 +1,6 @@
-import AppLogoIcon from '@/components/app-logo-icon';
 import { home } from '@/routes';
 import { Link } from '@inertiajs/react';
-import { GraduationCap } from 'lucide-react';
+import { Award, ChartLine, GraduationCap, Users } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
 
 interface AuthLayoutProps {
@@ -53,6 +52,36 @@ export default function AuthSplitLayout({
                         laporan harian, dan presensi peserta di lingkungan Dinas
                         Pendidikan Banyumas.
                     </p>
+                    <div className="mt-6 grid grid-cols-3 gap-3">
+                        <button
+                            type="button"
+                            aria-label="Manajemen Mahasiswa"
+                            className="flex w-full items-center justify-center gap-4 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow"
+                        >
+                            <Users className="h-5 w-5" aria-hidden="true" />
+                            <span>Manajemen Mahasiswa</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            aria-label="Pemantauan Kemajuan"
+                            className="flex w-full items-center justify-center gap-4 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow"
+                        >
+                            <ChartLine className="h-5 w-5" aria-hidden="true" />
+                            <span>Pemantauan Kemajuan</span>
+                        </button>
+
+                        <div className="col-span-2">
+                            <button
+                                type="button"
+                                aria-label="Sertifikasi"
+                                className="flex w-55 items-center justify-start gap-3 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow"
+                            >
+                                <Award className="h-5 w-5" aria-hidden="true" />
+                                <span>Sertifikasi</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div className="flex-grow" />
             </div>
@@ -64,8 +93,7 @@ export default function AuthSplitLayout({
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                             {title}
                         </h2>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        </p>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400"></p>
                     </div>
                     {children}
                 </div>

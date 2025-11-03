@@ -8,7 +8,7 @@ import {
 
 export default function TentangProgram() {
     return (
-        <section className="flex flex-col items-center justify-between gap-8 py-12 md:flex-row">
+        <section className="bg-white text-gray-800 flex flex-col items-center justify-between gap-8 py-12 md:flex-row">
             {/* ILUSTRASI DENGAN TULISAN DI ATAS GAMBAR */}
             <div className="flex flex-1 justify-center gap-5">
                 <div className="relative w-80 md:w-96 py-15">
@@ -29,16 +29,20 @@ export default function TentangProgram() {
             </div>
 
             {/* KANAN: TEKS DAN ACCORDION */}
-            <div className="flex-1">
-                <Accordion type="single" collapsible className="space-y-3">
+            <div className="flex-1 w-full md:max-w-lg lg:max-w-none px-4">
+                <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full space-y-3"
+                >
                     <AccordionItem
                         value="item-1"
-                        className="rounded-lg border shadow-sm"
+                        className="overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow duration-200 data-[state=open]:shadow-md"
                     >
-                        <AccordionTrigger className="px-4 py-3 text-base font-medium">
+                        <AccordionTrigger className="flex w-full items-center justify-between px-4 py-4 text-base font-medium text-left md:py-3 md:px-4 hover:bg-gray-50 data-[state=open]:bg-gray-50">
                             Tentang Program
                         </AccordionTrigger>
-                        <AccordionContent className="px-4 pb-4 text-gray-600">
+                        <AccordionContent className="px-4 pb-4 text-gray-600 text-sm md:text-base overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
                             Program ini bertujuan memberikan pengalaman kerja
                             nyata kepada mahasiswa melalui kolaborasi antara
                             institusi pendidikan dan perusahaan.
@@ -47,12 +51,12 @@ export default function TentangProgram() {
 
                     <AccordionItem
                         value="item-2"
-                        className="rounded-lg border shadow-sm"
+                        className="overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow duration-200 data-[state=open]:shadow-md"
                     >
-                        <AccordionTrigger className="px-4 py-3 text-base font-medium">
+                        <AccordionTrigger className="flex w-full items-center justify-between px-4 py-4 text-base font-medium text-left md:py-3 md:px-4 hover:bg-gray-50 data-[state=open]:bg-gray-50">
                             Peserta Pemagangan
                         </AccordionTrigger>
-                        <AccordionContent className="px-4 pb-4 text-gray-600">
+                        <AccordionContent className="px-4 pb-4 text-gray-600 text-sm md:text-base overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
                             Peserta adalah mahasiswa aktif atau lulusan baru
                             yang ingin mengembangkan keterampilan profesional
                             melalui pengalaman langsung di dunia industri.
@@ -61,12 +65,12 @@ export default function TentangProgram() {
 
                     <AccordionItem
                         value="item-3"
-                        className="rounded-lg border shadow-sm"
+                        className="overflow-hidden rounded-lg border bg-white shadow-sm transition-shadow duration-200 data-[state=open]:shadow-md"
                     >
-                        <AccordionTrigger className="px-4 py-3 text-base font-medium">
+                        <AccordionTrigger className="flex w-full items-center justify-between px-4 py-4 text-base font-medium text-left md:py-3 md:px-4 hover:bg-gray-50 data-[state=open]:bg-gray-50">
                             Penyelenggara Pemagangan
                         </AccordionTrigger>
-                        <AccordionContent className="px-4 pb-4 text-gray-600">
+                        <AccordionContent className="px-4 pb-4 text-gray-600 text-sm md:text-base overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
                             Penyelenggara adalah perusahaan, instansi, atau
                             lembaga yang bersedia memberikan kesempatan magang
                             dengan bimbingan mentor berpengalaman.

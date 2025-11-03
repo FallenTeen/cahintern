@@ -3,7 +3,7 @@ import ilustrasi from "../../../../public/ilustrasi.webp"
 
 const RegistNow = () => {
     return (
-        <section className="bg-white py-10 sm:py-20 text-gray-800">
+        <section className="bg-white py-10 sm:py-20 text-gray-800 border-t border-gray-300">
             <div className="flex flex-wrap justify-center gap-6 px-4">
                 <div className="flex flex-col sm:flex-row w-full sm:w-[48%] md:w-1/2 items-center gap-4 sm:gap-6 rounded-2xl bg-blue-50 p-6 sm:p-4 shadow-sm">
                     <div className="w-full sm:max-w-[500px] sm:pl-9 text-center sm:text-left">

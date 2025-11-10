@@ -98,33 +98,30 @@ export default function DataPendaftaran({
                     {/* Desktop Table */}
                     <div className="hidden overflow-x-auto lg:block">
                         <Table className="align-item-center text-center">
-                            <TableHeader className='items-align-center'>
+                            <TableHeader className="text-center align-middle">
                                 <TableRow className="bg-gray-50">
-                                    <TableHead className="w-[60px]">
-                                        No
-                                    </TableHead>
-                                    <TableHead className="min-w-[180px]">
+                                    <TableHead className="min-w-[180px] text-center align-middle">
                                         Nama Lengkap
                                     </TableHead>
-                                    <TableHead className="min-w-[200px]">
+                                    <TableHead className="min-w-[200px] text-center align-middle">
                                         Asal Instansi
                                     </TableHead>
-                                    <TableHead className="min-w-[140px]">
+                                    <TableHead className="min-w-[140px] text-center align-middle">
                                         Jurusan
                                     </TableHead>
-                                    <TableHead className="min-w-[140px]">
+                                    <TableHead className="min-w-[140px] text-center align-middle">
                                         Bidang Magang
                                     </TableHead>
-                                    <TableHead className="min-w-[100px]">
+                                    <TableHead className="min-w-[100px] text-center align-middle">
                                         Waktu
                                     </TableHead>
-                                    <TableHead className="min-w-[140px]">
+                                    <TableHead className="min-w-[140px] text-center align-middle">
                                         Tanggal Mulai
                                     </TableHead>
-                                    <TableHead className="min-w-[100px]">
+                                    <TableHead className="min-w-[100px] text-center align-middle">
                                         Status
                                     </TableHead>
-                                    <TableHead className="w-[100px] text-right">
+                                    <TableHead className="w-[100px] text-center align-middle">
                                         Aksi
                                     </TableHead>
                                 </TableRow>
@@ -135,9 +132,6 @@ export default function DataPendaftaran({
                                         key={i}
                                         className="hover:bg-gray-50"
                                     >
-                                        <TableCell className="font-medium text-gray-600">
-                                            {i + 1}
-                                        </TableCell>
                                         <TableCell className="font-medium">
                                             Febri Nur Hidayat
                                         </TableCell>
@@ -265,7 +259,7 @@ export default function DataPendaftaran({
                                     </div>
 
                                     {/* Action Button */}
-                                    <TableCell className="items-center justify-center flex">
+                                    <TableCell className="flex items-center justify-center">
                                         <div className="flex items-center justify-end gap-2">
                                             {/* Icon Eye */}
                                             <Button

@@ -16,6 +16,29 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        User::create([
+            [
+                'name' => 'Admin',
+                'email' => 'vlamingvlaming0@gmail.com',
+                'phone' => '085156208507',
+                'role' => 'peserta',
+                'asal_instansi' => 'Universitas Amikom Purwokerto',
+                'status' => 'diterima',
+                'password' => null,
+                'email_verified_at' => now(),
+            ],
+            [
+                'name' => 'Gentar Asmara Putra',
+                'email' => 'gentarist@gmail.com',
+                'phone' => '083805624037',
+                'role' => 'guest',
+                'asal_instansi' => 'Universitas Amikom Purwokerto',
+                'status' => 'aktif',
+                'password' => null,
+                'email_verified_at' => now(),
+            ]
+        ]);
+
         User::firstOrCreate(
             ['email' => 'febri@gmail.com'],
             [
@@ -23,7 +46,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => '083805624037',
                 'role' => 'admin',
                 'asal_instansi' => 'Universitas Amikom Purwokerto',
-                'status' => 'active',
+                'status' => 'aktif',
                 'password' => Hash::make('123'),
                 'email_verified_at' => now(),
             ]

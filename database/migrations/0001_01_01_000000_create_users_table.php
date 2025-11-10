@@ -22,6 +22,7 @@ return new class extends Migration {
                 'diterima',
                 'ditolak',
                 'selesai',
+                'aktif',
                 'nonaktif'
             ])->default('pending');
             $table->timestamp('email_verified_at')->nullable();

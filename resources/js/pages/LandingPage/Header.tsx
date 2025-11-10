@@ -154,12 +154,12 @@ const Header = () => {
                                 }
                                 className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700"
                             >
-                                Dashboard
+                                {auth.user ? auth.user.name : 'Login'}
                             </button>
                         )}
                     </nav>
 
-                    {/* 🔹 Tombol Mobile (kanan atas) */}
+                    {/*  Tombol Mobile (kanan atas) */}
                     <div className="md:hidden">
                         <button
                             onClick={() =>

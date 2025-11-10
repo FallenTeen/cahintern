@@ -34,9 +34,6 @@ return new class extends Migration {
             $table->string('avatar')->nullable();
             $table->text('alasan_tolak')->nullable();
 
-            // Temporary storage untuk data magang
-            $table->json('temp_magang_data')->nullable();
-
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -14,28 +13,30 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Insert multiple users
 
-        User::create([
+        User::insert([
             [
                 'name' => 'Admin',
                 'email' => 'vlamingvlaming0@gmail.com',
                 'phone' => '085156208507',
                 'role' => 'peserta',
-                'asal_instansi' => 'Universitas Amikom Purwokerto',
-                'status' => 'diterima',
-                'password' => null,
+                'status' => 'aktif',
+                'password' => Hash::make('password123'),
                 'email_verified_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ],
             [
                 'name' => 'Gentar Asmara Putra',
                 'email' => 'gentarist@gmail.com',
-                'phone' => '083805624037',
+                'phone' => '08380562401237',
                 'role' => 'guest',
-                'asal_instansi' => 'Universitas Amikom Purwokerto',
                 'status' => 'aktif',
                 'password' => null,
                 'email_verified_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]
         ]);
 
@@ -45,7 +46,6 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Febri',
                 'phone' => '083805624037',
                 'role' => 'admin',
-                'asal_instansi' => 'Universitas Amikom Purwokerto',
                 'status' => 'aktif',
                 'password' => Hash::make('123'),
                 'email_verified_at' => now(),

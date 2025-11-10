@@ -58,8 +58,8 @@ const DatePicker = ({ id, label, date, setDate }) => {
 };
 
 export default function Pendaftaran() {
-    const [schoolType, setSchoolType] = useState<'university' | 'smk'>(
-        'university',
+    const [jenjang, setJenjang] = useState<'Universitas' | 'smk'>(
+        'Universitas',
     );
 
     const [dob, setDob] = useState<Date | undefined>(undefined);
@@ -84,10 +84,10 @@ export default function Pendaftaran() {
                             <div className="mb-6 flex overflow-hidden rounded-lg border">
                                 <button
                                     type="button"
-                                    onClick={() => setSchoolType('university')}
-                                    aria-pressed={schoolType === 'university'}
+                                    onClick={() => setJenjang('Universitas')}
+                                    aria-pressed={jenjang === 'Universitas'}
                                     className={`flex flex-1 items-center justify-center gap-2 py-3 font-medium transition focus:ring-2 focus:ring-red-600 focus:outline-none ${
-                                        schoolType === 'university'
+                                        jenjang === 'Universitas'
                                             ? 'bg-red-600 text-white'
                                             : 'bg-gray-100 hover:bg-gray-200'
                                     }`}
@@ -98,10 +98,10 @@ export default function Pendaftaran() {
 
                                 <button
                                     type="button"
-                                    onClick={() => setSchoolType('smk')}
-                                    aria-pressed={schoolType === 'smk'}
+                                    onClick={() => setJenjang('smk')}
+                                    aria-pressed={jenjang === 'smk'}
                                     className={`flex flex-1 items-center justify-center gap-2 py-3 font-medium transition focus:ring-2 focus:ring-red-600 focus:outline-none ${
-                                        schoolType === 'smk'
+                                        jenjang === 'smk'
                                             ? 'bg-red-600 text-white'
                                             : 'bg-gray-100 hover:bg-gray-200'
                                     }`}
@@ -113,7 +113,7 @@ export default function Pendaftaran() {
 
                             {/* Form Fields */}
                             <form className="space-y-5" onSubmit={handleSubmit}>
-                                {schoolType === 'university' ? (
+                                {jenjang === 'Universitas' ? (
                                     <div className="grid gap-4 md:grid-cols-2">
                                         <div>
                                             <label

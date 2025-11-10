@@ -38,7 +38,6 @@ class PesertaProfile extends Model
         'cv',
         'surat_pengantar',
         'sertifikat_pendukung',
-        'temp_data_magang',
     ];
 
     protected $casts = [
@@ -48,7 +47,6 @@ class PesertaProfile extends Model
         'diterima_pada' => 'date',
         'pengalaman' => 'array',
         'sertifikat_pendukung' => 'array',
-        'temp_data_magang' => 'array',
     ];
 
     // Existing relationship

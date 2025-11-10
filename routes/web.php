@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+use App\Http\Controllers\PendaftaranController;
+
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
@@ -24,9 +26,7 @@ Route::get('/waitingroom-pendaftaran', function () {
     return Inertia::render('tungguakun');
 })->name('tungguakun');
 
-Route::get('/Pendaftaran', function () {
-    return Inertia::render('pendaftaran');
-})->name('pendaftaran');
+Route::get('/pendaftaran', [PendaftaranController::class, 'index'])->name('pendaftaran');
 
 
 require __DIR__.'/settings.php';

@@ -39,17 +39,17 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Absensi Mahasiswa',
-        href: '#',
+        href: '/absen-mahasiswa',
         icon: Clock,
     },
     {
         title: 'Logbook Mahasiswa',
-        href: '#',
+        href: '/logbook-mahasiswa',
         icon: NotebookText,
     },
     {
         title: 'Penilaian & Sertifikat',
-        href: '#',
+        href: '/penilaian-dan-sertifikat',
         icon: NotebookPen,
     },
     {

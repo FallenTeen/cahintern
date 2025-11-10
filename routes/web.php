@@ -28,6 +28,17 @@ Route::get('/waitingroom-pendaftaran', function () {
 
 Route::get('/pendaftaran', [PendaftaranController::class, 'index'])->name('pendaftaran');
 
+Route::get('/absen-mahasiswa', function () {
+    return Inertia::render('absenMahasiswa');
+})->name('absenMahasiswa');
+
+Route::get('/logbook-mahasiswa', function () {
+    return Inertia::render('logbookMahasiswa');
+})->name('logbookMahasiswa');
+
+Route::get('/penilaian-dan-sertifikat', function () {
+    return Inertia::render('penilaianDanSertifikat');
+})->name('penilaianDanSertifikat');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

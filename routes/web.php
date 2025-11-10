@@ -24,9 +24,10 @@ Route::get('/waitingroom-pendaftaran', function () {
     return Inertia::render('tungguakun');
 })->name('tungguakun');
 
-Route::get('/Pendaftaran', function () {
-    return Inertia::render('pendaftaran');
-})->name('pendaftaran');
+Route::get('/DataPendaftaran', function () {
+    return Inertia::render('dataPendaftaran');
+})->name('dataPendaftaran');
+
 
 
 require __DIR__.'/settings.php';

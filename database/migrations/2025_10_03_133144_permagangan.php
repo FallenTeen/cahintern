@@ -4,14 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
+return new class extends Migration {
     public function up(): void
     {
-        Schema::create('bidang_magang', function (Blueprint $table) {
+        Schema::create('bidang_magangs', function (Blueprint $table) {
             $table->id();
             $table->string('nama_bidang');
             $table->text('deskripsi')->nullable();
@@ -26,82 +22,92 @@ return new class extends Migration
             $table->index(['is_active', 'slug']);
         });
 
-        Schema::create('pengajuan_magang', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('bidang_magang_id')->constrained('bidang_magang')->onDelete('cascade');
-            $table->date('tanggal_mulai');
-            $table->date('tanggal_selesai');
-            $table->text('tujuan_bidang_magang')->nullable();
-
-            $table->string('surat_pengajuan')->nullable();
-            $table->string('surat_rekomendasi')->nullable();
-            $table->string('cv')->nullable();
-            $table->json('dokumen_lain')->nullable();
-
-            $table->enum('status', ['pending', 'approved', 'rejected', 'completed', 'cancelled'])->default('pending');
-            $table->text('catatan_admin')->nullable();
-            $table->timestamp('approved_at')->nullable();
-            $table->foreignId('approved_by')->nullable()->constrained('users');
-            
-            $table->timestamps();
-            $table->softDeletes();
-            $table->index(['status', 'approved_at','bidang_magang_id']);
+        // Dibikin disini ben lancar wkwkwk
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreignId('bidang_magang_id')->nullable()->constrained('bidang_magangs')->onDelete('set null');
         });
 
-        Schema::create('absensi', function (Blueprint $table) {
+        Schema::table('peserta_profiles', function (Blueprint $table) {
+            $table->foreignId('bidang_magang_id')->nullable()->constrained('bidang_magangs')->onDelete('set null');
+        });
+
+        Schema::create('absensis', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pengajuan_magang_id')->constrained('pengajuan_magang')->onDelete('cascade');
+            $table->foreignId('peserta_profile_id')->constrained('peserta_profiles')->onDelete('cascade');
             $table->date('tanggal');
-            $table->time('jam_masuk')->nullable();
-            $table->time('jam_keluar')->nullable();
-            $table->enum('status', ['hadir', 'izin', 'sakit', 'alpha'])->default('hadir');
+            $table->dateTime('jam_masuk')->nullable();
+            $table->dateTime('jam_keluar')->nullable();
+            $table->enum('status', ['hadir', 'izin', 'sakit', 'alpha', 'terlambat'])->default('hadir');
             $table->text('keterangan')->nullable();
-            $table->boolean('is_verified')->default(false);
-           
+
+            $table->string('foto_masuk')->nullable();
+            $table->string('foto_keluar')->nullable();
+            $table->string('lokasi_masuk')->nullable();
+            $table->string('lokasi_keluar')->nullable();
+            $table->foreignId('disetujui_oleh')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('disetujui_pada')->nullable();
+
             $table->timestamps();
-            $table->unique(['pengajuan_magang_id', 'tanggal']);
+
+            $table->unique(['peserta_profile_id', 'tanggal']);
             $table->index(['tanggal']);
         });
 
-        Schema::create('logbook', function (Blueprint $table) {
+        Schema::create('logbooks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pengajuan_magang_id')->constrained('pengajuan_magang')->onDelete('cascade');
+            $table->foreignId('peserta_profile_id')->constrained('peserta_profiles')->onDelete('cascade');
             $table->date('tanggal');
-            $table->text('kegiatan');
-            $table->string('dokumentasi')->nullable();
-            $table->boolean('is_approved')->default(false);
-            $table->text('catatan_pembimbing')->nullable();
-            $table->timestamp('approved_at')->nullable();
-            $table->timestamps();
+            $table->string('kegiatan');
+            $table->text('deskripsi')->nullable();
 
+            $table->dateTime('jam_mulai')->nullable();
+            $table->dateTime('jam_selesai')->nullable();
+
+            $table->enum('status', ['pending', 'disetujui', 'ditolak', 'revision'])->default('pending');
+
+            $table->string('dokumentasi')->nullable();
+            $table->text('catatan_pembimbing')->nullable();
+            $table->foreignId('disetujui_oleh')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('disetujui_pada')->nullable();
+
+            $table->text('masalah')->nullable();
+            $table->text('solusi')->nullable();
+
+            $table->timestamps();
             $table->softDeletes();
-            $table->index(['pengajuan_magang_id', 'tanggal']);
+            $table->index(['peserta_profile_id', 'tanggal']);
         });
 
-        Schema::create('penilaian_akhir', function (Blueprint $table) {
+        Schema::create('penilaian_akhirs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pengajuan_magang_id')->constrained('pengajuan_magang')->onDelete('cascade');
+            $table->foreignId('peserta_profile_id')->constrained('peserta_profiles')->onDelete('cascade');
+            $table->date('tanggal_penilaian')->nullable();
             $table->integer('nilai_disiplin')->nullable();
             $table->integer('nilai_kerjasama')->nullable();
             $table->integer('nilai_inisiatif')->nullable();
+            $table->integer('nilai_komunikasi')->nullable();
+            $table->integer('nilai_teknis')->nullable();
+            $table->integer('nilai_kreativitas')->nullable();
             $table->integer('nilai_tanggung_jawab')->nullable();
-            $table->integer('nilai_keahlian')->nullable();
-            $table->decimal('nilai_akhir', 5, 2)->nullable();
+            $table->integer('nilai_kehadiran')->nullable();
+            $table->decimal('nilai_total', 5, 2)->nullable();
             $table->enum('predikat', ['A', 'B', 'C', 'D', 'E'])->nullable();
 
-            $table->text('kelebihan')->nullable();
-            $table->text('kekurangan')->nullable();
-            $table->text('saran')->nullable();
+            $table->text('komentar')->nullable();
+            $table->text('rekomendasi')->nullable();
+            $table->enum('status', ['pending', 'disetujui', 'ditolak', 'ditahan'])->nullable();
+
+            $table->foreignId('disetujui_oleh')->nullable()->constrained('users')->onDelete('set null');
+            $table->date('disetujui_pada')->nullable();
             $table->text('catatan')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
         });
 
-        Schema::create('sertifikat', function (Blueprint $table) {
+        Schema::create('sertifikats', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pengajuan_magang_id')->constrained('pengajuan_magang')->onDelete('cascade');
+            $table->foreignId('peserta_profile_id')->constrained('peserta_profiles')->onDelete('cascade');
             $table->string('nomor_sertifikat')->unique();
             $table->string('file_path')->nullable();
             $table->date('tanggal_terbit');
@@ -111,16 +117,25 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+
+
     public function down(): void
     {
-        Schema::dropIfExists('absensi');
-        Schema::dropIfExists('pengajuan_magang');
-        Schema::dropIfExists('bidang_magang');
-        Schema::dropIfExists('logbook');
-        Schema::dropIfExists('penilaian_akhir');
-        Schema::dropIfExists('sertifikat');
+        Schema::dropIfExists('sertifikats');
+        Schema::dropIfExists('penilaian_akhirs');
+        Schema::dropIfExists('logbooks');
+        Schema::dropIfExists('absensis');
+
+        Schema::table('peserta_profiles', function (Blueprint $table) {
+            $table->dropForeign(['bidang_magang_id']);
+            $table->dropColumn('bidang_magang_id');
+        });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['bidang_magang_id']);
+            $table->dropColumn('bidang_magang_id');
+        });
+
+        Schema::dropIfExists('bidang_magangs');
     }
 };

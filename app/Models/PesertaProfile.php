@@ -12,213 +12,170 @@ class PesertaProfile extends Model
 
     protected $fillable = [
         'user_id',
-        'nim',
+        'bidang_magang_id',
+        'jenis_peserta',
+        'nim_nisn',
+        'asal_instansi',
         'jurusan',
-        'universitas',
-        'semester',
-        'ipk',
-        'cv',
-        'surat_pengantar',
-        'foto',
+        'semester_kelas',
         'alamat',
+        'kota',
+        'provinsi',
         'tanggal_lahir',
         'jenis_kelamin',
-        'no_hp',
-        'emergency_contact',
-        'emergency_phone',
-        'skills',
-        'motivasi',
+        'nama_pembimbing_sekolah',
+        'no_hp_pembimbing_sekolah',
+
+        'diterima_pada',
+        'diterima_oleh',
+        'alasan_tolak',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'catatan_admin',
+
         'pengalaman',
+
+        'cv',
+        'surat_pengantar',
         'sertifikat_pendukung',
+        'temp_data_magang',
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
-        'skills' => 'array',
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+        'diterima_pada' => 'date',
         'pengalaman' => 'array',
         'sertifikat_pendukung' => 'array',
+        'temp_data_magang' => 'array',
     ];
 
-    /**
-     * Relationship: PesertaProfile belongs to User
-     */
+    // Existing relationship
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get age from tanggal_lahir
-     */
-    public function getAgeAttribute(): int
+    // NEW: Add these relationships
+    public function bidangMagang()
     {
-        return $this->tanggal_lahir ? Carbon::parse($this->tanggal_lahir)->age : 0;
+        return $this->belongsTo(BidangMagang::class);
     }
 
-    /**
-     * Get CV URL
-     */
-    public function getCvUrlAttribute(): ?string
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'diterima_oleh');
+    }
+
+    // NEW: Relationships to child tables
+    public function absensi()
+    {
+        return $this->hasMany(Absensi::class);
+    }
+
+    public function logbook()
+    {
+        return $this->hasMany(Logbook::class);
+    }
+
+    public function penilaianAkhir()
+    {
+        return $this->hasOne(PenilaianAkhir::class);
+    }
+
+    public function sertifikat()
+    {
+        return $this->hasOne(Sertifikat::class);
+    }
+
+    // Existing methods
+    public function getCv(): ?string
     {
         return $this->cv ? asset('storage/' . $this->cv) : null;
     }
 
-    /**
-     * Get surat pengantar URL
-     */
-    public function getSuratPengantarUrlAttribute(): ?string
+    public function getSuratPengantar(): ?string
     {
         return $this->surat_pengantar ? asset('storage/' . $this->surat_pengantar) : null;
     }
 
-    /**
-     * Get foto URL
-     */
-    public function getFotoUrlAttribute(): ?string
-    {
-        return $this->foto ? asset('storage/' . $this->foto) : null;
-    }
-
-    /**
-     * Get formatted IPK
-     */
-    public function getFormattedIpkAttribute(): string
-    {
-        return number_format($this->ipk, 2);
-    }
-
-    /**
-     * Get full name from user relationship
-     */
-    public function getFullNameAttribute(): string
-    {
-        return $this->user->name ?? '';
-    }
-
-    /**
-     * Get email from user relationship
-     */
-    public function getEmailAttribute(): string
+    public function getEmail(): string
     {
         return $this->user->email ?? '';
     }
 
-    /**
-     * Check if profile is complete
-     */
-    public function isComplete(): bool
+    public function isActive(): bool
     {
-        $requiredFields = [
-            'nim', 'jurusan', 'universitas', 'semester', 'ipk',
-            'cv', 'surat_pengantar', 'foto', 'alamat', 'tanggal_lahir',
-            'jenis_kelamin', 'no_hp', 'emergency_contact', 'emergency_phone'
-        ];
-
-        foreach ($requiredFields as $field) {
-            if (empty($this->$field)) {
-                return false;
-            }
+        if (!$this->tanggal_mulai || !$this->tanggal_selesai) {
+            return false;
         }
 
-        return true;
+        $now = Carbon::now();
+        return $now->between($this->tanggal_mulai, $this->tanggal_selesai);
     }
 
-    /**
-     * Get completion percentage
-     */
-    public function getCompletionPercentage(): int
+    public function isCompleted(): bool
     {
-        $requiredFields = [
-            'nim', 'jurusan', 'universitas', 'semester', 'ipk',
-            'cv', 'surat_pengantar', 'foto', 'alamat', 'tanggal_lahir',
-            'jenis_kelamin', 'no_hp', 'emergency_contact', 'emergency_phone',
-            'skills', 'motivasi'
-        ];
-
-        $completedFields = 0;
-        foreach ($requiredFields as $field) {
-            if (!empty($this->$field)) {
-                $completedFields++;
-            }
+        if (!$this->tanggal_selesai) {
+            return false;
         }
 
-        return round(($completedFields / count($requiredFields)) * 100);
+        return Carbon::now()->gt($this->tanggal_selesai);
     }
 
-    /**
-     * Get missing required fields
-     */
-    public function getMissingFields(): array
+    public function getStatus(): string
     {
-        $requiredFields = [
-            'nim' => 'NIM',
-            'jurusan' => 'Jurusan',
-            'universitas' => 'Universitas',
-            'semester' => 'Semester',
-            'ipk' => 'IPK',
-            'cv' => 'CV',
-            'surat_pengantar' => 'Surat Pengantar',
-            'foto' => 'Foto',
-            'alamat' => 'Alamat',
-            'tanggal_lahir' => 'Tanggal Lahir',
-            'jenis_kelamin' => 'Jenis Kelamin',
-            'no_hp' => 'No HP',
-            'emergency_contact' => 'Kontak Darurat',
-            'emergency_phone' => 'Telepon Darurat'
-        ];
-
-        $missingFields = [];
-        foreach ($requiredFields as $field => $label) {
-            if (empty($this->$field)) {
-                $missingFields[] = $label;
-            }
+        if (!$this->diterima_pada) {
+            return 'pending';
         }
 
-        return $missingFields;
+        if ($this->isCompleted()) {
+            return 'selesai';
+        }
+
+        if ($this->isActive()) {
+            return 'aktif';
+        }
+
+        if ($this->tanggal_mulai && Carbon::now()->lt($this->tanggal_mulai)) {
+            return 'diterima';
+        }
+
+        return 'pending';
     }
 
-    /**
-     * Scope: Complete profiles only
-     */
-    public function scopeComplete($query)
+    public function scopeActive($query)
     {
-        return $query->whereNotNull('nim')
-            ->whereNotNull('jurusan')
-            ->whereNotNull('universitas')
-            ->whereNotNull('semester')
-            ->whereNotNull('ipk')
-            ->whereNotNull('cv')
-            ->whereNotNull('surat_pengantar')
-            ->whereNotNull('foto')
-            ->whereNotNull('alamat')
-            ->whereNotNull('tanggal_lahir')
-            ->whereNotNull('jenis_kelamin')
-            ->whereNotNull('no_hp')
-            ->whereNotNull('emergency_contact')
-            ->whereNotNull('emergency_phone');
+        return $query->whereNotNull('tanggal_mulai')
+            ->whereNotNull('tanggal_selesai')
+            ->whereDate('tanggal_mulai', '<=', Carbon::now())
+            ->whereDate('tanggal_selesai', '>=', Carbon::now());
     }
 
-    /**
-     * Scope: Filter by university
-     */
-    public function scopeByUniversity($query, $university)
+    public function scopeCompleted($query)
     {
-        return $query->where('universitas', 'like', '%' . $university . '%');
+        return $query->whereNotNull('tanggal_selesai')
+            ->whereDate('tanggal_selesai', '<', Carbon::now());
     }
 
-    /**
-     * Scope: Filter by jurusan
-     */
-    public function scopeByJurusan($query, $jurusan)
+    public function scopeApproved($query)
     {
-        return $query->where('jurusan', 'like', '%' . $jurusan . '%');
+        return $query->whereNotNull('diterima_pada');
     }
 
-    /**
-     * Scope: Filter by minimum IPK
-     */
-    public function scopeMinimumIpk($query, $minIpk)
+    public function scopePending($query)
     {
-        return $query->where('ipk', '>=', $minIpk);
+        return $query->whereNull('diterima_pada');
+    }
+
+    public function scopeByUniversitas($query, $university)
+    {
+        return $query->where('asal_instansi', 'like', '%' . $university . '%');
+    }
+
+    public function scopeByBidang($query, $bidangId)
+    {
+        return $query->where('bidang_magang_id', $bidangId);
     }
 }

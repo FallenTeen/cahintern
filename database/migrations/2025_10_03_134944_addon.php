@@ -16,13 +16,12 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('judul');
             $table->text('pesan');
-            $table->string('type')->default('info'); // info, success, warning, danger
-            $table->string('link')->nullable();
-            $table->boolean('is_read')->default(false);
-            $table->timestamp('read_at')->nullable();
+            $table->string('tipe')->default('info'); // info, success, warning, danger
+            $table->boolean('dibaca')->default(false);
+            $table->timestamp('dibaca_pada')->nullable();
             $table->timestamps();
-            
-            $table->index(['user_id', 'is_read']);
+
+            $table->index(['user_id', 'dibaca']);
         });
     }
 

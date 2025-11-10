@@ -76,9 +76,9 @@ class BidangMagang extends Model
     {
         return $query->where('is_active', true)
             ->whereRaw('(SELECT COUNT(*) FROM peserta_profiles
-                WHERE peserta_profiles.bidang_magang_id = bidang_magang.id
+                WHERE peserta_profiles.bidang_magang_id = bidang_magangs.id
                 AND peserta_profiles.diterima_pada IS NOT NULL
                 AND peserta_profiles.tanggal_mulai <= NOW()
-                AND peserta_profiles.tanggal_selesai >= NOW()) < bidang_magang.kuota');
+                AND peserta_profiles.tanggal_selesai >= NOW()) < bidang_magangs.kuota');
     }
 }

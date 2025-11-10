@@ -3,27 +3,37 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+use App\Http\Controllers\PendaftaranController;
+
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
-
-Route::get('/pendaftaran', function () {
-    return Inertia::render('pendaftaran');
-})->name('pendaftaran');
 
 Route::get('/tentang', function () {
     return Inertia::render('tentang');
 })->name('tentang');
 
-Route::middleware(['auth', 'verified','bukancalonpeserta'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+Route::prefix('pendaftaran')->name('pendaftaran.')->group(function () {
+    Route::get('/', [PendaftaranController::class, 'index'])->name('index');
+    Route::post('/', [PendaftaranController::class, 'store'])->name('store');
+    Route::get('/bidang', [PendaftaranController::class, 'getBidangMagang'])->name('bidang');
+    Route::get('/menunggu-verifikasi', [PendaftaranController::class, 'waitingRoom'])->name('tunggu');
+    Route::post('/cek-status', [PendaftaranController::class, 'checkStatus'])->name('cek-status');
 });
+
 Route::get('/waitingroom-pendaftaran', function () {
-    return Inertia::render('tungguakun');
+    return redirect()->route('pendaftaran.tunggu');
 })->name('tungguakun');
 
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::middleware('bukancalonpeserta')->group(function () {
+        Route::get('dashboard', function () {
+            return Inertia::render('dashboard');
+        })->name('dashboard');
+    });
+
+});
 Route::get('/DataPendaftaran', function () {
     return Inertia::render('dataPendaftaran');
 })->name('dataPendaftaran');

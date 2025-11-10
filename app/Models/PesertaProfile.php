@@ -9,6 +9,7 @@ use Carbon\Carbon;
 class PesertaProfile extends Model
 {
     use HasFactory;
+    protected $table = 'peserta_profiles';
 
     protected $fillable = [
         'user_id',
@@ -38,7 +39,6 @@ class PesertaProfile extends Model
         'cv',
         'surat_pengantar',
         'sertifikat_pendukung',
-        'temp_data_magang',
     ];
 
     protected $casts = [
@@ -48,16 +48,13 @@ class PesertaProfile extends Model
         'diterima_pada' => 'date',
         'pengalaman' => 'array',
         'sertifikat_pendukung' => 'array',
-        'temp_data_magang' => 'array',
     ];
 
-    // Existing relationship
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // NEW: Add these relationships
     public function bidangMagang()
     {
         return $this->belongsTo(BidangMagang::class);
@@ -68,7 +65,6 @@ class PesertaProfile extends Model
         return $this->belongsTo(User::class, 'diterima_oleh');
     }
 
-    // NEW: Relationships to child tables
     public function absensi()
     {
         return $this->hasMany(Absensi::class);
@@ -89,7 +85,6 @@ class PesertaProfile extends Model
         return $this->hasOne(Sertifikat::class);
     }
 
-    // Existing methods
     public function getCv(): ?string
     {
         return $this->cv ? asset('storage/' . $this->cv) : null;

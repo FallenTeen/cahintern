@@ -6,26 +6,19 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { ChevronDown, FileText, School, University } from 'lucide-react';
+import { ChevronDownIcon, FileText, School, University, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import FooterSection from './LandingPage/FooterSection';
 import Header from './LandingPage/Header';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { router } from '@inertiajs/react';
 
 const DatePicker = ({ id, label, date, setDate }) => {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
     return (
-        <div className="flex flex-col gap-1.5">
-            <Label htmlFor={id} className="font-medium text-gray-700">
+        <div className="flex flex-col gap-1 mt-3">
+            <Label htmlFor={id} className="font-medium">
                 {label}
             </Label>
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
@@ -33,7 +26,7 @@ const DatePicker = ({ id, label, date, setDate }) => {
                     <Button
                         variant="outline"
                         id={id}
-                        className="w-full justify-between text-left font-normal h-10"
+                        className="w-full justify-between text-left font-normal"
                     >
                         {date
                             ? date.toLocaleDateString('id-ID', {
@@ -42,7 +35,7 @@ const DatePicker = ({ id, label, date, setDate }) => {
                                   year: 'numeric',
                               })
                             : 'Pilih tanggal'}
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent
@@ -65,289 +58,595 @@ const DatePicker = ({ id, label, date, setDate }) => {
     );
 };
 
-export default function Pendaftaran() {
-    const [schoolType, setSchoolType] = useState<'university' | 'smk'>(
-        'university',
-    );
+export default function Pendaftaran({ bidangMagang = [] }) {
+    const [jenjang, setJenjang] = useState<'universitas' | 'smk'>('universitas');
+    const [formData, setFormData] = useState({
+        nim: '',
+        nama_univ: '',
+        jurusan: '',
+        semester: '',
+        nis: '',
+        nama_sekolah: '',
+        kelas: '',
 
-    const [dob, setDob] = useState<Date | undefined>(undefined);
-    const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-    const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+        nama_lengkap: '',
+        email: '',
+        phone: '',
+        tempat_lahir: '',
+        tanggal_lahir: undefined as Date | undefined,
+        jenis_kelamin: '',
+        alamat: '',
+        kota: '',
+        provinsi: '',
 
-    const handleSubmit = (e: { preventDefault: () => void }) => {
+        nama_pembimbing: '',
+        no_hp_pembimbing: '',
+
+        bidang_magang_id: '',
+        tanggal_mulai: undefined as Date | undefined,
+        tanggal_selesai: undefined as Date | undefined,
+
+        cv: null as File | null,
+        surat_pengantar: null as File | null,
+    });
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { id, value } = e.target;
+        setFormData(prev => ({ ...prev, [id]: value }));
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'cv' | 'surat_pengantar') => {
+        const file = e.target.files?.[0] || null;
+        setFormData(prev => ({ ...prev, [field]: file }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        alert('Form Submitted (Data masih belum dikirim)');
+
+        const data = new FormData();
+
+        data.append('jenjang', jenjang);
+
+        if (jenjang === 'universitas') {
+            data.append('nim', formData.nim);
+            data.append('nama_univ', formData.nama_univ);
+            data.append('jurusan', formData.jurusan);
+            data.append('semester', formData.semester);
+        } else {
+            data.append('nis', formData.nis);
+            data.append('nama_sekolah', formData.nama_sekolah);
+            data.append('kelas', formData.kelas);
+            data.append('nama_pembimbing', formData.nama_pembimbing);
+            data.append('no_hp_pembimbing', formData.no_hp_pembimbing);
+        }
+
+        data.append('nama_lengkap', formData.nama_lengkap);
+        data.append('email', formData.email);
+        data.append('phone', formData.phone);
+        data.append('tempat_lahir', formData.tempat_lahir);
+        data.append('alamat', formData.alamat);
+        data.append('kota', formData.kota);
+        data.append('provinsi', formData.provinsi);
+        data.append('jenis_kelamin', formData.jenis_kelamin);
+
+        if (formData.tanggal_lahir) {
+            data.append('tanggal_lahir', formData.tanggal_lahir.toISOString().split('T')[0]);
+        }
+
+        data.append('bidang_magang_id', formData.bidang_magang_id);
+
+        if (formData.tanggal_mulai) {
+            data.append('tanggal_mulai', formData.tanggal_mulai.toISOString().split('T')[0]);
+        }
+
+        if (formData.tanggal_selesai) {
+            data.append('tanggal_selesai', formData.tanggal_selesai.toISOString().split('T')[0]);
+        }
+
+        if (formData.cv) {
+            data.append('cv', formData.cv);
+        }
+
+        if (formData.surat_pengantar) {
+            data.append('surat_pengantar', formData.surat_pengantar);
+        }
+
+        router.post('/pendaftaran', data);
     };
 
     return (
-        <div className="min-h-screen bg-white">
-            {/* Header */}
-            <div className="w-full px-4 py-6 md:py-8">
+        <section className="bg-white py-8 text-gray-900">
+            <div className="mx-auto mt-8 flex w-full flex-col items-center gap-12 px-4">
                 <Header />
-            </div>
 
-            {/* Main Content */}
-            <div className="w-full px-4 py-6 md:py-12">
-                <div className="mx-auto max-w-4xl">
-                    {/* Card Container */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-lg md:p-8">
-                        {/* Tabs */}
-                        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:gap-0 overflow-hidden rounded-lg border border-gray-200">
-                            <button
-                                type="button"
-                                onClick={() => setSchoolType('university')}
-                                aria-pressed={schoolType === 'university'}
-                                className={`flex flex-1 items-center justify-center gap-2 py-3 px-4 font-medium transition-colors focus:ring-2 focus:ring-red-600 focus:outline-none ${
-                                    schoolType === 'university'
-                                        ? 'bg-red-600 text-white'
-                                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                <University className="h-5 w-5" />
-                                <span className="text-sm md:text-base">Universitas</span>
-                            </button>
+                <div className="relative mx-auto mt-8 w-full px-4 pb-16">
+                    <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-lg">
+                        <div className="mx-auto w-full rounded-2xl bg-white sm:px-8 sm:py-6 lg:px-32 lg:py-10">
+                            <h1 className="text-3xl font-bold text-center mb-2 text-gray-900">
+                                Formulir Pendaftaran Magang
+                            </h1>
+                            <p className="text-center text-gray-600 mb-8">
+                                Silakan lengkapi data berikut untuk mendaftar program magang
+                            </p>
 
-                            <button
-                                type="button"
-                                onClick={() => setSchoolType('smk')}
-                                aria-pressed={schoolType === 'smk'}
-                                className={`flex flex-1 items-center justify-center gap-2 py-3 px-4 font-medium transition-colors focus:ring-2 focus:ring-red-600 focus:outline-none ${
-                                    schoolType === 'smk'
-                                        ? 'bg-red-600 text-white'
-                                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                <School className="h-5 w-5" />
-                                <span className="text-sm md:text-base">SMK</span>
-                            </button>
-                        </div>
-
-                        {/* Form */}
-                        <div className="space-y-5">
-                            {/* Student ID & School Name */}
-                            {schoolType === 'university' ? (
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div>
-                                        <label
-                                            htmlFor="nim"
-                                            className="mb-1.5 block text-sm font-medium text-gray-700"
-                                        >
-                                            NIM (Nomor Induk Mahasiswa)
-                                        </label>
-                                        <input
-                                            id="nim"
-                                            type="text"
-                                            placeholder="Masukan NIM"
-                                            className="w-full h-10 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            htmlFor="nama-univ"
-                                            className="mb-1.5 block text-sm font-medium text-gray-700"
-                                        >
-                                            Nama Universitas
-                                        </label>
-                                        <input
-                                            id="nama-univ"
-                                            type="text"
-                                            placeholder="Masukan nama universitas"
-                                            className="w-full h-10 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div>
-                                        <label
-                                            htmlFor="nis"
-                                            className="mb-1.5 block text-sm font-medium text-gray-700"
-                                        >
-                                            NIS (Nomor Induk Siswa)
-                                        </label>
-                                        <input
-                                            id="nis"
-                                            type="text"
-                                            placeholder="Masukan NIS"
-                                            className="w-full h-10 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label
-                                            htmlFor="nama-sekolah"
-                                            className="mb-1.5 block text-sm font-medium text-gray-700"
-                                        >
-                                            Nama Sekolah
-                                        </label>
-                                        <input
-                                            id="nama-sekolah"
-                                            type="text"
-                                            placeholder="Masukan nama sekolah"
-                                            className="w-full h-10 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Full Name */}
-                            <div>
-                                <label
-                                    htmlFor="nama-lengkap"
-                                    className="mb-1.5 block text-sm font-medium text-gray-700"
+                            <div className="mb-8 flex overflow-hidden rounded-lg border shadow-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setJenjang('universitas')}
+                                    aria-pressed={jenjang === 'universitas'}
+                                    className={`flex flex-1 items-center justify-center gap-2 py-4 font-semibold transition-all focus:ring-2 focus:ring-red-600 focus:outline-none ${
+                                        jenjang === 'universitas'
+                                            ? 'bg-red-600 text-white shadow-md'
+                                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                    }`}
                                 >
-                                    Nama Lengkap
-                                </label>
-                                <input
-                                    id="nama-lengkap"
-                                    type="text"
-                                    placeholder="Masukan nama lengkap"
-                                    className="w-full h-10 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none"
-                                    required
-                                />
+                                    <University className="h-5 w-5" />
+                                    <span>Universitas</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setJenjang('smk')}
+                                    aria-pressed={jenjang === 'smk'}
+                                    className={`flex flex-1 items-center justify-center gap-2 py-4 font-semibold transition-all focus:ring-2 focus:ring-red-600 focus:outline-none ${
+                                        jenjang === 'smk'
+                                            ? 'bg-red-600 text-white shadow-md'
+                                            : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    <School className="h-5 w-5" />
+                                    <span>SMK</span>
+                                </button>
                             </div>
 
-                            {/* Birth Info */}
-                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                <div>
-                                    <label
-                                        htmlFor="tempat-lahir"
-                                        className="mb-1.5 block text-sm font-medium text-gray-700"
-                                    >
-                                        Tempat Lahir
-                                    </label>
-                                    <input
-                                        id="tempat-lahir"
-                                        type="text"
-                                        placeholder="Kota"
-                                        className="w-full h-10 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-red-600 focus:border-red-600 focus:outline-none"
-                                        required
-                                    />
-                                </div>
+                            <form className="space-y-6" onSubmit={handleSubmit}>
+                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                    <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                                        Data Institusi
+                                    </h2>
 
-                                <DatePicker
-                                    id="tanggal-lahir"
-                                    label="Tanggal Lahir"
-                                    date={dob}
-                                    setDate={setDob}
-                                />
-
-                                <div className="flex flex-col gap-1.5">
-                                    <label
-                                        htmlFor="jenis-kelamin"
-                                        className="text-sm font-medium text-gray-700"
-                                    >
-                                        Jenis Kelamin
-                                    </label>
-                                    <Select>
-                                        <SelectTrigger
-                                            id="jenis-kelamin"
-                                            className="w-full h-10"
-                                        >
-                                            <SelectValue placeholder="Pilih Jenis Kelamin" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                <SelectLabel>
-                                                    Jenis Kelamin
-                                                </SelectLabel>
-                                                <SelectItem value="P">
-                                                    Perempuan
-                                                </SelectItem>
-                                                <SelectItem value="L">
-                                                    Laki-laki
-                                                </SelectItem>
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            {/* Internship Dates */}
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <DatePicker
-                                    id="tgl-mulai"
-                                    label="Tanggal Mulai Magang"
-                                    date={startDate}
-                                    setDate={setStartDate}
-                                />
-
-                                <DatePicker
-                                    id="tgl-selesai"
-                                    label="Tanggal Selesai Magang"
-                                    date={endDate}
-                                    setDate={setEndDate}
-                                />
-                            </div>
-
-                            {/* File Uploads */}
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="rounded-lg border-2 border-dashed border-red-300 bg-red-50/30 p-6 text-center transition hover:border-red-400 hover:bg-red-50/50">
-                                    <label
-                                        htmlFor="upload-cv"
-                                        className="cursor-pointer"
-                                    >
-                                        <div className="flex flex-col items-center">
-                                            <FileText className="mb-2 h-8 w-8 text-red-500" />
-                                            <p className="text-sm text-gray-600">
-                                                Upload <span className="font-semibold text-gray-800">CV</span>
-                                            </p>
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                PDF only
-                                            </p>
+                                    {jenjang === 'universitas' ? (
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div>
+                                                <label htmlFor="nim" className="mb-2 block font-medium text-gray-700">
+                                                    NIM (Nomor Induk Mahasiswa) <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="nim"
+                                                    type="text"
+                                                    placeholder="Contoh: 1234567890"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.nim}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="nama_univ" className="mb-2 block font-medium text-gray-700">
+                                                    Nama Universitas <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="nama_univ"
+                                                    type="text"
+                                                    placeholder="Contoh: Universitas Indonesia"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.nama_univ}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="jurusan" className="mb-2 block font-medium text-gray-700">
+                                                    Jurusan/Program Studi <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="jurusan"
+                                                    type="text"
+                                                    placeholder="Contoh: Teknik Informatika"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.jurusan}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="semester" className="mb-2 block font-medium text-gray-700">
+                                                    Semester <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="semester"
+                                                    type="number"
+                                                    min="1"
+                                                    max="14"
+                                                    placeholder="Contoh: 5"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.semester}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
                                         </div>
-                                        <input
-                                            id="upload-cv"
-                                            type="file"
-                                            accept="application/pdf"
-                                            className="hidden"
-                                            required
-                                        />
-                                    </label>
-                                </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                                <div>
+                                                    <label htmlFor="nis" className="mb-2 block font-medium text-gray-700">
+                                                        NIS (Nomor Induk Siswa) <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        id="nis"
+                                                        type="text"
+                                                        placeholder="Contoh: 1234567890"
+                                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                        value={formData.nis}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label htmlFor="nama_sekolah" className="mb-2 block font-medium text-gray-700">
+                                                        Nama Sekolah <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        id="nama_sekolah"
+                                                        type="text"
+                                                        placeholder="Contoh: SMK Negeri 1 Jakarta"
+                                                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                        value={formData.nama_sekolah}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label htmlFor="kelas" className="mb-2 block font-medium text-gray-700">
+                                                    Kelas <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="kelas"
+                                                    type="text"
+                                                    placeholder="Contoh: XII RPL 1"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.kelas}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
 
-                                <div className="rounded-lg border-2 border-dashed border-red-300 bg-red-50/30 p-6 text-center transition hover:border-red-400 hover:bg-red-50/50">
-                                    <label
-                                        htmlFor="upload-surat"
-                                        className="cursor-pointer"
-                                    >
-                                        <div className="flex flex-col items-center">
-                                            <FileText className="mb-2 h-8 w-8 text-red-500" />
-                                            <p className="text-sm text-gray-600">
-                                                Upload <span className="font-semibold text-gray-800">Surat Rekomendasi</span>
-                                            </p>
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                PDF only (opsional)
-                                            </p>
+                                            <div className="pt-4 border-t border-gray-200">
+                                                <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                                                    Data Pembimbing Sekolah
+                                                </h3>
+                                                <div className="grid gap-4 md:grid-cols-2">
+                                                    <div>
+                                                        <label htmlFor="nama_pembimbing" className="mb-2 block font-medium text-gray-700">
+                                                            Nama Pembimbing <span className="text-red-500">*</span>
+                                                        </label>
+                                                        <input
+                                                            id="nama_pembimbing"
+                                                            type="text"
+                                                            placeholder="Contoh: Budi Santoso, S.Pd"
+                                                            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                            value={formData.nama_pembimbing}
+                                                            onChange={handleInputChange}
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label htmlFor="no_hp_pembimbing" className="mb-2 block font-medium text-gray-700">
+                                                            No. HP Pembimbing <span className="text-red-500">*</span>
+                                                        </label>
+                                                        <input
+                                                            id="no_hp_pembimbing"
+                                                            type="tel"
+                                                            placeholder="Contoh: 081234567890"
+                                                            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                            value={formData.no_hp_pembimbing}
+                                                            onChange={handleInputChange}
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <input
-                                            id="upload-surat"
-                                            type="file"
-                                            accept="application/pdf"
-                                            className="hidden"
-                                        />
-                                    </label>
+                                    )}
                                 </div>
-                            </div>
 
-                            {/* Submit Button */}
-                            <button
-                                type="button"
-                                onClick={handleSubmit}
-                                className="w-full rounded-lg bg-red-600 py-3 font-semibold text-white transition-colors hover:bg-red-700 focus:ring-4 focus:ring-red-300 focus:outline-none"
-                            >
-                                Submit
-                            </button>
+                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                    <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                                        Data Pribadi
+                                    </h2>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label htmlFor="nama_lengkap" className="mb-2 block font-medium text-gray-700">
+                                                Nama Lengkap <span className="text-red-500">*</span>
+                                            </label>
+                                            <input
+                                                id="nama_lengkap"
+                                                type="text"
+                                                placeholder="Masukkan nama lengkap sesuai KTP"
+                                                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                value={formData.nama_lengkap}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div>
+                                                <label htmlFor="email" className="mb-2 block font-medium text-gray-700">
+                                                    Email <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="email"
+                                                    type="email"
+                                                    placeholder="nama@example.com"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.email}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="phone" className="mb-2 block font-medium text-gray-700">
+                                                    No. Telepon <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="phone"
+                                                    type="tel"
+                                                    placeholder="081234567890"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.phone}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-4 md:grid-cols-3">
+                                            <div>
+                                                <label htmlFor="tempat_lahir" className="mb-2 block font-medium text-gray-700">
+                                                    Tempat Lahir <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="tempat_lahir"
+                                                    type="text"
+                                                    placeholder="Contoh: Jakarta"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.tempat_lahir}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+
+                                            <DatePicker
+                                                id="tanggal_lahir"
+                                                label={<>Tanggal Lahir <span className="text-red-500">*</span></>}
+                                                date={formData.tanggal_lahir}
+                                                setDate={(date) => setFormData(prev => ({ ...prev, tanggal_lahir: date }))}
+                                            />
+
+                                            <div className="flex flex-col gap-1 mt-3">
+                                                <label htmlFor="jenis_kelamin" className="mb-2 block font-medium text-gray-700">
+                                                    Jenis Kelamin <span className="text-red-500">*</span>
+                                                </label>
+                                                <Select value={formData.jenis_kelamin} onValueChange={(value) => setFormData(prev => ({ ...prev, jenis_kelamin: value }))}>
+                                                    <SelectTrigger className="w-full h-11">
+                                                        <SelectValue placeholder="Pilih" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            <SelectItem value="L">Laki-laki</SelectItem>
+                                                            <SelectItem value="P">Perempuan</SelectItem>
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label htmlFor="alamat" className="mb-2 block font-medium text-gray-700">
+                                                Alamat Lengkap <span className="text-red-500">*</span>
+                                            </label>
+                                            <textarea
+                                                id="alamat"
+                                                rows={3}
+                                                placeholder="Masukkan alamat lengkap"
+                                                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition resize-none"
+                                                value={formData.alamat}
+                                                onChange={handleInputChange}
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div>
+                                                <label htmlFor="kota" className="mb-2 block font-medium text-gray-700">
+                                                    Kota <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="kota"
+                                                    type="text"
+                                                    placeholder="Contoh: Jakarta"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.kota}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label htmlFor="provinsi" className="mb-2 block font-medium text-gray-700">
+                                                    Provinsi <span className="text-red-500">*</span>
+                                                </label>
+                                                <input
+                                                    id="provinsi"
+                                                    type="text"
+                                                    placeholder="Contoh: DKI Jakarta"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:border-transparent focus:outline-none transition"
+                                                    value={formData.provinsi}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                    <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                                        Data Magang
+                                    </h2>
+
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label htmlFor="bidang_magang_id" className="mb-2 block font-medium text-gray-700">
+                                                Bidang Magang <span className="text-red-500">*</span>
+                                            </label>
+                                            <Select value={formData.bidang_magang_id} onValueChange={(value) => setFormData(prev => ({ ...prev, bidang_magang_id: value }))}>
+                                                <SelectTrigger className="w-full h-11">
+                                                    <SelectValue placeholder="Pilih bidang magang" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        <SelectLabel>Bidang Magang Tersedia</SelectLabel>
+                                                        {bidangMagang.map((bidang) => (
+                                                            <SelectItem key={bidang.id} value={bidang.id.toString()}>
+                                                                {bidang.nama_bidang} (Sisa: {bidang.slot_tersedia} slot)
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <DatePicker
+                                                id="tanggal_mulai"
+                                                label={<>Tanggal Mulai Magang <span className="text-red-500">*</span></>}
+                                                date={formData.tanggal_mulai}
+                                                setDate={(date) => setFormData(prev => ({ ...prev, tanggal_mulai: date }))}
+                                            />
+
+                                            <DatePicker
+                                                id="tanggal_selesai"
+                                                label={<>Tanggal Selesai Magang <span className="text-red-500">*</span></>}
+                                                date={formData.tanggal_selesai}
+                                                setDate={(date) => setFormData(prev => ({ ...prev, tanggal_selesai: date }))}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                                    <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                                        Upload Dokumen
+                                    </h2>
+
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <div className={`rounded-lg border-2 border-dashed p-6 text-center transition-all ${
+                                            formData.cv
+                                                ? 'border-green-400 bg-green-50'
+                                                : 'border-red-300 bg-white hover:border-red-400'
+                                        }`}>
+                                            <label htmlFor="cv" className="cursor-pointer">
+                                                <div className="flex flex-col items-center">
+                                                    {formData.cv ? (
+                                                        <>
+                                                            <CheckCircle2 className="mb-3 h-12 w-12 text-green-500" />
+                                                            <p className="text-sm font-semibold text-green-700 mb-1">
+                                                                CV Berhasil Diunggah
+                                                            </p>
+                                                            <p className="text-xs text-gray-600 break-all px-2">
+                                                                {formData.cv.name}
+                                                            </p>
+                                                            <p className="text-xs text-blue-600 mt-3 hover:underline">
+                                                                Klik untuk mengganti file
+                                                            </p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FileText className="mb-3 h-12 w-12 text-gray-400" />
+                                                            <p className="text-sm text-gray-700 mb-1">
+                                                                Klik untuk upload <b>CV</b>
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                PDF only, max 2MB
+                                                            </p>
+                                                            <span className="text-red-500 text-xs mt-1">* Wajib</span>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <input
+                                                    id="cv"
+                                                    type="file"
+                                                    accept="application/pdf"
+                                                    className="hidden"
+                                                    onChange={(e) => handleFileChange(e, 'cv')}
+                                                    required
+                                                />
+                                            </label>
+                                        </div>
+
+                                        <div className={`rounded-lg border-2 border-dashed p-6 text-center transition-all ${
+                                            formData.surat_pengantar
+                                                ? 'border-green-400 bg-green-50'
+                                                : 'border-gray-300 bg-white hover:border-gray-400'
+                                        }`}>
+                                            <label htmlFor="surat_pengantar" className="cursor-pointer">
+                                                <div className="flex flex-col items-center">
+                                                    {formData.surat_pengantar ? (
+                                                        <>
+                                                            <CheckCircle2 className="mb-3 h-12 w-12 text-green-500" />
+                                                            <p className="text-sm font-semibold text-green-700 mb-1">
+                                                                Surat Berhasil Diunggah
+                                                            </p>
+                                                            <p className="text-xs text-gray-600 break-all px-2">
+                                                                {formData.surat_pengantar.name}
+                                                            </p>
+                                                            <p className="text-xs text-blue-600 mt-3 hover:underline">
+                                                                Klik untuk mengganti file
+                                                            </p>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FileText className="mb-3 h-12 w-12 text-gray-400" />
+                                                            <p className="text-sm text-gray-700 mb-1">
+                                                                Klik untuk upload <b>Surat Pengantar</b>
+                                                            </p>
+                                                            <p className="text-xs text-gray-500">
+                                                                PDF only, max 2MB (Opsional)
+                                                            </p>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <input
+                                                    id="surat_pengantar"
+                                                    type="file"
+                                                    accept="application/pdf"
+                                                    className="hidden"
+                                                    onChange={(e) => handleFileChange(e, 'surat_pengantar')}
+                                                />
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full rounded-lg bg-red-600 py-4 font-bold text-white text-lg transition-all hover:bg-red-700 hover:shadow-lg active:scale-[0.98] focus:ring-4 focus:ring-red-300"
+                                >
+                                    Kirim Pendaftaran
+                                </button>
+
+                                <p className="text-center text-sm text-gray-500 mt-4">
+                                    <span className="text-red-500">*</span> Wajib diisi
+                                </p>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/* Footer */}
             <FooterSection />
-        </div>
+        </section>
     );
 }

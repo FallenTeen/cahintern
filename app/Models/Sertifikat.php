@@ -10,7 +10,7 @@ class Sertifikat extends Model
 {
     use HasFactory;
 
-    protected $table = 'sertifikat';
+    protected $table = 'sertifikats';
 
     protected $fillable = [
         'peserta_profile_id',

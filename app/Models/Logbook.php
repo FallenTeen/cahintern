@@ -10,7 +10,7 @@ class Logbook extends Model
 {
     use HasFactory;
 
-    protected $table = 'logbook';
+    protected $table = 'logbooks';
 
     protected $fillable = [
         'peserta_profile_id',

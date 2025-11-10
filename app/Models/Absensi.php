@@ -10,7 +10,7 @@ class Absensi extends Model
 {
     use HasFactory;
 
-    protected $table = 'absensi';
+    protected $table = 'absensis';
 
     protected $fillable = [
         'peserta_profile_id',

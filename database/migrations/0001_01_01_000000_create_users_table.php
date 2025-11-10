@@ -34,9 +34,6 @@ return new class extends Migration {
             $table->string('avatar')->nullable();
             $table->text('alasan_tolak')->nullable();
 
-            // Temporary storage untuk data magang
-            $table->json('temp_magang_data')->nullable();
-
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
@@ -61,7 +58,7 @@ return new class extends Migration {
             $table->string('no_hp_pembimbing_sekolah')->nullable();
 
             $table->date('diterima_pada')->nullable();
-            $table->foreignId('diterima_oleh')->constrained('users')->nullable();
+            $table->foreignId('diterima_oleh')->nullable()->constrained('users')->onDelete('set null');
             $table->string('alasan_tolak')->nullable();
             $table->date('tanggal_mulai')->nullable();
             $table->date('tanggal_selesai')->nullable();

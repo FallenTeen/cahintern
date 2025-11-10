@@ -50,13 +50,11 @@ class PesertaProfile extends Model
         'sertifikat_pendukung' => 'array',
     ];
 
-    // Existing relationship
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    // NEW: Add these relationships
     public function bidangMagang()
     {
         return $this->belongsTo(BidangMagang::class);
@@ -67,7 +65,6 @@ class PesertaProfile extends Model
         return $this->belongsTo(User::class, 'diterima_oleh');
     }
 
-    // NEW: Relationships to child tables
     public function absensi()
     {
         return $this->hasMany(Absensi::class);
@@ -88,7 +85,6 @@ class PesertaProfile extends Model
         return $this->hasOne(Sertifikat::class);
     }
 
-    // Existing methods
     public function getCv(): ?string
     {
         return $this->cv ? asset('storage/' . $this->cv) : null;

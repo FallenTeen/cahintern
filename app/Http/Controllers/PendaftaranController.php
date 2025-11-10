@@ -15,7 +15,7 @@ class PendaftaranController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Pendaftaran');
+        return Inertia::render('pendaftaran');
     }
 
     public function store(Request $request)

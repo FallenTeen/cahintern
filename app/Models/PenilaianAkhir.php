@@ -9,7 +9,7 @@ class PenilaianAkhir extends Model
 {
     use HasFactory;
 
-    protected $table = 'penilaian_akhir';
+    protected $table = 'penilaian_akhirs';
 
     protected $fillable = [
         'peserta_profile_id',

@@ -9,6 +9,7 @@ use Carbon\Carbon;
 class PesertaProfile extends Model
 {
     use HasFactory;
+    protected $table = 'peserta_profiles';
 
     protected $fillable = [
         'user_id',

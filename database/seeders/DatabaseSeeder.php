@@ -13,43 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Insert multiple users
+        $this->call([
+            BidangMagangSeeder::class,
+            UserSeeder::class,
 
-        User::insert([
-            [
-                'name' => 'Admin',
-                'email' => 'vlamingvlaming0@gmail.com',
-                'phone' => '085156208507',
-                'role' => 'peserta',
-                'status' => 'aktif',
-                'password' => Hash::make('password123'),
-                'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'Gentar Asmara Putra',
-                'email' => 'gentarist@gmail.com',
-                'phone' => '08380562401237',
-                'role' => 'guest',
-                'status' => 'aktif',
-                'password' => null,
-                'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
         ]);
 
-        User::firstOrCreate(
-            ['email' => 'febri@gmail.com'],
-            [
-                'name' => 'Febri',
-                'phone' => '083805624037',
-                'role' => 'admin',
-                'status' => 'aktif',
-                'password' => Hash::make('123'),
-                'email_verified_at' => now(),
-            ]
-        );
     }
 }

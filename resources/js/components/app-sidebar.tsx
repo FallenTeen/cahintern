@@ -76,7 +76,7 @@ const adminNavItems: NavItem[] = [
     },
 ];
 
-const userNavItems: NavItem[] = [
+const pesertaNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: '#',
@@ -135,8 +135,8 @@ export function AppSidebar() {
         let items = [...commonNavItems];
         if (auth && auth.role === 'admin') {
             items = [...items, ...adminNavItems];
-        } else if (auth && auth.role === 'user') {
-            items = [...items, ...userNavItems];
+        } else if (auth && auth.role === 'peserta') {
+            items = [...items, ...pesertaNavItems];
         }
         return items;
     }, [auth]);

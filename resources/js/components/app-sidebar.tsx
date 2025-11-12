@@ -51,7 +51,7 @@ const adminNavItems: NavItem[] = [
     },
     {
         title: 'Data PIC',
-        href: '#',
+        href: '/data-pic',
         icon: User,
     },
     {

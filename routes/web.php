@@ -51,5 +51,9 @@ Route::get('/penilaian-dan-sertifikat', function () {
     return Inertia::render('penilaianDanSertifikat');
 })->name('penilaianDanSertifikat');
 
+Route::get('/data-pic', function () {
+    return Inertia::render('dataPIC');
+})->name('dataPIC');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

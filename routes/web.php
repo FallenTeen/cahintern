@@ -38,6 +38,9 @@ Route::get('/DataPendaftaran', function () {
     return Inertia::render('dataPendaftaran');
 })->name('dataPendaftaran');
 
+Route::get('/data-mahasiswa-aktif', function () {
+    return Inertia::render('dataMahasiswaAktif');
+})->name('dataMahasiswaAktif');
 
 Route::get('/absen-mahasiswa', function () {
     return Inertia::render('absenMahasiswa');

@@ -49,7 +49,7 @@ export default function DataPendaftaran({
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 {/* Header */}
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold text-gray-900 md:text-3xl">
+                    <h1 className="text-2xl font-semibold">
                         Data Pendaftaran
                     </h1>
                     <p className="text-sm text-gray-500 md:text-base">

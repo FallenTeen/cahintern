@@ -9,9 +9,9 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
-Route::get('/tentang', function () {
-    return Inertia::render('tentang');
-})->name('tentang');
+Route::get('/persyaratan', function () {
+    return Inertia::render('persyaratan');
+})->name('persyaratan');
 
 Route::prefix('pendaftaran')->name('pendaftaran.')->group(function () {
     Route::get('/', [PendaftaranController::class, 'index'])->name('index');

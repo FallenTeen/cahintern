@@ -19,7 +19,7 @@ const Header = () => {
 
     // 🔹 Update active nav saat scroll
     useEffect(() => {
-        const sections = ['beranda', 'pendaftaran', 'tentang'];
+        const sections = ['beranda', 'pendaftaran', 'persyaratan'];
 
         const handleScroll = () => {
             const current = sections.find((id) => {
@@ -43,7 +43,7 @@ const Header = () => {
             const path = window.location.pathname;
             if (path === '/') setActiveSection('beranda');
             else if (path === '/pendaftaran') setActiveSection('pendaftaran');
-            else if (path === '/tentang') setActiveSection('tentang');
+            else if (path === '/persyaratan') setActiveSection('persyaratan');
         };
         setFromPath();
         window.addEventListener('popstate', setFromPath);
@@ -89,7 +89,7 @@ const Header = () => {
                         {[
                             { id: 'beranda', label: 'Beranda' },
                             { id: 'pendaftaran', label: 'Pendaftaran' },
-                            { id: 'tentang', label: 'Tentang' },
+                            { id: 'persyaratan', label: 'Persyaratan' },
                         ].map((item) => (
                             <Link
                                 key={item.id}
@@ -98,7 +98,7 @@ const Header = () => {
                                         ? '/pendaftaran'
                                         : item.id === 'beranda'
                                           ? '/'
-                                          : '/tentang'
+                                          : '/persyaratan'
                                 }
                                 className={`relative pb-1 transition-colors duration-200 ${
                                     activeSection === item.id
@@ -204,7 +204,7 @@ const Header = () => {
                     {[
                         { id: 'beranda', label: 'Beranda' },
                         { id: 'pendaftaran', label: 'Pendaftaran' },
-                        { id: 'tentang', label: 'Tentang' },
+                        { id: 'persyaratan', label: 'Persyaratan' },
                     ].map((item) => (
                         <a
                             key={item.id}
@@ -213,7 +213,7 @@ const Header = () => {
                                     ? '/pendaftaran'
                                     : item.id === 'beranda'
                                       ? '/'
-                                      : '/tentang'
+                                      : '/persyaratan'
                             }
                             onClick={() => setMenuOpen(false)}
                             className={`relative pb-1 transition-colors duration-200 ${

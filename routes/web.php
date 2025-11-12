@@ -38,6 +38,9 @@ Route::get('/DataPendaftaran', function () {
     return Inertia::render('dataPendaftaran');
 })->name('dataPendaftaran');
 
+Route::get('/data-mahasiswa-aktif', function () {
+    return Inertia::render('dataMahasiswaAktif');
+})->name('dataMahasiswaAktif');
 
 Route::get('/absen-mahasiswa', function () {
     return Inertia::render('absenMahasiswa');
@@ -54,6 +57,10 @@ Route::get('/penilaian-dan-sertifikat', function () {
 Route::get('/data-pic', function () {
     return Inertia::render('dataPIC');
 })->name('dataPIC');
+
+Route::get('/pengumuman-dan-konten', function () {
+    return Inertia::render('pengumumanKonten');
+})->name('pengumumanKonten');
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

@@ -10,7 +10,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, dataPendaftaran } from '@/routes';
+import { dashboard, dataPendaftaran, dataMahasiswaAktif, pengumumanKonten } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
@@ -46,7 +46,7 @@ const adminNavItems: NavItem[] = [
     },
     {
         title: 'Data Mahasiswa Aktif',
-        href: '#',
+        href: dataMahasiswaAktif(),
         icon: Users,
     },
     {
@@ -71,7 +71,7 @@ const adminNavItems: NavItem[] = [
     },
     {
         title: 'Pengumuman & Konten',
-        href: '#',
+        href: pengumumanKonten(),
         icon: Megaphone,
     },
 ];

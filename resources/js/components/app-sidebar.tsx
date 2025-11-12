@@ -10,7 +10,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, dataPendaftaran, dataMahasiswaAktif } from '@/routes';
+import { dashboard, dataPendaftaran, dataMahasiswaAktif, pengumumanKonten } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
@@ -71,7 +71,7 @@ const adminNavItems: NavItem[] = [
     },
     {
         title: 'Pengumuman & Konten',
-        href: '#',
+        href: pengumumanKonten(),
         icon: Megaphone,
     },
 ];

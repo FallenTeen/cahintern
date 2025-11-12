@@ -12,16 +12,33 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard, dataPendaftaran } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { Clock, FileText, LayoutGrid, Megaphone, NotebookPen, NotebookText, Undo2, User, Users } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import {
+    CalendarCheck,
+    Clock,
+    FileText,
+    House,
+    LayoutGrid,
+    Medal,
+    Megaphone,
+    NotebookPen,
+    NotebookText,
+    Undo2,
+    User,
+    Users,
+} from 'lucide-react';
+import { useEffect, useMemo } from 'react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
+const commonNavItems: NavItem[] = [
     {
         title: 'Dashboard Utama',
         href: dashboard(),
         icon: LayoutGrid,
     },
+];
+
+const adminNavItems: NavItem[] = [
     {
         title: 'Data Pendaftaran',
         href: dataPendaftaran(),
@@ -59,6 +76,29 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
+const userNavItems: NavItem[] = [
+    {
+        title: 'Dashboard',
+        href: '#',
+        icon: House,
+    },
+    {
+        title: 'LogBook',
+        href: '#',
+        icon: NotebookText,
+    },
+    {
+        title: 'Absensi',
+        href: '#',
+        icon: CalendarCheck,
+    },
+    {
+        title: 'Sertifikat',
+        href: '#',
+        icon: Medal,
+    },
+];
+
 const footerNavItems: NavItem[] = [
     {
         title: 'HomePage',
@@ -67,7 +107,43 @@ const footerNavItems: NavItem[] = [
     },
 ];
 
+type User = {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    [key: string]: unknown;
+};
+
+type AuthProps = {
+    role: string;
+    user: User;
+};
+
+type PageProps = {
+    auth: AuthProps;
+};
+
 export function AppSidebar() {
+    const { auth } = usePage<PageProps>().props;
+
+    useEffect(() => {
+        console.log('Auth data in AppSidebar:', auth);
+    }, [auth]);
+
+    const navItems = useMemo(() => {
+        let items = [...commonNavItems];
+        if (auth && auth.role === 'admin') {
+            items = [...items, ...adminNavItems];
+        } else if (auth && auth.role === 'user') {
+            items = [...items, ...userNavItems];
+        }
+        return items;
+    }, [auth]);
+
+    useEffect(() => {
+        console.log('Navigation items selected:', navItems);
+    }, [navItems]);
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -83,7 +159,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={navItems} />
             </SidebarContent>
 
             <SidebarFooter>

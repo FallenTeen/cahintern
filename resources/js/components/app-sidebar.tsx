@@ -27,12 +27,12 @@ import {
     User,
     Users,
 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import AppLogo from './app-logo';
 
 const commonNavItems: NavItem[] = [
     {
-        title: 'Dashboard Utama',
+        title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
     },
@@ -77,11 +77,6 @@ const adminNavItems: NavItem[] = [
 ];
 
 const pesertaNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: '#',
-        icon: House,
-    },
     {
         title: 'LogBook',
         href: '#',

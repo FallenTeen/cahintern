@@ -25,15 +25,18 @@ Route::get('/waitingroom-pendaftaran', function () {
     return redirect()->route('pendaftaran.tunggu');
 })->name('tungguakun');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
+    $user = auth()->user();
 
-    Route::middleware('bukancalonpeserta')->group(function () {
-        Route::get('dashboard', function () {
-            return Inertia::render('dashboard');
-        })->name('dashboard');
-    });
+    if ($user->role === 'admin') {
+        return Inertia::render('dashboard'); // Halaman admin
+    }elseif ($user->role === 'peserta') {
+        return Inertia::render('user/dashboard'); // Halaman peserta
+    } else {
+        return redirect()->route('tungguakun'); // Halaman calon peserta
+    }
+})->name('dashboard');
 
-});
 Route::get('/DataPendaftaran', function () {
     return Inertia::render('dataPendaftaran');
 })->name('dataPendaftaran');

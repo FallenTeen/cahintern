@@ -154,7 +154,7 @@ const Header = () => {
                                 }
                                 className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700"
                             >
-                                {auth.user ? auth.user.name : 'Login'}
+                                {'Dashboard'}
                             </button>
                         )}
                     </nav>
@@ -169,7 +169,7 @@ const Header = () => {
                             }
                             className="flex items-center gap-2 rounded-md bg-red-600 px-3 py-2 font-semibold text-white transition hover:bg-red-700"
                         >
-                            {auth.user ? auth.user.name : 'Login'}
+                            {auth.user ? 'Peserta' : 'Login'}
                         </button>
                     </div>
                 </div>

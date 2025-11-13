@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
                 'phone' => '08380562401237',
                 'role' => 'guest',
                 'status' => 'aktif',
-                'password' => null,
+                'password' => Hash::make('123'),
                 'email_verified_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),

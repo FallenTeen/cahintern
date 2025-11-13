@@ -127,10 +127,6 @@ type PageProps = {
 export function AppSidebar() {
     const { auth } = usePage<PageProps>().props;
 
-    useEffect(() => {
-        console.log('Auth data in AppSidebar:', auth);
-    }, [auth]);
-
     const navItems = useMemo(() => {
         let items = [...commonNavItems];
         if (auth && auth.role === 'admin') {
@@ -141,9 +137,6 @@ export function AppSidebar() {
         return items;
     }, [auth]);
 
-    useEffect(() => {
-        console.log('Navigation items selected:', navItems);
-    }, [navItems]);
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>

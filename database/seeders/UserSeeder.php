@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
                 'phone' => '085156208507',
                 'role' => 'peserta',
                 'status' => 'aktif',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('123'),
                 'email_verified_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now(),

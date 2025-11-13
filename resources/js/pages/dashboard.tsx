@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import {
     AlertCircle,
     Award,
@@ -10,6 +10,16 @@ import {
     Users,
 } from 'lucide-react';
 import { useState } from 'react';
+
+type User = {
+    name: string;
+};
+
+type PageProps = {
+    auth?: {
+        user: User;
+    };
+};
 
 const attendanceData = [
     { day: 'Sen', hadir: 45, izin: 3, sakit: 2, terlambat: 5 },
@@ -470,6 +480,7 @@ function LineChart({
 }
 
 export default function Dashboard() {
+    const { auth } = usePage<PageProps>().props;
     return (
         <AppLayout>
             <Head title="Dashboard" />
@@ -477,8 +488,11 @@ export default function Dashboard() {
                 <div>
                     <h1 className="text-2xl font-semibold">Dashboard Utama</h1>
                     <p className="mt-2 text-gray-600">
-                        Selamat datang, Admin! Berikut ringkasan aktivitas
-                        magang hari ini.
+                        Selamat datang{' '}
+                        <span className="font-medium">
+                            {auth?.user?.name ?? 'Pengguna'}
+                        </span>
+                        {', '}Berikut ringkasan aktivitas magang hari ini.
                     </p>
                 </div>
 

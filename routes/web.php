@@ -65,5 +65,9 @@ Route::get('/pengumuman-dan-konten', function () {
     return Inertia::render('pengumumanKonten');
 })->name('pengumumanKonten');
 
+Route::get('/logBook', function () {
+    return Inertia::render('user/logBook');
+})->name('logBook');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

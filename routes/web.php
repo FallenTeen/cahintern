@@ -69,5 +69,9 @@ Route::get('/logBook', function () {
     return Inertia::render('user/logBook');
 })->name('logBook');
 
+Route::get('/profile', function () {
+    return Inertia::render('user/profile');
+})->name('profile');
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

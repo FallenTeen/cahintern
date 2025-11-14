@@ -1,21 +1,8 @@
-import { Button } from '@/components/ui/button';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import FooterSection from './LandingPage/FooterSection';
 import Header from './LandingPage/Header';
 
 export default function TungguAkun() {
-    const handleLogout = () => {
-        router.post(
-            '/logout',
-            {},
-            {
-                onSuccess: () => {
-                    window.location.href = '/';
-                },
-            },
-        );
-    };
-
     return (
         <>
             <Header />
@@ -30,15 +17,6 @@ export default function TungguAkun() {
                         Akun Anda sedang dalam proses verifikasi. Silakan tunggu
                         konfirmasi melalui email dalam 1x24 jam kerja.
                     </p>
-
-                    <div className="mt-6 flex justify-center">
-                        <Button
-                            onClick={handleLogout}
-                            className="flex w-full items-center justify-center sm:w-auto"
-                        >
-                            Logout
-                        </Button>
-                    </div>
                 </div>
             </div>
 

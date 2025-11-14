@@ -11,13 +11,13 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import {
-    absensi,
-    dashboard,
-    dataMahasiswaAktif,
-    dataPendaftaran,
-    dataPIC,
-    logBook,
-    pengumumanKonten,
+    absenMahasiswa as absensi,
+    dashboard as dashboard,
+    dataMahasiswaAktif as dataMahasiswaAktif,
+    dataPendaftaran as dataPendaftaran,
+    dataPIC as dataPIC,
+    logbookMahasiswa as logBook,
+    pengumumanKonten as pengumumanKonten,
 } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';

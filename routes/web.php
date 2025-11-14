@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 use App\Http\Controllers\PendaftaranController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -25,19 +26,14 @@ Route::get('/waitingroom-pendaftaran', function () {
     return redirect()->route('pendaftaran.tunggu');
 })->name('tungguakun');
 
-Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
-    $user = auth()->user();
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Route disini buat yang udah acc jadi peserta (role nya)
+    Route::middleware('bukancalonpeserta')->group(function () {
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    });
 
-    if ($user->role === 'admin') {
-        return Inertia::render('dashboard'); // Halaman admin
-    } elseif ($user->role === 'peserta') {
-        return Inertia::render('user/dashboard'); // Halaman peserta
-    } else {
-        return redirect()->route('tungguakun'); // Halaman calon peserta
-    }
-})->name('dashboard');
-
-Route::get('/DataPendaftaran', function () {
+});
+Route::get('/data-pendaftaran', function () {
     return Inertia::render('dataPendaftaran');
 })->name('dataPendaftaran');
 
@@ -65,13 +61,5 @@ Route::get('/pengumuman-dan-konten', function () {
     return Inertia::render('pengumumanKonten');
 })->name('pengumumanKonten');
 
-Route::get('/logBook', function () {
-    return Inertia::render('user/logBook');
-})->name('logBook');
-
-Route::get('/absensi', function () {
-    return Inertia::render('user/absensiPeserta');
-})->name('absensi');
-
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';

@@ -228,7 +228,7 @@ class PendaftaranController extends Controller
 
     public function waitingRoom()
     {
-        return Inertia::render('tungguakun', [
+        return Inertia::render('tungguAkun', [
             'message' => 'Pendaftaran Anda sedang dalam proses verifikasi. Kami akan mengirimkan kredensial login ke email Anda setelah pendaftaran disetujui.'
         ]);
     }

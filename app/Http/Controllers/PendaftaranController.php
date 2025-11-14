@@ -19,7 +19,9 @@ class PendaftaranController extends Controller
     /**
      * Tampilkan halaman pendaftaran
      */
-    public function index()
+
+    // HALAMAN PENDAFTARAN BUAT GUEST (yang di halaman awal awal itu loh)
+    public function halPendaftaranGuest()
     {
         $bidangMagang = BidangMagang::active()
             ->adaSlot()
@@ -41,7 +43,7 @@ class PendaftaranController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function guestDaftar(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -295,5 +297,11 @@ class PendaftaranController extends Controller
             'success' => true,
             'data' => $bidangMagang
         ]);
+    }
+
+
+    // HALAMAN HALAMAN ADMINNNN
+    public function index(){
+        return Inertia::render('dataPendaftaran');
     }
 }

@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Controllers\AbsensiController;
+use App\Http\Controllers\KontenController;
+use App\Http\Controllers\LogbookController;
+use App\Http\Controllers\MahasiswaController;
+use App\Http\Controllers\PenilaianController;
+use App\Http\Controllers\PICCOntroller;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -15,8 +21,8 @@ Route::get('/persyaratan', function () {
 })->name('persyaratan');
 
 Route::prefix('pendaftaran')->name('pendaftaran.')->group(function () {
-    Route::get('/', [PendaftaranController::class, 'index'])->name('index');
-    Route::post('/', [PendaftaranController::class, 'store'])->name('store');
+    Route::get('/', [PendaftaranController::class, 'halPendaftaranGuest'])->name('halPendaftaranGuest');
+    Route::post('/', [PendaftaranController::class, 'guestDaftar'])->name('guestDaftar');
     Route::get('/bidang', [PendaftaranController::class, 'getBidangMagang'])->name('bidang');
     Route::get('/menunggu-verifikasi', [PendaftaranController::class, 'waitingRoom'])->name('tunggu');
     Route::post('/cek-status', [PendaftaranController::class, 'checkStatus'])->name('cek-status');
@@ -33,33 +39,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
 });
-Route::get('/data-pendaftaran', function () {
-    return Inertia::render('dataPendaftaran');
-})->name('dataPendaftaran');
+Route::get('/data-pendaftaran', [PendaftaranController::class, 'index'])->name('dataPendaftaran');
 
-Route::get('/data-mahasiswa-aktif', function () {
-    return Inertia::render('dataMahasiswaAktif');
-})->name('dataMahasiswaAktif');
+Route::get('/data-mahasiswa-aktif', [MahasiswaController::class, 'index'])->name('dataMahasiswaAktif');
 
-Route::get('/absen-mahasiswa', function () {
-    return Inertia::render('absenMahasiswa');
-})->name('absenMahasiswa');
+Route::get('/data-pic', [PICCOntroller::class, 'index'])->name('dataPIC');
 
-Route::get('/logbook-mahasiswa', function () {
-    return Inertia::render('logbookMahasiswa');
-})->name('logbookMahasiswa');
+Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
 
-Route::get('/penilaian-dan-sertifikat', function () {
-    return Inertia::render('penilaianDanSertifikat');
-})->name('penilaianDanSertifikat');
+Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');
 
-Route::get('/data-pic', function () {
-    return Inertia::render('dataPIC');
-})->name('dataPIC');
+Route::get('/penilaian-dan-sertifikat', [PenilaianController::class, 'index'])->name('penilaianDanSertifikat');
 
-Route::get('/pengumuman-dan-konten', function () {
-    return Inertia::render('pengumumanKonten');
-})->name('pengumumanKonten');
+Route::get('/pengumuman-dan-konten', [KontenController::class, 'index'])->name('pengumumanKonten');
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';

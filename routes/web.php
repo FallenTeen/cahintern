@@ -30,7 +30,7 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
 
     if ($user->role === 'admin') {
         return Inertia::render('dashboard'); // Halaman admin
-    }elseif ($user->role === 'peserta') {
+    } elseif ($user->role === 'peserta') {
         return Inertia::render('user/dashboard'); // Halaman peserta
     } else {
         return redirect()->route('tungguakun'); // Halaman calon peserta
@@ -69,5 +69,9 @@ Route::get('/logBook', function () {
     return Inertia::render('user/logBook');
 })->name('logBook');
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+Route::get('/absensi', function () {
+    return Inertia::render('user/absensiPeserta');
+})->name('absensi');
+
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';

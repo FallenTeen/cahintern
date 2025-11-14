@@ -10,14 +10,21 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, dataPendaftaran, dataMahasiswaAktif, pengumumanKonten, logBook, dataPIC } from '@/routes';
+import {
+    absensi,
+    dashboard,
+    dataMahasiswaAktif,
+    dataPendaftaran,
+    dataPIC,
+    logBook,
+    pengumumanKonten,
+} from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     CalendarCheck,
     Clock,
     FileText,
-    House,
     LayoutGrid,
     Medal,
     Megaphone,
@@ -84,7 +91,7 @@ const pesertaNavItems: NavItem[] = [
     },
     {
         title: 'Absensi',
-        href: '#',
+        href: absensi(),
         icon: CalendarCheck,
     },
     {

@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class PendaftaranController extends Controller
 {
@@ -121,7 +123,7 @@ class PendaftaranController extends Controller
             ]);
 
             if ($validator->fails()) {
-                \Log::warning('Errir Valdiasi', [
+                Log::warning('Errir Valdiasi', [
                     'errors' => $validator->errors()->toArray(),
                     'input' => $request->all()
                 ]);
@@ -129,7 +131,7 @@ class PendaftaranController extends Controller
             }
 
             $bidang = BidangMagang::find($request->bidang_magang_id);
-            \Log::info('Bidang magang checkkkkkk', [
+            Log::info('Bidang magang checkkkkkk', [
                 'bidang_id' => $request->bidang_magang_id,
                 'bidang_found' => $bidang ? true : false,
                 'bidang_active' => $bidang ? $bidang->isAktif() : false,
@@ -137,20 +139,20 @@ class PendaftaranController extends Controller
             ]);
 
             if (!$bidang || !$bidang->isAktif()) {
-                \Log::warning('Bidang magang not available');
+                Log::warning('Bidang magang not available');
                 return back()
                     ->with('error', 'Bidang magang tidak tersedia')
                     ->withInput();
             }
 
             if ($bidang->isPenuh()) {
-                \Log::warning('Bidang magang penuh', ['bidang' => $bidang->nama_bidang]);
+                Log::warning('Bidang magang penuh', ['bidang' => $bidang->nama_bidang]);
                 return back()
                     ->with('error', 'Maaf, kuota untuk bidang magang ' . $bidang->nama_bidang . ' sudah penuh')
                     ->withInput();
             }
 
-            \Log::info('Starting transaction');
+            Log::info('Starting transaction');
 
             DB::beginTransaction();
 
@@ -159,9 +161,9 @@ class PendaftaranController extends Controller
                 $cvFile = $request->file('cv');
                 $cvName = 'cv_' . Str::slug($request->nama_lengkap) . '_' . time() . '.pdf';
                 $cvPath = $cvFile->storeAs('pendaftaran/cv', $cvName, 'public');
-                \Log::info('CV uploaded', ['path' => $cvPath]);
+                Log::info('CV uploaded', ['path' => $cvPath]);
             } else {
-                \Log::warning('No CV file uploaded');
+                Log::warning('No CV file uploaded');
             }
 
             $suratPath = null;
@@ -169,12 +171,12 @@ class PendaftaranController extends Controller
                 $suratFile = $request->file('surat_pengantar');
                 $suratName = 'surat_' . Str::slug($request->nama_lengkap) . '_' . time() . '.pdf';
                 $suratPath = $suratFile->storeAs('pendaftaran/surat', $suratName, 'public');
-                \Log::info('Surat pengantar uploaded', ['path' => $suratPath]);
+                Log::info('Surat pengantar uploaded', ['path' => $suratPath]);
             } else {
-                \Log::info('No surat pengantar uploaded');
+                Log::info('No surat pengantar uploaded');
             }
 
-            \Log::info('Creating user');
+            Log::info('Creating user');
 
             $user = User::create([
                 'name' => $request->nama_lengkap,
@@ -218,7 +220,7 @@ class PendaftaranController extends Controller
             );
 
         } catch (\Exception $e) {
-            \Log::error('Exception in pendaftaran store', [
+            Log::error('Exception in pendaftaran store', [
                 'error_message' => $e->getMessage(),
                 'error_line' => $e->getLine(),
                 'error_file' => $e->getFile(),
@@ -301,7 +303,156 @@ class PendaftaranController extends Controller
 
 
     // HALAMAN HALAMAN ADMINNNN
+
+    // INDEXX
     public function index(){
-        return Inertia::render('dataPendaftaran');
+        $search = request('search');
+        $status = request('status');
+
+        $query = PesertaProfile::with('user', 'bidangMagang');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($userQuery) use ($search) {
+                    $userQuery->where('name', 'like', '%' . $search . '%');
+                })->orWhere('asal_instansi', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($status && $status !== 'semua') {
+            $query->whereHas('user', function ($q) use ($status) {
+                $q->where('status', $status);
+            });
+        }
+
+        $dataPendaftar = $query->paginate(10)->through(function ($peserta) {
+            $start = Carbon::parse($peserta->tanggal_mulai);
+            $end = Carbon::parse($peserta->tanggal_selesai);
+            $weeks = round($start->diffInWeeks($end));
+
+            $statusLabels = [
+                'pending' => 'Proses',
+                'diterima' => 'Diterima',
+                'ditolak' => 'Ditolak',
+            ];
+
+            return [
+                'id' => $peserta->id,
+                'nama_lengkap' => $peserta->user->name,
+                'asal_instansi' => $peserta->asal_instansi,
+                'jurusan' => $peserta->jurusan,
+                'bidang_magang' => $peserta->bidangMagang->nama_bidang,
+                'waktu' => $weeks . ' Minggu',
+                'tanggal_mulai' => $peserta->tanggal_mulai->format('d F Y'),
+                'status' => $statusLabels[$peserta->user->status] ?? 'Tidak Diketahui',
+            ];
+        });
+
+        return Inertia::render('pendaftaran/index', ['dataPendaftar' => $dataPendaftar]);
+    }
+
+    public function approve($id)
+    {
+        $peserta = PesertaProfile::findOrFail($id);
+        $user = $peserta->user;
+
+        if ($user->status !== 'pending') {
+            return response()->json(['message' => 'Pendaftar sudah diproses'], 400);
+        }
+
+        $user->update(['status' => 'diterima']);
+
+        // Generate password SEEDDSSS
+        $password = 'Magang' . rand(1000, 9999);
+        $user->update(['password' => Hash::make($password)]);
+
+        // Ni nanti kalo pake email, klo whatsapp bikin service lagi
+        // Mail::to($user->email)->send(new PendaftaranApproved($user, $password));
+
+        return response()->json(['message' => 'Pendaftar berhasil diterima']);
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'alasan_tolak' => 'required|string|max:500'
+        ]);
+
+        $peserta = PesertaProfile::findOrFail($id);
+        $user = $peserta->user;
+
+        if ($user->status !== 'pending') {
+            return response()->json(['message' => 'Pendaftar sudah diproses'], 400);
+        }
+
+        $user->update([
+            'status' => 'ditolak',
+            'alasan_tolak' => $request->alasan_tolak
+        ]);
+
+        return response()->json(['message' => 'Pendaftar berhasil ditolak']);
+    }
+
+    public function show($id)
+    {
+        $peserta = PesertaProfile::with('user', 'bidangMagang')->findOrFail($id);
+
+        $start = Carbon::parse($peserta->tanggal_mulai);
+        $end = Carbon::parse($peserta->tanggal_selesai);
+        $weeks = round($start->diffInWeeks($end));
+
+        $statusLabels = [
+            'pending' => 'Proses',
+            'diterima' => 'Diterima',
+            'ditolak' => 'Ditolak',
+        ];
+
+        $data = [
+            'id' => $peserta->id,
+            'nama_lengkap' => $peserta->user->name,
+            'email' => $peserta->user->email,
+            'phone' => $peserta->user->phone,
+            'tempat_lahir' => $peserta->tempat_lahir,
+            'tanggal_lahir' => $peserta->tanggal_lahir->format('d F Y'),
+            'jenis_kelamin' => $peserta->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan',
+            'alamat' => $peserta->alamat,
+            'kota' => $peserta->kota,
+            'provinsi' => $peserta->provinsi,
+            'jenis_peserta' => $peserta->jenis_peserta,
+            'nim_nisn' => $peserta->nim_nisn,
+            'asal_instansi' => $peserta->asal_instansi,
+            'jurusan' => $peserta->jurusan,
+            'semester_kelas' => $peserta->semester_kelas,
+            'bidang_magang' => $peserta->bidangMagang->nama_bidang,
+            'tanggal_mulai' => $peserta->tanggal_mulai->format('d F Y'),
+            'tanggal_selesai' => $peserta->tanggal_selesai->format('d F Y'),
+            'waktu' => $weeks . ' Minggu',
+            'cv' => $peserta->cv ? asset('storage/' . $peserta->cv) : null,
+            'surat_pengantar' => $peserta->surat_pengantar ? asset('storage/' . $peserta->surat_pengantar) : null,
+            'nama_pembimbing' => $peserta->nama_pembimbing_sekolah,
+            'no_hp_pembimbing' => $peserta->no_hp_pembimbing_sekolah,
+            'status' => $statusLabels[$peserta->user->status] ?? 'Tidak Diketahui',
+            'alasan_tolak' => $peserta->user->alasan_tolak,
+        ];
+
+        return Inertia::render('pendaftaran/show', ['pendaftar' => $data]);
+    }
+
+    public function destroy($id)
+    {
+        $peserta = PesertaProfile::findOrFail($id);
+        $user = $peserta->user;
+
+        if ($peserta->cv) {
+            Storage::disk('public')->delete($peserta->cv);
+        }
+        if ($peserta->surat_pengantar) {
+            Storage::disk('public')->delete($peserta->surat_pengantar);
+        }
+
+        $peserta->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'Data pendaftar berhasil dihapus']);
     }
 }

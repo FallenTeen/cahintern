@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PesertaProfile;
+use App\Models\BidangMagang;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -64,7 +65,7 @@ class MahasiswaController extends Controller
             ];
         });
 
-        $bidangOptions = \App\Models\BidangMagang::select('id', 'nama_bidang')->get();
+        $bidangOptions = BidangMagang::select('id', 'nama_bidang')->get();
 
         return Inertia::render('mahasiswa/index', [
             'mahasiswaData' => $mahasiswaData,

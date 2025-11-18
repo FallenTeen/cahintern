@@ -50,5 +50,19 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
+
+        // Create additional dummy users for testing
+        for ($i = 1; $i <= 20; $i++) {
+            User::create([
+                'name' => 'Peserta ' . $i,
+                'email' => 'peserta' . $i . '@example.com',
+                'phone' => '081234567' . str_pad($i, 3, '0', STR_PAD_LEFT),
+                'role' => 'peserta',
+                'status' => 'aktif',
+                'password' => Hash::make('123'),
+                'email_verified_at' => now(),
+                'bidang_magang_id' => rand(1, 2), // Assuming 2 bidang magang
+            ]);
+        }
     }
 }

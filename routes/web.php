@@ -40,6 +40,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 });
 Route::get('/data-pendaftaran', [PendaftaranController::class, 'index'])->name('dataPendaftaran');
+Route::get('/data-pendaftaran/{id}', [PendaftaranController::class, 'show'])->name('dataPendaftaran.show');
+Route::post('/data-pendaftaran/{id}/approve', [PendaftaranController::class, 'approve'])->name('dataPendaftaran.approve');
+Route::post('/data-pendaftaran/{id}/reject', [PendaftaranController::class, 'reject'])->name('dataPendaftaran.reject');
+Route::delete('/data-pendaftaran/{id}', [PendaftaranController::class, 'destroy'])->name('dataPendaftaran.destroy');
 
 Route::get('/data-mahasiswa-aktif', [MahasiswaController::class, 'index'])->name('dataMahasiswaAktif');
 

@@ -16,7 +16,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             BidangMagangSeeder::class,
             UserSeeder::class,
-
+            PesertaProfileSeeder::class,
+            // Ini 3 atas wajib ada dulu
+            AbsensiSeeder::class,
+            LogbookSeeder::class,
+            PenilaianAkhirSeeder::class,
+            SertifikatSeeder::class,
+            PengumumanSeeder::class,
+            KontenSeeder::class,
         ]);
 
     }

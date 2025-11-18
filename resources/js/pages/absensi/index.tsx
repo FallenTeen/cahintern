@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { absenMahasiswa, dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -19,16 +19,30 @@ import {
     TableRow,
 } from '@/components/ui/table';
 
-type Status = 'Hadir' | 'Izin' | 'Sakit' | 'Terlambat';
+type Status = 'hadir' | 'izin' | 'sakit' | 'terlambat';
 
-type Student = {
+type AbsensiData = {
     id: number;
-    nama: string;
-    bidang: string;
+    nama_peserta: string;
+    bidang_magang: string;
     tanggal: string;
-    waktuAbsen?: string;
+    jam_masuk: string | null;
+    jam_keluar: string | null;
     status: Status;
-    keterangan?: string;
+    status_label: string;
+    keterangan: string | null;
+    foto_masuk: string | null;
+    foto_keluar: string | null;
+};
+
+type Props = {
+    absensiData: {
+        data: AbsensiData[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -36,52 +50,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Absensi Mahasiswa', href: absenMahasiswa().url },
 ];
 
-const sampleData: Student[] = [
-    {
-        id: 1,
-        nama: 'Budi Santoso',
-        bidang: 'Sapras',
-        tanggal: '16/01/2025',
-        waktuAbsen: '07:15',
-        status: 'Hadir',
-    },
-    {
-        id: 2,
-        nama: 'Siti Nurhaliza',
-        bidang: 'PGTK',
-        tanggal: '16/01/2025',
-        waktuAbsen: '07:05',
-        status: 'Hadir',
-    },
-    {
-        id: 3,
-        nama: 'Ahmad Hidayat',
-        bidang: 'Umum',
-        tanggal: '16/01/2025',
-        waktuAbsen: '07:32',
-        status: 'Terlambat',
-        keterangan: 'Kemacetan di jalan',
-    },
-    {
-        id: 4,
-        nama: 'Rina Putri',
-        bidang: 'Kurikulum',
-        tanggal: '16/01/2025',
-        status: 'Sakit',
-        keterangan: 'Sakit demam (sudah upload surat keterangan)',
-    },
-    {
-        id: 5,
-        nama: 'Yudi Hermawan',
-        bidang: 'GTK',
-        tanggal: '16/01/2025',
-        status: 'Izin',
-        keterangan: 'Perlu ke universitas untuk urusan akademik',
-    },
-];
-
 export default function AbsensiMahasiswa() {
-    const [students] = useState<Student[]>(sampleData);
+    const { absensiData } = usePage<Props>().props;
+    const [students] = useState<AbsensiData[]>(absensiData.data);
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<Status | 'Semua'>('Semua');
     const [showOnlyWithTime, setShowOnlyWithTime] = useState(false);
@@ -91,26 +62,25 @@ export default function AbsensiMahasiswa() {
         return students.filter((s) => {
             if (statusFilter !== 'Semua' && s.status !== statusFilter)
                 return false;
-            if (showOnlyWithTime && !s.waktuAbsen) return false;
+            if (showOnlyWithTime && !s.jam_masuk) return false;
             if (!q) return true;
             return (
-                s.nama.toLowerCase().includes(q) ||
-                s.bidang.toLowerCase().includes(q) ||
+                s.nama_peserta.toLowerCase().includes(q) ||
+                s.bidang_magang.toLowerCase().includes(q) ||
                 (s.keterangan ?? '').toLowerCase().includes(q)
             );
         });
     }, [students, query, statusFilter, showOnlyWithTime]);
 
-    // 🔹 Gunakan Tailwind class untuk warna Badge
     const badgeVariant = (status: Status) => {
         switch (status) {
-            case 'Hadir':
+            case 'hadir':
                 return 'bg-green-500 text-white';
-            case 'Izin':
+            case 'izin':
                 return 'bg-blue-500 text-white';
-            case 'Sakit':
+            case 'sakit':
                 return 'bg-yellow-400 text-black';
-            case 'Terlambat':
+            case 'terlambat':
                 return 'bg-red-500 text-white';
             default:
                 return 'bg-gray-300 text-black';
@@ -156,7 +126,7 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            07:00
+                            {students.length > 0 ? students[0].jam_masuk || '07:00' : '07:00'}
                         </CardContent>
                     </Card>
                     <Card>
@@ -166,7 +136,7 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            07:30
+                            {students.length > 0 ? students[0].jam_keluar || '07:30' : '07:30'}
                         </CardContent>
                     </Card>
                     <Card>
@@ -176,7 +146,7 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            16/01/2025
+                            {students.length > 0 ? students[0].tanggal : '16/01/2025'}
                         </CardContent>
                     </Card>
                 </div>
@@ -191,7 +161,7 @@ export default function AbsensiMahasiswa() {
                                 onChange={(e) => setQuery(e.target.value)}
                             />
                             <div className="col-span-2 flex flex-wrap items-center gap-2">
-                                {['Semua', 'Hadir', 'Izin', 'Sakit', 'Terlambat'].map(
+                                {['Semua', 'hadir', 'izin', 'sakit', 'terlambat'].map(
                                     (status) => (
                                         <Button
                                             key={status}
@@ -207,7 +177,7 @@ export default function AbsensiMahasiswa() {
                                                 )
                                             }
                                         >
-                                            {status}
+                                            {status === 'hadir' ? 'Hadir' : status === 'izin' ? 'Izin' : status === 'sakit' ? 'Sakit' : status === 'terlambat' ? 'Terlambat' : status}
                                         </Button>
                                     ),
                                 )}
@@ -257,11 +227,11 @@ export default function AbsensiMahasiswa() {
                                 {filtered.length > 0 ? (
                                     filtered.map((s) => (
                                         <TableRow key={s.id}>
-                                            <TableCell>{s.nama}</TableCell>
-                                            <TableCell>{s.bidang}</TableCell>
+                                            <TableCell>{s.nama_peserta}</TableCell>
+                                            <TableCell>{s.bidang_magang}</TableCell>
                                             <TableCell>{s.tanggal}</TableCell>
                                             <TableCell>
-                                                {s.waktuAbsen ?? '-'}
+                                                {s.jam_masuk ?? '-'}
                                             </TableCell>
                                             <TableCell>
                                                 <Badge
@@ -269,7 +239,7 @@ export default function AbsensiMahasiswa() {
                                                         s.status,
                                                     )}
                                                 >
-                                                    {s.status}
+                                                    {s.status_label}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
@@ -281,7 +251,7 @@ export default function AbsensiMahasiswa() {
                                                     size="icon"
                                                     onClick={() =>
                                                         window.alert(
-                                                            `Detail ${s.nama}`,
+                                                            `Detail ${s.nama_peserta}`,
                                                         )
                                                     }
                                                 >

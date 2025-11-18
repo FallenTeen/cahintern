@@ -5,9 +5,45 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+
+type PengumumanData = {
+    id: number;
+    judul: string;
+    isi: string;
+    status: string;
+    published_at: string | null;
+    created_at: string;
+    tipe: string;
+};
+
+type KontenData = {
+    id: number;
+    judul: string;
+    deskripsi: string;
+    slug: string;
+    created_at: string;
+    tipe: string;
+};
+
+type Props = {
+    pengumumanData: {
+        data: PengumumanData[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+    kontenData: {
+        data: KontenData[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -17,64 +53,31 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function PengumumanKonten() {
+    const { pengumumanData, kontenData } = usePage<Props>().props;
     const [tab, setTab] = useState('pengumuman');
     const [filter, setFilter] = useState('Semua');
 
-    const pengumumanList = [
-        {
-            title: 'Jadwal Rapat Koordinasi Magang',
-            content:
-                'Rapat koordinasi akan dilaksanakan pada Jumat, 17 Januari 2025 pukul 10:00 WIB di ruang meeting lantai 2.',
-            status: 'Tayang',
-            updatedAt: '15/01/2025',
-        },
-        {
-            title: 'Pengumuman Hari Libur Nasional',
-            content:
-                'Dinas Pendidikan Kabupaten Banyumas akan libur pada 28–30 Januari 2025 sesuai dengan hari libur nasional Tahun Baru Imlek.',
-            status: 'Tayang',
-            updatedAt: '13/01/2025',
-        },
-        {
-            title: 'Update Sistem Absensi',
-            content:
-                'Sistem absensi telah diperbarui dengan fitur baru. Mahasiswa bisa melakukan absensi melalui aplikasi mulai Senin depan.',
-            status: 'Draft',
-            updatedAt: '13/01/2025',
-        },
-    ];
+    const pengumumanList = pengumumanData.data.map(item => ({
+        title: item.judul,
+        content: item.isi,
+        status: item.status === 'published' ? 'Tayang' : 'Draft',
+        updatedAt: item.created_at,
+    }));
 
     const filteredPengumuman =
         filter === 'Semua'
             ? pengumumanList
             : pengumumanList.filter((item) => item.status === filter);
 
-    const kontenList = [
-        {
-            title: 'Informasi Slot Magang',
-            description: 'Edit informasi tentang slot magang yang tersedia',
-        },
-        {
-            title: 'Panduan Pendaftaran',
-            description: 'Edit panduan lengkap untuk proses pendaftaran',
-        },
-        {
-            title: 'Informasi Umum Dinas',
-            description:
-                'Edit informasi umum tentang Dinas Pendidikan Banyumas',
-        },
-        {
-            title: 'Informasi Libur',
-            description:
-                'Lorem ipsum dolor sit amet consectetur adipisicing elit.',
-        },
-    ];
+    const kontenList = kontenData.data.map(item => ({
+        title: item.judul,
+        description: item.deskripsi,
+    }));
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data Pendaftaran" />
             <div className="space-y-6 p-4 sm:p-6">
-                {/* Header */}
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                     <div>
                         <h2 className="text-2xl font-bold">
@@ -88,8 +91,6 @@ export default function PengumumanKonten() {
                         <Plus className="mr-2 h-4 w-4" /> Buat Pengumuman
                     </Button>
                 </div>
-
-                {/* Tabs */}
                 <Tabs value={tab} onValueChange={setTab} className="w-full">
                     <TabsList className="w-full justify-start border-b bg-transparent p-0">
                         <TabsTrigger
@@ -114,9 +115,7 @@ export default function PengumumanKonten() {
                         </TabsTrigger>
                     </TabsList>
 
-                    {/* --- Tab: Pengumuman --- */}
                     <TabsContent value="pengumuman" className="mt-4 space-y-4">
-                        {/* Filter Status */}
                         <div className="flex flex-wrap gap-2">
                             {['Tayang', 'Draft', 'Semua'].map((status) => (
                                 <Button
@@ -137,8 +136,6 @@ export default function PengumumanKonten() {
                                 </Button>
                             ))}
                         </div>
-
-                        {/* List Pengumuman */}
                         <div className="space-y-3">
                             {filteredPengumuman.map((item, i) => (
                                 <Card
@@ -189,8 +186,6 @@ export default function PengumumanKonten() {
                             ))}
                         </div>
                     </TabsContent>
-
-                    {/* --- Tab: Konten Halaman --- */}
                     <TabsContent value="konten" className="mt-4 space-y-3">
                         {kontenList.map((item, i) => (
                             <Card

@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { dashboard, logbookMahasiswa } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useMemo, useState } from "react";
 import {
   Card,
@@ -22,16 +22,32 @@ import {
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 
-type Status = "Menunggu" | "Valid" | "Revisi";
+type Status = "pending" | "disetujui" | "revision";
 
-type Logbook = {
+type LogbookData = {
   id: number;
-  nama: string;
-  bidang: string;
+  nama_peserta: string;
+  bidang_magang: string;
   tanggal: string;
-  waktu: string;
-  judul: string;
+  kegiatan: string;
+  deskripsi: string | null;
+  jam_mulai: string | null;
+  jam_selesai: string | null;
+  durasi: string;
   status: Status;
+  status_label: string;
+  catatan_pembimbing: string | null;
+  dokumentasi: string | null;
+};
+
+type Props = {
+  logbookData: {
+    data: LogbookData[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -39,15 +55,9 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: "Logbook Mahasiswa", href: logbookMahasiswa().url},
 ];
 
-const data: Logbook[] = [
-  { id: 1, nama: "Budi Santoso", bidang: "Sapras", tanggal: "16/01/2025", waktu: "08:00", judul: "Inventaris barang di gudang sapras", status: "Menunggu" },
-  { id: 2, nama: "Siti Nurhaliza", bidang: "PGTK", tanggal: "16/01/2025", waktu: "09:15", judul: "Membantu persiapan pembelajaran di kelas 1A", status: "Menunggu" },
-  { id: 3, nama: "Ahmad Hidayat", bidang: "Umum", tanggal: "16/01/2025", waktu: "10:30", judul: "Verifikasi dokumen administrasi", status: "Valid" },
-  { id: 4, nama: "Yudi Hermawan", bidang: "GTK", tanggal: "15/01/2025", waktu: "14:00", judul: "Koordinasi dengan guru kelas V", status: "Revisi" },
-  { id: 5, nama: "Budi Santoso", bidang: "Sapras", tanggal: "15/01/2025", waktu: "13:45", judul: "Perawatan mesin fotokopi", status: "Menunggu" },
-];
-
 export default function LogbookMahasiswa() {
+  const { logbookData } = usePage<Props>().props;
+  const [data] = useState<LogbookData[]>(logbookData.data);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "Semua">("Semua");
 
@@ -57,20 +67,20 @@ export default function LogbookMahasiswa() {
       if (statusFilter !== "Semua" && d.status !== statusFilter) return false;
       if (!q) return true;
       return (
-        d.nama.toLowerCase().includes(q) ||
-        d.bidang.toLowerCase().includes(q) ||
-        d.judul.toLowerCase().includes(q)
+        d.nama_peserta.toLowerCase().includes(q) ||
+        d.bidang_magang.toLowerCase().includes(q) ||
+        d.kegiatan.toLowerCase().includes(q)
       );
     });
-  }, [query, statusFilter]);
+  }, [data, query, statusFilter]);
 
   const badgeColor = (status: Status) => {
     switch (status) {
-      case "Valid":
+      case "disetujui":
         return "bg-green-500 text-white";
-      case "Menunggu":
+      case "pending":
         return "bg-yellow-400 text-black";
-      case "Revisi":
+      case "revision":
         return "bg-red-500 text-white";
       default:
         return "bg-gray-300 text-black";
@@ -82,15 +92,12 @@ export default function LogbookMahasiswa() {
       <Head title="Logbook Mahasiswa" />
 
       <div className="p-6 space-y-6">
-        {/* Header */}
         <div>
           <h1 className="text-2xl font-semibold">Logbook Mahasiswa</h1>
           <p className="text-muted-foreground">
             Lihat dan validasi logbook harian mahasiswa
           </p>
         </div>
-
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader>
@@ -100,7 +107,7 @@ export default function LogbookMahasiswa() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-3xl font-semibold text-orange-500">
-              8
+              {data.filter(d => d.status === 'pending').length}
             </CardContent>
           </Card>
           <Card>
@@ -111,7 +118,7 @@ export default function LogbookMahasiswa() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-3xl font-semibold text-green-500">
-              142
+              {data.filter(d => d.status === 'disetujui').length}
             </CardContent>
           </Card>
           <Card>
@@ -122,12 +129,10 @@ export default function LogbookMahasiswa() {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-3xl font-semibold text-red-500">
-              3
+              {data.filter(d => d.status === 'revision').length}
             </CardContent>
           </Card>
         </div>
-
-        {/* Filter Section */}
         <Card>
           <CardContent className="p-4 space-y-4">
             <Input
@@ -137,14 +142,14 @@ export default function LogbookMahasiswa() {
             />
 
             <div className="flex flex-wrap gap-2">
-              {["Semua", "Menunggu", "Valid", "Revisi"].map((status) => (
+              {["Semua", "pending", "disetujui", "revision"].map((status) => (
                 <Button
                   key={status}
                   variant={statusFilter === status ? "default" : "outline"}
                   size="sm"
                   onClick={() => setStatusFilter(status as Status | "Semua")}
                 >
-                  {status}
+                  {status === "pending" ? "Menunggu" : status === "disetujui" ? "Valid" : status === "revision" ? "Revisi" : status}
                 </Button>
               ))}
             </div>
@@ -156,8 +161,6 @@ export default function LogbookMahasiswa() {
             </p>
           </CardContent>
         </Card>
-
-        {/* Table Section */}
         <Card>
           <CardContent className="p-0">
             <Table>
@@ -175,13 +178,13 @@ export default function LogbookMahasiswa() {
               <TableBody>
                 {filtered.map((d) => (
                   <TableRow key={d.id}>
-                    <TableCell>{d.nama}</TableCell>
-                    <TableCell>{d.bidang}</TableCell>
+                    <TableCell>{d.nama_peserta}</TableCell>
+                    <TableCell>{d.bidang_magang}</TableCell>
                     <TableCell>{d.tanggal}</TableCell>
-                    <TableCell>{d.waktu}</TableCell>
-                    <TableCell>{d.judul}</TableCell>
+                    <TableCell>{d.durasi}</TableCell>
+                    <TableCell>{d.kegiatan}</TableCell>
                     <TableCell>
-                      <Badge className={badgeColor(d.status)}>{d.status}</Badge>
+                      <Badge className={badgeColor(d.status)}>{d.status_label}</Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <Button variant="ghost" size="icon">

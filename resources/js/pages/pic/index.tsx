@@ -5,61 +5,43 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Search, Trash } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-interface PIC {
-    nama: string;
-    bidang: string;
-    jabatan: string;
+type PICData = {
+    id: number;
+    nama_lengkap: string;
     email: string;
-    telepon: string;
-    mahasiswa: number;
-}
+    nim_nisn: string;
+    asal_instansi: string;
+    bidang_magang: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+    waktu: string;
+    status: string;
+    absensi_count: number;
+    logbook_count: number;
+    logbook_approved: number;
+    nilai_akhir: number | null;
+    predikat: string | null;
+};
 
-const dataPIC: PIC[] = [
-    {
-        nama: 'Ibu Hartati',
-        bidang: 'Sapras',
-        jabatan: 'Kepala Sapras',
-        email: 'hartati@pendidikan.go.id',
-        telepon: '082112345678',
-        mahasiswa: 8,
-    },
-    {
-        nama: 'Bapak Supriyanto',
-        bidang: 'PGTK',
-        jabatan: 'Koordinator PGTK',
-        email: 'supriyanto@pendidikan.go.id',
-        telepon: '082112345679',
-        mahasiswa: 12,
-    },
-    {
-        nama: 'Ibu Dewi',
-        bidang: 'Umum',
-        jabatan: 'Staf Umum',
-        email: 'dewi@pendidikan.go.id',
-        telepon: '082112345680',
-        mahasiswa: 5,
-    },
-    {
-        nama: 'Bapak Haryanto',
-        bidang: 'Kurikulum',
-        jabatan: 'Kepala Kurikulum',
-        email: 'haryanto@pendidikan.go.id',
-        telepon: '082112345681',
-        mahasiswa: 10,
-    },
-    {
-        nama: 'Ibu Tri Wahyuni',
-        bidang: 'GTK',
-        jabatan: 'Koordinator GTK',
-        email: 'triwahyuni@pendidikan.go.id',
-        telepon: '082112345682',
-        mahasiswa: 7,
-    },
-];
+type BidangOption = {
+    id: number;
+    nama_bidang: string;
+};
+
+type Props = {
+    picData: {
+        data: PICData[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+    bidangOptions: BidangOption[];
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -69,39 +51,37 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function DataPICPage() {
+    const { picData, bidangOptions } = usePage<Props>().props;
+    const [dataPIC] = useState<PICData[]>(picData.data);
     const [isDesktop, setIsDesktop] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterBidang, setFilterBidang] = useState('Semua');
 
-    // Deteksi ukuran layar
     useEffect(() => {
         const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-
-    // Filter dan pencarian
     const filteredPIC = useMemo(() => {
         return dataPIC.filter((pic) => {
             const matchesSearch =
-                pic.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                pic.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 pic.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                pic.jabatan.toLowerCase().includes(searchTerm.toLowerCase());
+                pic.nim_nisn.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesBidang =
-                filterBidang === 'Semua' || pic.bidang === filterBidang;
+                filterBidang === 'Semua' || pic.bidang_magang === filterBidang;
             return matchesSearch && matchesBidang;
         });
-    }, [searchTerm, filterBidang]);
+    }, [dataPIC, searchTerm, filterBidang]);
 
-    const bidangList = ['Sapras', 'PGTK', 'Umum', 'Kurikulum', 'GTK', 'Semua'];
+    const bidangList = ['Semua', ...bidangOptions.map(b => b.nama_bidang)];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data PIC" />
 
             <div className="flex flex-col gap-6 p-6">
-                {/* Header */}
                 <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
                     <div>
                         <h1 className="text-xl font-semibold">
@@ -116,8 +96,6 @@ export default function DataPICPage() {
                         Tambah PIC
                     </Button>
                 </div>
-
-                {/* Filter & Search */}
                 <div className="flex flex-col items-center gap-3 sm:flex-row">
                     <div className="relative w-full sm:w-1/2">
                         <Search className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
@@ -148,8 +126,6 @@ export default function DataPICPage() {
                         ))}
                     </div>
                 </div>
-
-                {/* Data Section */}
                 {filteredPIC.length === 0 ? (
                     <div className="py-10 text-center text-muted-foreground">
                         Tidak ada data yang cocok dengan pencarian.
@@ -159,35 +135,35 @@ export default function DataPICPage() {
                         <table className="min-w-full text-sm">
                             <thead className="bg-gray-100 text-gray-700">
                                 <tr>
-                                    <th className="p-3 text-left">Nama PIC</th>
+                                    <th className="p-3 text-left">Nama Mahasiswa</th>
                                     <th className="p-3 text-left">Bidang</th>
                                     <th className="p-3 text-left">
-                                        Jabatan / Posisi
+                                        NIM/NISN
                                     </th>
                                     <th className="p-3 text-left">Email</th>
                                     <th className="p-3 text-left">
-                                        Nomor Telepon
+                                        Asal Instansi
                                     </th>
                                     <th className="p-3 text-left">
-                                        Mahasiswa Dibimbing
+                                        Status
                                     </th>
                                     <th className="p-3 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredPIC.map((pic, i) => (
+                                {filteredPIC.map((pic) => (
                                     <tr
-                                        key={i}
+                                        key={pic.id}
                                         className="border-t hover:bg-gray-50"
                                     >
-                                        <td className="p-3">{pic.nama}</td>
-                                        <td className="p-3">{pic.bidang}</td>
-                                        <td className="p-3">{pic.jabatan}</td>
+                                        <td className="p-3">{pic.nama_lengkap}</td>
+                                        <td className="p-3">{pic.bidang_magang}</td>
+                                        <td className="p-3">{pic.nim_nisn}</td>
                                         <td className="p-3">{pic.email}</td>
-                                        <td className="p-3">{pic.telepon}</td>
+                                        <td className="p-3">{pic.asal_instansi}</td>
                                         <td className="p-3">
                                             <Badge variant="secondary">
-                                                {pic.mahasiswa} orang
+                                                {pic.status}
                                             </Badge>
                                         </td>
                                         <td className="p-3 text-center">
@@ -220,14 +196,14 @@ export default function DataPICPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-4">
-                        {filteredPIC.map((pic, i) => (
-                            <Card key={i} className="rounded-2xl shadow-md">
+                        {filteredPIC.map((pic) => (
+                            <Card key={pic.id} className="rounded-2xl shadow-md">
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-lg font-semibold">
-                                        {pic.nama}
+                                        {pic.nama_lengkap}
                                     </CardTitle>
                                     <p className="text-sm text-muted-foreground">
-                                        {pic.jabatan}
+                                        {pic.nim_nisn}
                                     </p>
                                 </CardHeader>
                                 <CardContent className="space-y-2 text-sm">
@@ -235,7 +211,7 @@ export default function DataPICPage() {
                                         <span className="font-medium">
                                             Bidang:
                                         </span>
-                                        <Badge>{pic.bidang}</Badge>
+                                        <Badge>{pic.bidang_magang}</Badge>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="font-medium">
@@ -247,16 +223,16 @@ export default function DataPICPage() {
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="font-medium">
-                                            Telepon:
+                                            Asal Instansi:
                                         </span>
-                                        <span>{pic.telepon}</span>
+                                        <span>{pic.asal_instansi}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="font-medium">
-                                            Mahasiswa:
+                                            Status:
                                         </span>
                                         <Badge variant="secondary">
-                                            {pic.mahasiswa} orang
+                                            {pic.status}
                                         </Badge>
                                     </div>
                                     <div className="flex justify-end gap-3 pt-2">

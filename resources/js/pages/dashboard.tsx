@@ -330,25 +330,25 @@ export default function Dashboard() {
     const statsCards = [
         {
             label: 'Total Mahasiswa Terdaftar',
-            value: statistik.totalPendaftar.toString(),
+            value: (statistik?.totalPendaftar ?? 0).toString(),
             icon: Users,
             color: 'bg-blue-100 text-blue-600',
         },
         {
             label: 'Mahasiswa Aktif',
-            value: statistik.pesertaAktif.toString(),
+            value: (statistik?.pesertaAktif ?? 0).toString(),
             icon: UserCheck,
             color: 'bg-green-100 text-green-600',
         },
         {
             label: 'Logbook Hari Ini',
-            value: statistik.logbookHariIni.toString(),
+            value: (statistik?.logbookHariIni ?? 0).toString(),
             icon: BookOpen,
             color: 'bg-purple-100 text-purple-600',
         },
         {
             label: 'Sertifikat Terbit',
-            value: statistik.sertifikatTerbit.toString(),
+            value: (statistik?.sertifikatTerbit ?? 0).toString(),
             icon: Award,
             color: 'bg-yellow-100 text-yellow-600',
         },

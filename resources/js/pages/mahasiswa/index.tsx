@@ -11,10 +11,43 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { Eye, Plus } from 'lucide-react';
-import { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { useState, useMemo } from 'react';
+import { Head, usePage } from '@inertiajs/react';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
+
+type MahasiswaData = {
+    id: number;
+    nama_lengkap: string;
+    email: string;
+    nim_nisn: string;
+    asal_instansi: string;
+    jurusan: string;
+    bidang_magang: string;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+    waktu: string;
+    status: string;
+    nilai_akhir: number | null;
+    predikat: string | null;
+    sertifikat: string | null;
+};
+
+type BidangOption = {
+    id: number;
+    nama_bidang: string;
+};
+
+type Props = {
+    mahasiswaData: {
+        data: MahasiswaData[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+    };
+    bidangOptions: BidangOption[];
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,73 +57,37 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function DataMahasiswaAktif() {
+    const { mahasiswaData, bidangOptions } = usePage<Props>().props;
     const [filter, setFilter] = useState('Semua');
+    const [search, setSearch] = useState('');
 
-    const dataMahasiswa = [
-        {
-            nama: 'Budi Santoso',
-            universitas: 'Universitas Jenderal Soedirman',
-            jurusan: 'Pendidikan Teknik',
-            bidang: 'Sapras',
-            pic: 'Ibu Hartati',
-            durasi: '2 bulan',
-            mulai: '01/01/2025',
-            status: 'Aktif',
-        },
-        {
-            nama: 'Siti Nurhaliza',
-            universitas: 'Universitas Negeri Yogyakarta',
-            jurusan: 'Pendidikan Guru Kelas',
-            bidang: 'PGTK',
-            pic: 'Bapak Supriyanto',
-            durasi: '3 bulan',
-            mulai: '05/01/2025',
-            status: 'Aktif',
-        },
-        {
-            nama: 'Ahmad Hidayat',
-            universitas: 'Institut Teknologi Purwokerto',
-            jurusan: 'Teknik Informatika',
-            bidang: 'Umum',
-            pic: 'Ibu Dewi',
-            durasi: '2 bulan',
-            mulai: '08/01/2025',
-            status: 'Aktif',
-        },
-        {
-            nama: 'Rina Putri',
-            universitas: 'Universitas Muhammadiyah Purwokerto',
-            jurusan: 'Pendidikan IPA',
-            bidang: 'Kurikulum',
-            pic: 'Bapak Haryanto',
-            durasi: '3 bulan',
-            mulai: '10/12/2024',
-            status: 'Non-Aktif',
-        },
-        {
-            nama: 'Yudi Hermawan',
-            universitas: 'Universitas Jenderal Soedirman',
-            jurusan: 'Pendidikan Bahasa Inggris',
-            bidang: 'GTK',
-            pic: 'Ibu Tri Wahyuni',
-            durasi: '2 bulan',
-            mulai: '03/01/2025',
-            status: 'Aktif',
-        },
-    ];
+    const dataMahasiswa = mahasiswaData.data;
 
-    const bidangList = ['Sapras', 'Umum', 'PGTK', 'Kurikulum', 'GTK', 'Semua'];
+    const bidangList = ['Semua', ...bidangOptions.map(b => b.nama_bidang)];
 
-    const filteredData =
-        filter === 'Semua'
-            ? dataMahasiswa
-            : dataMahasiswa.filter((m) => m.bidang === filter);
+    const filteredData = useMemo(() => {
+        let filtered = dataMahasiswa;
+
+        if (filter !== 'Semua') {
+            filtered = filtered.filter((m) => m.bidang_magang === filter);
+        }
+
+        if (search.trim()) {
+            const q = search.toLowerCase();
+            filtered = filtered.filter((m) =>
+                m.nama_lengkap.toLowerCase().includes(q) ||
+                m.asal_instansi.toLowerCase().includes(q) ||
+                m.jurusan.toLowerCase().includes(q)
+            );
+        }
+
+        return filtered;
+    }, [dataMahasiswa, filter, search]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data Mahasiswa Aktif" />
             <div className="space-y-4 p-6">
-                {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-semibold">
@@ -105,14 +102,12 @@ export default function DataMahasiswaAktif() {
                         <Plus className="mr-2 h-4 w-4" /> Tambah Mahasiswa
                     </Button>
                 </div>
-
-                {/* Search */}
                 <Input
                     placeholder="Cari berdasarkan nama, universitas, atau jurusan..."
                     className="max-w-md"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
                 />
-
-                {/* Filter */}
                 <div className="flex flex-wrap gap-2">
                     {bidangList.map((b) => (
                         <Button
@@ -129,23 +124,19 @@ export default function DataMahasiswaAktif() {
                         </Button>
                     ))}
                 </div>
-
-                {/* Info jumlah data */}
                 <p className="text-sm text-gray-500">
                     Menampilkan {filteredData.length} dari{' '}
                     {dataMahasiswa.length} mahasiswa aktif
                 </p>
-
-                {/* Table */}
                 <div className="overflow-hidden rounded-lg border shadow-sm">
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-gray-100">
                                 <TableHead>Nama Mahasiswa</TableHead>
-                                <TableHead>Universitas</TableHead>
+                                <TableHead>Asal Instansi</TableHead>
                                 <TableHead>Jurusan</TableHead>
                                 <TableHead>Bidang</TableHead>
-                                <TableHead>PIC Pembimbing</TableHead>
+                                <TableHead>NIM/NISN</TableHead>
                                 <TableHead>Durasi Magang</TableHead>
                                 <TableHead>Tanggal Mulai</TableHead>
                                 <TableHead>Status</TableHead>
@@ -155,26 +146,21 @@ export default function DataMahasiswaAktif() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredData.map((mhs, i) => (
-                                <TableRow key={i}>
-                                    <TableCell>{mhs.nama}</TableCell>
-                                    <TableCell>{mhs.universitas}</TableCell>
+                            {filteredData.map((mhs) => (
+                                <TableRow key={mhs.id}>
+                                    <TableCell>{mhs.nama_lengkap}</TableCell>
+                                    <TableCell>{mhs.asal_instansi}</TableCell>
                                     <TableCell>{mhs.jurusan}</TableCell>
-                                    <TableCell>{mhs.bidang}</TableCell>
-                                    <TableCell>{mhs.pic}</TableCell>
-                                    <TableCell>{mhs.durasi}</TableCell>
-                                    <TableCell>{mhs.mulai}</TableCell>
+                                    <TableCell>{mhs.bidang_magang}</TableCell>
+                                    <TableCell>{mhs.nim_nisn}</TableCell>
+                                    <TableCell>{mhs.waktu}</TableCell>
+                                    <TableCell>{mhs.tanggal_mulai}</TableCell>
                                     <TableCell>
                                         <Badge
-                                            variant={
-                                                mhs.status === 'Aktif'
-                                                    ? 'success'
-                                                    : 'secondary'
-                                            }
                                             className={
                                                 mhs.status === 'Aktif'
-                                                    ? 'bg-green-500 hover:bg-green-600'
-                                                    : 'bg-gray-400'
+                                                    ? 'bg-green-500 hover:bg-green-600 text-white'
+                                                    : 'bg-gray-400 text-white'
                                             }
                                         >
                                             {mhs.status}

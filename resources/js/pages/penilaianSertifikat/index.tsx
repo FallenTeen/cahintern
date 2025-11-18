@@ -1,7 +1,7 @@
 import AppLayout from "@/layouts/app-layout";
 import { dashboard, penilaianDanSertifikat } from "@/routes";
 import { type BreadcrumbItem } from "@/types";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import { useMemo, useState } from "react";
 import {
   Card,
@@ -15,15 +15,35 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-type Status = "Belum" | "Proses" | "Terbit";
+type Status = "belum" | "proses" | "terbit";
 
-type Mahasiswa = {
+type PenilaianData = {
   id: number;
-  nama: string;
-  bidang: string;
-  lamaMagang: string;
-  nilaiAkhir: string;
+  nama_peserta: string;
+  bidang_magang: string;
+  tanggal_penilaian: string;
+  nilai_disiplin: number;
+  nilai_kerjasama: number;
+  nilai_inisiatif: number;
+  nilai_komunikasi: number;
+  nilai_teknis: number;
+  nilai_kreativitas: number;
+  nilai_tanggung_jawab: number;
+  nilai_kehadiran: number;
+  nilai_total: number;
+  predikat: string;
+  komentar: string | null;
   status: Status;
+};
+
+type Props = {
+  penilaianData: {
+    data: PenilaianData[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -31,15 +51,9 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: "Penilaian & Sertifikat",href: penilaianDanSertifikat().url},
 ];
 
-const data: Mahasiswa[] = [
-  { id: 1, nama: "Budi Santoso", bidang: "Sapras", lamaMagang: "2 bulan", nilaiAkhir: "85", status: "Terbit" },
-  { id: 2, nama: "Siti Nurhaliza", bidang: "PGTK", lamaMagang: "3 bulan", nilaiAkhir: "90", status: "Terbit" },
-  { id: 3, nama: "Ahmad Hidayat", bidang: "Umum", lamaMagang: "2 bulan", nilaiAkhir: "78", status: "Proses" },
-  { id: 4, nama: "Rina Putri", bidang: "Kurikulum", lamaMagang: "3 bulan", nilaiAkhir: "-", status: "Belum" },
-  { id: 5, nama: "Yudi Hermawan", bidang: "GTK", lamaMagang: "2 bulan", nilaiAkhir: "88", status: "Terbit" },
-];
-
 export default function PenilaianSertifikat() {
+  const { penilaianData } = usePage<Props>().props;
+  const [data] = useState<PenilaianData[]>(penilaianData.data);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "Semua">("Semua");
 
@@ -49,19 +63,19 @@ export default function PenilaianSertifikat() {
       if (statusFilter !== "Semua" && d.status !== statusFilter) return false;
       if (!q) return true;
       return (
-        d.nama.toLowerCase().includes(q) ||
-        d.bidang.toLowerCase().includes(q)
+        d.nama_peserta.toLowerCase().includes(q) ||
+        d.bidang_magang.toLowerCase().includes(q)
       );
     });
-  }, [query, statusFilter]);
+  }, [data, query, statusFilter]);
 
   const badgeColor = (status: Status) => {
     switch (status) {
-      case "Terbit":
+      case "terbit":
         return "bg-green-500 text-white";
-      case "Proses":
+      case "proses":
         return "bg-blue-400 text-white";
-      case "Belum":
+      case "belum":
         return "bg-gray-300 text-black";
       default:
         return "bg-gray-300 text-black";
@@ -72,7 +86,6 @@ export default function PenilaianSertifikat() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Penilaian & Sertifikat" />
       <div className="p-6 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold">Penilaian & Sertifikat</h1>
@@ -84,8 +97,6 @@ export default function PenilaianSertifikat() {
             + Generate Sertifikat
           </Button>
         </div>
-
-        {/* Statistik */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader>
@@ -106,8 +117,6 @@ export default function PenilaianSertifikat() {
             <CardContent className="text-3xl font-semibold text-blue-600">85</CardContent>
           </Card>
         </div>
-
-        {/* Filter Section */}
         <Card>
           <CardContent className="p-4 space-y-4">
             <Input
@@ -117,14 +126,14 @@ export default function PenilaianSertifikat() {
             />
 
             <div className="flex flex-wrap gap-2">
-              {["Semua", "Belum", "Proses", "Terbit"].map((status) => (
+              {["Semua", "belum", "proses", "terbit"].map((status) => (
                 <Button
                   key={status}
                   variant={statusFilter === status ? "default" : "outline"}
                   size="sm"
                   onClick={() => setStatusFilter(status as Status | "Semua")}
                 >
-                  {status}
+                  {status === "belum" ? "Belum" : status === "proses" ? "Proses" : status === "terbit" ? "Terbit" : status}
                 </Button>
               ))}
             </div>
@@ -137,7 +146,6 @@ export default function PenilaianSertifikat() {
           </CardContent>
         </Card>
 
-        {/* Table Section */}
         <Card>
           <CardContent className="p-0">
             <Table>
@@ -145,7 +153,7 @@ export default function PenilaianSertifikat() {
                 <TableRow>
                   <TableHead>Nama Mahasiswa</TableHead>
                   <TableHead>Bidang</TableHead>
-                  <TableHead>Lama Magang</TableHead>
+                  <TableHead>Tanggal Penilaian</TableHead>
                   <TableHead>Nilai Akhir</TableHead>
                   <TableHead>Status Sertifikat</TableHead>
                   <TableHead className="text-center">Aksi</TableHead>
@@ -154,15 +162,14 @@ export default function PenilaianSertifikat() {
               <TableBody>
                 {filtered.map((d) => (
                   <TableRow key={d.id}>
-                    <TableCell>{d.nama}</TableCell>
-                    <TableCell>{d.bidang}</TableCell>
-                    <TableCell>{d.lamaMagang}</TableCell>
-                    <TableCell>{d.nilaiAkhir}</TableCell>
+                    <TableCell>{d.nama_peserta}</TableCell>
+                    <TableCell>{d.bidang_magang}</TableCell>
+                    <TableCell>{d.tanggal_penilaian}</TableCell>
+                    <TableCell>{d.nilai_total}</TableCell>
                     <TableCell>
-                      <Badge className={badgeColor(d.status)}>{d.status}</Badge>
+                      <Badge className={badgeColor(d.status)}>{d.status === "belum" ? "Belum" : d.status === "proses" ? "Proses" : d.status === "terbit" ? "Terbit" : d.status}</Badge>
                     </TableCell>
                     <TableCell className="flex justify-center gap-2">
-                      {/* Edit Icon */}
                       <Button variant="ghost" size="icon">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -179,8 +186,6 @@ export default function PenilaianSertifikat() {
                           />
                         </svg>
                       </Button>
-
-                      {/* Download Icon */}
                       <Button variant="ghost" size="icon">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

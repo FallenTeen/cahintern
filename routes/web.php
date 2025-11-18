@@ -55,7 +55,21 @@ Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('log
 
 Route::get('/penilaian-dan-sertifikat', [PenilaianController::class, 'index'])->name('penilaianDanSertifikat');
 
-Route::get('/pengumuman-dan-konten', [KontenController::class, 'index'])->name('pengumumanKonten');
+Route::get('/data-pic', function () {
+    return Inertia::render('dataPIC');
+})->name('dataPIC');
+
+Route::get('/pengumuman-dan-konten', function () {
+    return Inertia::render('pengumumanKonten');
+})->name('pengumumanKonten');
+
+Route::get('/logBook', function () {
+    return Inertia::render('user/logBook');
+})->name('logBook');
+
+Route::get('/profile', function () {
+    return Inertia::render('user/profile');
+})->name('profile');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

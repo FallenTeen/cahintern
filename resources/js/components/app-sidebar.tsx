@@ -10,6 +10,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+
 import {
     absenMahasiswa as absensi,
     dashboard as dashboard,
@@ -18,6 +19,7 @@ import {
     dataPIC as dataPIC,
     logbookMahasiswa as logBook,
     pengumumanKonten as pengumumanKonten,
+    profile as profile,
 } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -98,6 +100,11 @@ const pesertaNavItems: NavItem[] = [
         title: 'Sertifikat',
         href: '#',
         icon: Medal,
+    },
+    {
+        title: 'Profile',
+        href: profile(),
+        icon: User,
     },
 ];
 

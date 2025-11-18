@@ -15,7 +15,7 @@ class PICCOntroller extends Controller
         $status = request('status');
         $bidang = request('bidang');
 
-        $query = PesertaProfile::with('user', 'bidangMagang', 'absensis', 'logbooks', 'penilaianAkhir');
+        $query = PesertaProfile::with('user', 'bidangMagang', 'absensi', 'logbook', 'penilaianAkhir');
 
         if ($search) {
             $query->whereHas('user', function ($q) use ($search) {
@@ -45,9 +45,9 @@ class PICCOntroller extends Controller
                 'ditolak' => 'Ditolak',
             ];
 
-            $absensiCount = $peserta->absensis->count();
-            $logbookCount = $peserta->logbooks->count();
-            $logbookApproved = $peserta->logbooks->where('status', 'disetujui')->count();
+            $absensiCount = $peserta->absensi->count();
+            $logbookCount = $peserta->logbook->count();
+            $logbookApproved = $peserta->logbook->where('status', 'disetujui')->count();
 
             return [
                 'id' => $peserta->id,

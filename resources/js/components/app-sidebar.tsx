@@ -27,6 +27,7 @@ import {
     NotebookText,
     Undo2,
     User,
+    UserCog,
     Users,
 } from 'lucide-react';
 import { useMemo } from 'react';
@@ -75,6 +76,11 @@ const adminNavItems: NavItem[] = [
         title: 'Pengumuman & Konten',
         href: "/pengumuman-dan-konten",
         icon: Megaphone,
+    },
+    {
+        title: 'Kelola Akun',
+        href: "/kelola-akun",
+        icon: UserCog,
     },
 ];
 

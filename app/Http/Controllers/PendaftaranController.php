@@ -216,9 +216,8 @@ class PendaftaranController extends Controller
             return redirect()->route('tungguakun')->with(
                 'success',
                 'Pendaftaran berhasil! Tim kami akan meninjau pendaftaran Anda. ' .
-                'Akun akan dibuat dan kredensial login akan dikirim ke email Anda setelah disetujui.'
+                    'Akun akan dibuat dan kredensial login akan dikirim ke email Anda setelah disetujui.'
             );
-
         } catch (\Exception $e) {
             Log::error('Exception in pendaftaran store', [
                 'error_message' => $e->getMessage(),
@@ -305,7 +304,8 @@ class PendaftaranController extends Controller
     // HALAMAN HALAMAN ADMINNNN
 
     // INDEXX
-    public function index(){
+    public function index()
+    {
         $search = request('search');
         $status = request('status');
 
@@ -378,20 +378,28 @@ class PendaftaranController extends Controller
             'alasan_tolak' => 'required|string|max:500'
         ]);
 
-        $peserta = PesertaProfile::findOrFail($id);
+        // Ambil data peserta beserta relasi user
+        $peserta = PesertaProfile::with('user')->findOrFail($id);
+
         $user = $peserta->user;
 
+        // Cek status agar tidak ditolak dua kali
         if ($user->status !== 'pending') {
-            return response()->json(['message' => 'Pendaftar sudah diproses'], 400);
+            return response()->json([
+                'message' => 'Pendaftar sudah diproses'
+            ], 400);
         }
 
-        $user->update([
-            'status' => 'ditolak',
-            'alasan_tolak' => $request->alasan_tolak
-        ]);
+        // Update status user
+        $user->status = 'ditolak';
+        $user->alasan_tolak = $request->alasan_tolak;
+        $user->save();
 
-        return response()->json(['message' => 'Pendaftar berhasil ditolak']);
+        return response()->json([
+            'message' => 'Pendaftar berhasil ditolak'
+        ]);
     }
+
 
     public function show($id)
     {

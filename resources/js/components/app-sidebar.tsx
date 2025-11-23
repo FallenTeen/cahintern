@@ -12,14 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 
 import {
-    absenMahasiswa as absensi,
     dashboard as dashboard,
-    dataMahasiswaAktif as dataMahasiswaAktif,
-    dataPendaftaran as dataPendaftaran,
-    dataPIC as dataPIC,
-    logbookMahasiswa as logBook,
-    pengumumanKonten as pengumumanKonten,
-    profile as profile,
 } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -50,17 +43,17 @@ const commonNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
     {
         title: 'Data Pendaftaran',
-        href: dataPendaftaran(),
+        href: "data-pendaftaran",
         icon: FileText,
     },
     {
         title: 'Data Mahasiswa Aktif',
-        href: dataMahasiswaAktif(),
+        href: "data-mahasiswa-aktif",
         icon: Users,
     },
     {
         title: 'Data PIC',
-        href: dataPIC(),
+        href: "data-pic",
         icon: User,
     },
     {
@@ -80,7 +73,7 @@ const adminNavItems: NavItem[] = [
     },
     {
         title: 'Pengumuman & Konten',
-        href: pengumumanKonten(),
+        href: "/pengumuman-dan-konten",
         icon: Megaphone,
     },
 ];
@@ -88,22 +81,27 @@ const adminNavItems: NavItem[] = [
 const pesertaNavItems: NavItem[] = [
     {
         title: 'LogBook',
-        href: logBook(),
+        href: "/logBook",
         icon: NotebookText,
     },
     {
         title: 'Absensi',
-        href: absensi(),
+        href: "/absensi",
         icon: CalendarCheck,
     },
     {
         title: 'Sertifikat',
-        href: '#',
+        href: '/sertifikat',
         icon: Medal,
     },
     {
+        title: 'Formulir',
+        href: "/formulir",
+        icon: FileText,
+    },
+    {
         title: 'Profile',
-        href: profile(),
+        href: "/profile",
         icon: User,
     },
 ];

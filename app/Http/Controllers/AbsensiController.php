@@ -53,4 +53,8 @@ class AbsensiController extends Controller
             'absensiData' => $absensiData,
         ]);
     }
+
+    public function absensiPeserta (){
+        return Inertia::render('user/absensiPeserta');
+    }
 }

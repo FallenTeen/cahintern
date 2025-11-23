@@ -3,9 +3,16 @@ import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
-import { ArrowLeft, Download, FileText, Mail, MapPin, Phone, User } from 'lucide-react';
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
+import {
+    Download,
+    FileText,
+    Mail,
+    MapPin,
+    Phone,
+    Undo2,
+    User,
+} from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -69,15 +76,7 @@ export default function ShowPendaftaran({
             <Head title="Detail Pendaftar" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="outline"
-                        onClick={() => router.visit('/data-pendaftaran')}
-                        className="flex items-center gap-2"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Kembali
-                    </Button>
+                <div className="flex items-center gap-4 justify-between">
                     <div>
                         <h1 className="text-2xl font-semibold">
                             Detail Pendaftar
@@ -86,12 +85,20 @@ export default function ShowPendaftaran({
                             Informasi lengkap pendaftar magang
                         </p>
                     </div>
+                    <Button
+                        variant="outline"
+                        onClick={() => router.visit('/data-pendaftaran')}
+                        className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 hover:text-white"
+                    >
+                        <Undo2 className="h-4 w-4" />
+                        Kembali
+                    </Button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <div className="lg:col-span-2 space-y-6">
+                    <div className="space-y-6 lg:col-span-2">
                         <Card className="border-0 p-6 shadow-sm">
-                            <div className="flex items-center gap-3 mb-6">
+                            <div className="mb-6 flex items-center gap-3">
                                 <div className="rounded-lg bg-blue-100 p-3">
                                     <User className="h-6 w-6 text-blue-600" />
                                 </div>
@@ -135,7 +142,8 @@ export default function ShowPendaftaran({
                                         Tempat, Tanggal Lahir
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.tempat_lahir}, {pendaftar.tanggal_lahir}
+                                        {pendaftar.tempat_lahir},{' '}
+                                        {pendaftar.tanggal_lahir}
                                     </p>
                                 </div>
                                 <div>
@@ -151,13 +159,14 @@ export default function ShowPendaftaran({
                                         Alamat Lengkap
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.alamat}, {pendaftar.kota}, {pendaftar.provinsi}
+                                        {pendaftar.alamat}, {pendaftar.kota},{' '}
+                                        {pendaftar.provinsi}
                                     </p>
                                 </div>
                             </div>
                         </Card>
                         <Card className="border-0 p-6 shadow-sm">
-                            <div className="flex items-center gap-3 mb-6">
+                            <div className="mb-6 flex items-center gap-3">
                                 <div className="rounded-lg bg-green-100 p-3">
                                     <FileText className="h-6 w-6 text-green-600" />
                                 </div>
@@ -182,7 +191,9 @@ export default function ShowPendaftaran({
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">
-                                        {pendaftar.jenis_peserta === 'mahasiswa' ? 'NIM' : 'NIS'}
+                                        {pendaftar.jenis_peserta === 'mahasiswa'
+                                            ? 'NIM'
+                                            : 'NIS'}
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
                                         {pendaftar.nim_nisn}
@@ -206,7 +217,9 @@ export default function ShowPendaftaran({
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">
-                                        {pendaftar.jenis_peserta === 'mahasiswa' ? 'Semester' : 'Kelas'}
+                                        {pendaftar.jenis_peserta === 'mahasiswa'
+                                            ? 'Semester'
+                                            : 'Kelas'}
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
                                         {pendaftar.semester_kelas}
@@ -235,7 +248,7 @@ export default function ShowPendaftaran({
                             </div>
                         </Card>
                         <Card className="border-0 p-6 shadow-sm">
-                            <div className="flex items-center gap-3 mb-6">
+                            <div className="mb-6 flex items-center gap-3">
                                 <div className="rounded-lg bg-purple-100 p-3">
                                     <MapPin className="h-6 w-6 text-purple-600" />
                                 </div>
@@ -287,7 +300,7 @@ export default function ShowPendaftaran({
 
                         {(pendaftar.cv || pendaftar.surat_pengantar) && (
                             <Card className="border-0 p-6 shadow-sm">
-                                <div className="flex items-center gap-3 mb-6">
+                                <div className="mb-6 flex items-center gap-3">
                                     <div className="rounded-lg bg-orange-100 p-3">
                                         <FileText className="h-6 w-6 text-orange-600" />
                                     </div>
@@ -303,7 +316,7 @@ export default function ShowPendaftaran({
 
                                 <div className="space-y-3">
                                     {pendaftar.cv && (
-                                        <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
                                             <div className="flex items-center gap-3">
                                                 <FileText className="h-5 w-5 text-gray-500" />
                                                 <div>
@@ -318,7 +331,12 @@ export default function ShowPendaftaran({
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => window.open(pendaftar.cv!, '_blank')}
+                                                onClick={() =>
+                                                    window.open(
+                                                        pendaftar.cv!,
+                                                        '_blank',
+                                                    )
+                                                }
                                                 className="flex items-center gap-2"
                                             >
                                                 <Download className="h-4 w-4" />
@@ -327,7 +345,7 @@ export default function ShowPendaftaran({
                                         </div>
                                     )}
                                     {pendaftar.surat_pengantar && (
-                                        <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                        <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
                                             <div className="flex items-center gap-3">
                                                 <FileText className="h-5 w-5 text-gray-500" />
                                                 <div>
@@ -342,7 +360,12 @@ export default function ShowPendaftaran({
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => window.open(pendaftar.surat_pengantar!, '_blank')}
+                                                onClick={() =>
+                                                    window.open(
+                                                        pendaftar.surat_pengantar!,
+                                                        '_blank',
+                                                    )
+                                                }
                                                 className="flex items-center gap-2"
                                             >
                                                 <Download className="h-4 w-4" />
@@ -356,7 +379,7 @@ export default function ShowPendaftaran({
                     </div>
                     <div className="space-y-6">
                         <Card className="border-0 p-6 shadow-sm">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">
                                 Status Pendaftaran
                             </h2>
                             <div className="space-y-3">
@@ -365,17 +388,19 @@ export default function ShowPendaftaran({
                                         Status
                                     </label>
                                     <div className="mt-1">
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(pendaftar.status)}`}>
+                                        <span
+                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(pendaftar.status)}`}
+                                        >
                                             {pendaftar.status}
                                         </span>
                                     </div>
                                 </div>
-                                {pendaftar.alasan_tolak && (
+                                {pendaftar.status === 'Ditolak' && (
                                     <div>
                                         <label className="text-sm font-medium text-gray-500">
                                             Alasan Penolakan
                                         </label>
-                                        <p className="mt-1 text-sm text-gray-900 bg-red-50 p-3 rounded-lg border border-red-200">
+                                        <p className="mt-1 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-gray-900">
                                             {pendaftar.alasan_tolak}
                                         </p>
                                     </div>
@@ -384,24 +409,28 @@ export default function ShowPendaftaran({
                         </Card>
 
                         <Card className="border-0 p-6 shadow-sm">
-                            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">
                                 Kontak Cepat
                             </h2>
                             <div className="space-y-3">
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start"
-                                    onClick={() => window.open(`mailto:${pendaftar.email}`)}
+                                    onClick={() =>
+                                        window.open(`mailto:${pendaftar.email}`)
+                                    }
                                 >
-                                    <Mail className="h-4 w-4 mr-2" />
+                                    <Mail className="mr-2 h-4 w-4" />
                                     Email
                                 </Button>
                                 <Button
                                     variant="outline"
                                     className="w-full justify-start"
-                                    onClick={() => window.open(`tel:${pendaftar.phone}`)}
+                                    onClick={() =>
+                                        window.open(`tel:${pendaftar.phone}`)
+                                    }
                                 >
-                                    <Phone className="h-4 w-4 mr-2" />
+                                    <Phone className="mr-2 h-4 w-4" />
                                     Telepon
                                 </Button>
                             </div>

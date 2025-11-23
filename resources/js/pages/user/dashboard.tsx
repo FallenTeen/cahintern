@@ -19,7 +19,7 @@ export default function Dashboard() {
             <Head title="Dashboard" />
             <div className="space-y-6 px-6 py-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Dashboard Utama</h1>
+                    <h1 className="text-2xl font-semibold">Dashboard Utama User</h1>
                     <p className="mt-2 text-gray-600">
                         Selamat datang{' '}
                         <span className="font-medium">

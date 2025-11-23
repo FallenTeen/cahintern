@@ -11,6 +11,8 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SertifikatController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -51,19 +53,25 @@ Route::get('/data-pic', [PICCOntroller::class, 'index'])->name('dataPIC');
 
 Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
 
+Route::get('/absensi', [AbsensiController::class, 'absensiPeserta'])->name('absensi');
+
 Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');
 
 Route::get('/penilaian-dan-sertifikat', [PenilaianController::class, 'index'])->name('penilaianDanSertifikat');
 
 Route::get('/pengumuman-dan-konten',[KontenController::class,'index'])->name('pengumumanKonten');
 
+Route::get('/sertifikat',[SertifikatController::class,'index'])->name('sertifikat');
+
+Route::get('/profile',[ProfileController::class,'index'])->name('profile');
+
 Route::get('/logBook', function () {
     return Inertia::render('user/logBook');
 })->name('logBook');
 
-Route::get('/profile', function () {
-    return Inertia::render('user/profile');
-})->name('profile');
+Route::get('/formulir', function () {
+    return Inertia::render('user/formulir');
+})->name('formulir');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

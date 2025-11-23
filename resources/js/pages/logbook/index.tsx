@@ -21,7 +21,7 @@ import {
   TableCell
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-
+import { Clock } from 'lucide-react';
 type Status = "pending" | "disetujui" | "revision";
 
 type LogbookData = {
@@ -103,7 +103,6 @@ export default function LogbookMahasiswa() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Menunggu Validasi
-                <span className="text-orange-500">🕒</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="text-3xl font-semibold text-orange-500">
@@ -114,7 +113,6 @@ export default function LogbookMahasiswa() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Sudah Divalidasi
-                <span className="text-green-500">✅</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="text-3xl font-semibold text-green-500">
@@ -125,7 +123,6 @@ export default function LogbookMahasiswa() {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Diminta Revisi
-                <span className="text-red-500">❌</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="text-3xl font-semibold text-red-500">

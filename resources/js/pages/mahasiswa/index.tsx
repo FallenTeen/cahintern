@@ -12,8 +12,9 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { Eye, Plus } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import { dashboard } from '@/routes';
+import { show as dataMahasiswaAktifShow } from '@/routes/dataMahasiswaAktif';
 import { type BreadcrumbItem } from '@/types';
 
 type MahasiswaData = {
@@ -167,8 +168,14 @@ export default function DataMahasiswaAktif() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-center">
-                                        <Button variant="ghost" size="icon">
-                                            <Eye className="h-4 w-4 text-blue-600" />
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            asChild
+                                        >
+                                            <Link href={dataMahasiswaAktifShow(mhs.id).url}>
+                                                <Eye className="h-4 w-4 text-blue-600" />
+                                            </Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

@@ -12,7 +12,19 @@ import {
 } from '@/components/ui/sidebar';
 
 import {
-    dashboard as dashboard,
+    dashboard,
+    dataPendaftaran,
+    dataMahasiswaAktif,
+    dataPIC,
+    absenMahasiswa,
+    logbookMahasiswa,
+    penilaianDanSertifikat,
+    pengumumanKonten,
+    logBook,
+    absensi,
+    sertifikat,
+    formulir,
+    profile,
 } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -44,70 +56,65 @@ const commonNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
     {
         title: 'Data Pendaftaran',
-        href: "data-pendaftaran",
+        href: dataPendaftaran(),
         icon: FileText,
     },
     {
         title: 'Data Mahasiswa Aktif',
-        href: "data-mahasiswa-aktif",
+        href: dataMahasiswaAktif(),
         icon: Users,
     },
     {
         title: 'Data PIC',
-        href: "data-pic",
+        href: dataPIC(),
         icon: User,
     },
     {
         title: 'Absensi Mahasiswa',
-        href: '/absen-mahasiswa',
+        href: absenMahasiswa(),
         icon: Clock,
     },
     {
         title: 'Logbook Mahasiswa',
-        href: '/logbook-mahasiswa',
+        href: logbookMahasiswa(),
         icon: NotebookText,
     },
     {
         title: 'Penilaian & Sertifikat',
-        href: '/penilaian-dan-sertifikat',
+        href: penilaianDanSertifikat(),
         icon: NotebookPen,
     },
     {
         title: 'Pengumuman & Konten',
-        href: "/pengumuman-dan-konten",
+        href: pengumumanKonten(),
         icon: Megaphone,
-    },
-    {
-        title: 'Kelola Akun',
-        href: "/kelola-akun",
-        icon: UserCog,
     },
 ];
 
 const pesertaNavItems: NavItem[] = [
     {
         title: 'LogBook',
-        href: "/logBook",
+        href: logBook(),
         icon: NotebookText,
     },
     {
         title: 'Absensi',
-        href: "/absensi",
+        href: absensi(),
         icon: CalendarCheck,
     },
     {
         title: 'Sertifikat',
-        href: '/sertifikat',
+        href: sertifikat(),
         icon: Medal,
     },
     {
         title: 'Formulir',
-        href: "/formulir",
+        href: formulir(),
         icon: FileText,
     },
     {
         title: 'Profile',
-        href: "/profile",
+        href: profile(),
         icon: User,
     },
 ];
@@ -156,7 +163,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={dashboard().url} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

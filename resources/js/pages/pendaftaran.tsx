@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { router } from '@inertiajs/react';
+import { guestDaftar } from '@/routes/pendaftaran';
 import {
     CheckCircle2,
     ChevronDownIcon,
@@ -62,7 +63,7 @@ const DatePicker = ({ id, label, date, setDate }) => {
                         selected={date}
                         captionLayout="dropdown"
                         fromYear={2000}
-                        toYear={currentYear + 10} // ⬅ otomatis tambah 10 tahun
+                        toYear={currentYear + 10}
                         onSelect={(newDate) => {
                             setDate(newDate);
                             setIsPopoverOpen(false);
@@ -184,7 +185,7 @@ export default function Pendaftaran({ bidangMagang = [] }) {
             data.append('surat_pengantar', formData.surat_pengantar);
         }
 
-        router.post('/pendaftaran', data);
+        router.post(guestDaftar().url, data);
     };
 
     return (

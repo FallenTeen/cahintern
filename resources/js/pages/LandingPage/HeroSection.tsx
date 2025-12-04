@@ -5,7 +5,6 @@ const HeroSection = () => {
     return (
         <section className="bg-white py-20 text-gray-800 mb-19">
             <div className="mx-auto flex max-w-7xl flex-col items-center gap-12 px-4 md:flex-row mt-8">
-                {/* Kiri: Teks */}
                 <div className="flex-1">
                     <h1
                         className="mb-4 text-5xl leading-tight font-bold text-gray-900"
@@ -36,7 +35,6 @@ const HeroSection = () => {
                     </div>
                 </div>
 
-                {/* Kanan: Gambar */}
                 <div className="flex flex-1 justify-center">
                     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-7">
                         <img

@@ -65,7 +65,13 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                             : item.href.url),
                                 })}
                             >
-                                <Link href={item.href}>
+                                <Link
+                                    href={
+                                        typeof item.href === 'string'
+                                            ? item.href
+                                            : item.href.url
+                                    }
+                                >
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}

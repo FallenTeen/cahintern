@@ -15,9 +15,8 @@ const Header = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const page = usePage<AuthProps>();
-    const auth = page.props.auth || {}; // ✅ supaya aman kalau props.auth undefined
+    const auth = page.props.auth || {};
 
-    // 🔹 Update active nav saat scroll
     useEffect(() => {
         const sections = ['beranda', 'pendaftaran', 'persyaratan'];
 
@@ -37,7 +36,6 @@ const Header = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // 🔹 Deteksi path URL
     useEffect(() => {
         const setFromPath = () => {
             const path = window.location.pathname;
@@ -52,14 +50,12 @@ const Header = () => {
 
     return (
         <>
-            {/* NAVBAR UTAMA */}
             <header
                 className={`fixed top-0 left-0 z-50 w-full bg-white/80 text-black backdrop-blur-md transition-shadow duration-200${
                     scrolled || menuOpen ? 'shadow-md' : ''
                 }`}
             >
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-                    {/* 🔹 Kiri: Logo + Tombol Menu Mobile */}
                     <div className="flex items-center gap-3">
                         <button
                             className="rounded-lg p-2 transition hover:bg-gray-100 md:hidden"
@@ -84,7 +80,6 @@ const Header = () => {
                         </div>
                     </div>
 
-                    {/* 🔹 Menu Desktop */}
                     <nav className="hidden items-center gap-8 md:flex">
                         {[
                             { id: 'beranda', label: 'Beranda' },
@@ -114,9 +109,7 @@ const Header = () => {
                             </Link>
                         ))}
 
-                        {/* 🔹 Tombol Login / Dashboard */}
                         {!auth?.user ? (
-                            // Jika BELUM login
                             <button
                                 onClick={() =>
                                     (window.location.href = '/login')
@@ -147,7 +140,6 @@ const Header = () => {
                                 </svg>
                             </button>
                         ) : (
-                            // Jika SUDAH login
                             <button
                                 onClick={() =>
                                     (window.location.href = '/dashboard')
@@ -159,7 +151,6 @@ const Header = () => {
                         )}
                     </nav>
 
-                    {/*  Tombol Mobile (kanan atas) */}
                     <div className="md:hidden">
                         <button
                             onClick={() =>
@@ -175,7 +166,6 @@ const Header = () => {
                 </div>
             </header>
 
-            {/* 🔹 Sidebar Mobile */}
             <div
                 className={`fixed top-0 left-0 z-50 h-full w-64 transform bg-white shadow-lg transition-transform duration-300 ${
                     menuOpen ? 'translate-x-0' : '-translate-x-full'
@@ -232,7 +222,6 @@ const Header = () => {
                 </nav>
             </div>
 
-            {/* Overlay gelap */}
             {menuOpen && (
                 <div
                     className="fixed inset-0 z-40 bg-black/40"

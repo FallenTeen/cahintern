@@ -31,7 +31,15 @@ export function Breadcrumbs({
                                             </BreadcrumbPage>
                                         ) : (
                                             <BreadcrumbLink asChild>
-                                                <Link href={item.href}>
+                                                <Link
+                                                    href={
+                                                        typeof item.href === 'string'
+                                                            ? item.href
+                                                            : // Guard in case some breadcrumbs mistakenly pass a route helper object
+                                                              // Even though BreadcrumbItem.href is typed as string.
+                                                              (item as unknown as { href: { url: string } }).href.url
+                                                    }
+                                                >
                                                     {item.title}
                                                 </Link>
                                             </BreadcrumbLink>

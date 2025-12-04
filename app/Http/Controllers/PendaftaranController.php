@@ -18,11 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 class PendaftaranController extends Controller
 {
-    /**
-     * Tampilkan halaman pendaftaran
-     */
-
-    // HALAMAN PENDAFTARAN BUAT GUEST (yang di halaman awal awal itu loh)
+    
     public function halPendaftaranGuest()
     {
         $bidangMagang = BidangMagang::active()
@@ -184,7 +180,7 @@ class PendaftaranController extends Controller
                 'phone' => $request->phone,
                 'role' => 'guest',
                 'status' => 'pending',
-                'password' => null, // PASSWORD NULL DISIT
+                'password' => null,
                 'bidang_magang_id' => $request->bidang_magang_id,
             ]);
 
@@ -300,10 +296,7 @@ class PendaftaranController extends Controller
         ]);
     }
 
-
-    // HALAMAN HALAMAN ADMINNNN
-
-    // INDEXX
+    
     public function index()
     {
         $search = request('search');
@@ -362,12 +355,8 @@ class PendaftaranController extends Controller
 
         $user->update(['status' => 'diterima']);
 
-        // Generate password SEEDDSSS
         $password = 'Magang' . rand(1000, 9999);
         $user->update(['password' => Hash::make($password)]);
-
-        // Ni nanti kalo pake email, klo whatsapp bikin service lagi
-        // Mail::to($user->email)->send(new PendaftaranApproved($user, $password));
 
         return response()->json(['message' => 'Pendaftar berhasil diterima']);
     }
@@ -378,19 +367,16 @@ class PendaftaranController extends Controller
             'alasan_tolak' => 'required|string|max:500'
         ]);
 
-        // Ambil data peserta beserta relasi user
         $peserta = PesertaProfile::with('user')->findOrFail($id);
 
         $user = $peserta->user;
 
-        // Cek status agar tidak ditolak dua kali
         if ($user->status !== 'pending') {
             return response()->json([
                 'message' => 'Pendaftar sudah diproses'
             ], 400);
         }
 
-        // Update status user
         $user->status = 'ditolak';
         $user->alasan_tolak = $request->alasan_tolak;
         $user->save();

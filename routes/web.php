@@ -38,49 +38,92 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('bukancalonpeserta')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
-
 });
 
-Route::get('/data-pendaftaran', [PendaftaranController::class, 'index'])->name('dataPendaftaran');
-Route::get('/data-pendaftaran/{id}', [PendaftaranController::class, 'show'])->name('dataPendaftaran.show');
-Route::post('/data-pendaftaran/{id}/approve', [PendaftaranController::class, 'approve'])->name('dataPendaftaran.approve');
-Route::post('/data-pendaftaran/{id}/reject', [PendaftaranController::class, 'reject'])->name('dataPendaftaran.reject');
-Route::delete('/data-pendaftaran/{id}', [PendaftaranController::class, 'destroy'])->name('dataPendaftaran.destroy');
+Route::middleware(['auth', 'role:admin,pic'])->group(function () {
+    Route::get('/data-pendaftaran', [PendaftaranController::class, 'index'])->name('dataPendaftaran');
+    Route::get('/data-pendaftaran/{id}', [PendaftaranController::class, 'show'])->name('dataPendaftaran.show');
+    Route::post('/data-pendaftaran/{id}/approve', [PendaftaranController::class, 'approve'])->name('dataPendaftaran.approve');
+    Route::post('/data-pendaftaran/{id}/reject', [PendaftaranController::class, 'reject'])->name('dataPendaftaran.reject');
+    Route::delete('/data-pendaftaran/{id}', [PendaftaranController::class, 'destroy'])->name('dataPendaftaran.destroy');
 
-Route::get('/data-mahasiswa-aktif', [MahasiswaController::class, 'index'])->name('dataMahasiswaAktif');
-Route::get('/data-mahasiswa-aktif/{id}', [MahasiswaController::class, 'show'])->name('dataMahasiswaAktif.show');
+    Route::get('/data-mahasiswa-aktif', [MahasiswaController::class, 'index'])->name('dataMahasiswaAktif');
+    Route::get('/data-mahasiswa-aktif/{id}', [MahasiswaController::class, 'show'])->name('dataMahasiswaAktif.show');
 
-Route::get('/data-pic', [PICCOntroller::class, 'index'])->name('dataPIC');
+    Route::get('/data-pic', [PICCOntroller::class, 'index'])->name('dataPIC');
 
-Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
-Route::get('/absensi', [AbsensiController::class, 'absensiPeserta'])->name('absensi');
+    Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
 
-Route::prefix('logbook')->name('logbook.')->group(function () {
-    Route::get('/', [LogbookController::class, 'index'])->name('index');
-    Route::get('/mahasiswa/{pesertaProfileId}', [LogbookController::class, 'showLogbookMahasiswa'])
-        ->name('mahasiswa.show')
-        ->where('pesertaProfileId', '[0-9]+');
-    Route::get('/detail/{logbook}', [LogbookController::class, 'showDetailLogbook'])
-        ->name('detail');
+    Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');
+
+    Route::prefix('logbook')->name('logbook.')->group(function () {
+        Route::get('/', [LogbookController::class, 'index'])->name('index');
+        Route::get('/mahasiswa/{pesertaProfileId}', [LogbookController::class, 'showLogbookMahasiswa'])
+            ->name('mahasiswa.show')
+            ->where('pesertaProfileId', '[0-9]+');
+        Route::get('/detail/{logbook}', [LogbookController::class, 'showDetailLogbook'])
+            ->name('detail');
+
+        Route::post('/{logbook}/approve', [LogbookController::class, 'approve'])
+            ->name('approve');
+        Route::post('/{logbook}/reject', [LogbookController::class, 'reject'])
+            ->name('reject');
+        Route::post('/{logbook}/revision', [LogbookController::class, 'requestRevision'])
+            ->name('revision');
+    });
+
+    Route::get('/penilaian-dan-sertifikat', [PenilaianController::class, 'index'])->name('penilaianDanSertifikat');
+    Route::get('/pengumuman-dan-konten', [KontenController::class, 'index'])->name('pengumumanKonten');
 });
 
-Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');
+Route::middleware(['auth', 'role:peserta'])->group(function () {
+    Route::get('/absensi', [AbsensiController::class, 'absensiPeserta'])->name('absensi');
+    Route::get('/logBook', function () {
+        return Inertia::render('user/logBook');
+    })->name('logBook');
+    Route::get('/formulir', function () {
+        return Inertia::render('user/formulir');
+    })->name('formulir');
+    Route::get('/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat');
+});
 
-Route::get('/penilaian-dan-sertifikat', [PenilaianController::class, 'index'])->name('penilaianDanSertifikat');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+});
 
-Route::get('/pengumuman-dan-konten',[KontenController::class,'index'])->name('pengumumanKonten');
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/sertifikat', [SertifikatController::class, 'adminIndex'])
+            ->name('sertifikat.index');
 
-Route::get('/sertifikat',[SertifikatController::class,'index'])->name('sertifikat');
+        Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])
+            ->name('sertifikat.download');
 
-Route::get('/profile',[ProfileController::class,'index'])->name('profile');
+        Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])
+            ->name('sertifikat.regenerate');
 
-Route::get('/logBook', function () {
-    return Inertia::render('user/logBook');
-})->name('logBook');
+        Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])
+            ->name('sertifikat.validate');
+    });
 
-Route::get('/formulir', function () {
-    return Inertia::render('user/formulir');
-})->name('formulir');
+Route::middleware(['auth', 'role:pic'])
+    ->prefix('pic')
+    ->name('pic.')
+    ->group(function () {
+        Route::get('/sertifikat', [SertifikatController::class, 'picIndex'])
+            ->name('sertifikat.index');
+
+        Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])
+            ->name('sertifikat.download');
+
+        Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])
+            ->name('sertifikat.regenerate');
+
+        Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])
+            ->name('sertifikat.validate');
+    });
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

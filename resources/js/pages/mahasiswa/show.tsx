@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard, dataPendaftaran } from '@/routes';
+import { dashboard, dataMahasiswaAktif } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -16,55 +16,97 @@ import {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Data Pendaftaran',
+        title: 'Data Mahasiswa Aktif',
         href: dashboard().url,
     },
     {
-        title: 'Detail Pendaftar',
+        title: 'Detail Mahasiswa Aktif',
         href: '#',
     },
 ];
 
-interface PendaftarData {
+interface MhsAktif {
     id: number;
     nama_lengkap: string;
     email: string;
-    phone: string;
-    tempat_lahir: string;
-    tanggal_lahir: string;
-    jenis_kelamin: string;
-    alamat: string;
-    kota: string;
-    provinsi: string;
-    jenis_peserta: string;
     nim_nisn: string;
     asal_instansi: string;
     jurusan: string;
-    semester_kelas: string;
     bidang_magang: string;
-    tanggal_mulai: string;
-    tanggal_selesai: string;
+    tanggal_mulai: string | Date | null;
+    tanggal_selesai: string | Date | null;
     waktu: string;
-    cv: string | null;
-    surat_pengantar: string | null;
-    nama_pembimbing: string | null;
-    no_hp_pembimbing: string | null;
     status: string;
-    alasan_tolak: string | null;
+    nilai_akhir: number | null;
+    predikat: string | null;
+    sertifikat: string | null;
+    phone?: string | null;
+    tempat_lahir?: string | null;
+    tanggal_lahir?: string | Date | null;
+    jenis_kelamin?: string | null;
+    alamat?: string | null;
+    kota?: string | null;
+    provinsi?: string | null;
+    jenis_peserta?: string | null;
+    semester_kelas?: string | null;
+    nama_pembimbing?: string | null;
+    no_hp_pembimbing?: string | null;
+    cv?: string | null;
+    surat_pengantar?: string | null;
+    alasan_tolak?: string | null;
+    logbook_count?: number | null;
+    logbook_link?: string | null;
 }
 
-export default function ShowPendaftaran({
+export default function ShowMhsAktif({
     pendaftar,
 }: {
-    pendaftar: PendaftarData;
+    pendaftar: MhsAktif;
 }) {
-    const getStatusColor = (status: string) => {
+    const formatWaLink = (phone?: string) => {
+        if (!phone) return null;
+        let digits = phone.replace(/[^0-9+]/g, '');
+        if (digits.startsWith('+')) digits = digits.slice(1);
+        if (digits.startsWith('0')) digits = '62' + digits.slice(1);
+        if (!digits.startsWith('62')) {
+            digits = '62' + digits;
+        }
+        return `https://wa.me/${digits}`;
+    };
+
+    const formatDate = (dateStr?: string | Date) => {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr);
+        try {
+            return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+        } catch (e) {
+            return dateStr.toString();
+        }
+    };
+    const getStatusColor = (tanggal_mulai?: string | Date | null, tanggal_selesai?: string | Date | null) => {
+        const today = new Date();
+        const startDate = tanggal_mulai ? new Date(tanggal_mulai) : null;
+        const endDate = tanggal_selesai ? new Date(tanggal_selesai) : null;
+        let status: string;
+
+        if (!startDate || !endDate) {
+            status = 'Unknown';
+        } else if (today < startDate) {
+            status = 'Belum Mulai';
+        } else if (today >= startDate && today <= endDate) {
+            status = 'Sedang Berlangsung';
+        } else if (today > endDate) {
+            status = 'Selesai';
+        } else {
+            status = 'Unknown';
+        }
+
         switch (status) {
-            case 'Diterima':
-                return 'bg-green-100 text-green-800';
-            case 'Ditolak':
+            case 'Belum Mulai':
                 return 'bg-red-100 text-red-800';
-            case 'Proses':
+            case 'Sedang Berlangsung':
+                return 'bg-green-100 text-green-800';
+            case 'Selesai':
                 return 'bg-yellow-100 text-yellow-800';
             default:
                 return 'bg-gray-100 text-gray-800';
@@ -73,26 +115,26 @@ export default function ShowPendaftaran({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Detail Pendaftar" />
+            <Head title="Detail Mahasiswa Aktif" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
-                <div className="flex items-center gap-4 justify-between">
+                <div className="flex items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold">
-                            Detail Pendaftar
+                            Detail Mahasiswa Aktif
                         </h1>
                         <p className="text-sm text-gray-500 md:text-base">
-                            Informasi lengkap pendaftar magang
+                            Informasi lengkap mahasiswa magang aktif
                         </p>
                     </div>
-                    <Button
-                        variant="outline"
-                        onClick={() => router.visit(dataPendaftaran().url)}
-                        className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 hover:text-white"
-                    >
-                        <Undo2 className="h-4 w-4" />
-                        Kembali
-                    </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => router.visit(dataMahasiswaAktif().url)}
+                            className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 hover:text-white"
+                        >
+                            <Undo2 className="h-4 w-4" />
+                            Kembali
+                        </Button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -134,16 +176,37 @@ export default function ShowPendaftaran({
                                         Nomor Telepon
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.phone}
+                                        {pendaftar.phone || '-'}
                                     </p>
+                                    {pendaftar.phone && (
+                                        <div className="mt-2 flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => window.open(`mailto:${pendaftar.email}`)}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <Mail className="h-4 w-4" />
+                                                Email
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => window.open(formatWaLink(pendaftar.phone)!)}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <Phone className="h-4 w-4" />
+                                                Chat WhatsApp
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">
                                         Tempat, Tanggal Lahir
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.tempat_lahir},{' '}
-                                        {pendaftar.tanggal_lahir}
+                                        {pendaftar.tempat_lahir || '-'}, {formatDate(pendaftar.tanggal_lahir)}
                                     </p>
                                 </div>
                                 <div>
@@ -151,7 +214,7 @@ export default function ShowPendaftaran({
                                         Jenis Kelamin
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.jenis_kelamin}
+                                        {pendaftar.jenis_kelamin || '-'}
                                     </p>
                                 </div>
                                 <div className="md:col-span-2">
@@ -159,8 +222,7 @@ export default function ShowPendaftaran({
                                         Alamat Lengkap
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.alamat}, {pendaftar.kota},{' '}
-                                        {pendaftar.provinsi}
+                                        {pendaftar.alamat || '-'}, {pendaftar.kota || '-'}, {pendaftar.provinsi || '-'}
                                     </p>
                                 </div>
                             </div>
@@ -283,17 +345,13 @@ export default function ShowPendaftaran({
                                     <label className="text-sm font-medium text-gray-500">
                                         Tanggal Mulai
                                     </label>
-                                    <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.tanggal_mulai}
-                                    </p>
+                                    <p className="mt-1 text-sm text-gray-900">{formatDate(pendaftar.tanggal_mulai)}</p>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">
                                         Tanggal Selesai
                                     </label>
-                                    <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.tanggal_selesai}
-                                    </p>
+                                    <p className="mt-1 text-sm text-gray-900">{formatDate(pendaftar.tanggal_selesai)}</p>
                                 </div>
                             </div>
                         </Card>
@@ -376,6 +434,11 @@ export default function ShowPendaftaran({
                                 </div>
                             </Card>
                         )}
+                        <Card className="border-0 p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Logbook</h2>
+                            <p className="text-sm text-gray-600 mb-3">Total entries: {pendaftar.logbook_count ?? 0}</p>
+                            <Button variant="outline" onClick={() => window.open(pendaftar.logbook_link)} className="w-full justify-start">Lihat Logbook</Button>
+                        </Card>
                     </div>
                     <div className="space-y-6">
                         <Card className="border-0 p-6 shadow-sm">
@@ -389,7 +452,7 @@ export default function ShowPendaftaran({
                                     </label>
                                     <div className="mt-1">
                                         <span
-                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(pendaftar.status)}`}
+                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(pendaftar.tanggal_mulai, pendaftar.tanggal_selesai)}`}
                                         >
                                             {pendaftar.status}
                                         </span>

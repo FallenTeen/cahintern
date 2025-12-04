@@ -100,7 +100,12 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             {mainNavItems.map((item) => (
                                                 <Link
                                                     key={item.title}
-                                                    href={item.href}
+                                                    href={
+                                                        typeof item.href ===
+                                                        'string'
+                                                            ? item.href
+                                                            : item.href.url
+                                                    }
                                                     className="flex items-center space-x-2 font-medium"
                                                 >
                                                     {item.icon && (
@@ -145,7 +150,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </div>
 
                     <Link
-                        href={dashboard()}
+                        href={dashboard().url}
                         prefetch
                         className="flex items-center space-x-2"
                     >
@@ -162,7 +167,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                         className="relative flex h-full items-center"
                                     >
                                         <Link
-                                            href={item.href}
+                                            href={
+                                                typeof item.href === 'string'
+                                                    ? item.href
+                                                    : item.href.url
+                                            }
                                             className={cn(
                                                 navigationMenuTriggerStyle(),
                                                 page.url ===
@@ -182,7 +191,10 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                             )}
                                             {item.title}
                                         </Link>
-                                        {page.url === item.href && (
+                                        {page.url ===
+                                            (typeof item.href === 'string'
+                                                ? item.href
+                                                : item.href.url) && (
                                             <div className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
                                         )}
                                     </NavigationMenuItem>

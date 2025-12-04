@@ -8,7 +8,6 @@ const FooterSection = () => {
                 <div className="grid grid-cols-1 gap-8 pt-16 pb-12 md:grid-cols-4">
                     <div className="col-span-1 md:col-span-1">
                         <div className="mb-4 text-2xl font-bold">
-                            {/* Logo dan Nama */}
                             <div className="flex items-center gap-3">
                                 <div className="rounded-full bg-red-200 p-2">
                                     <GraduationCap className="h-8 w-8 text-red-600" />

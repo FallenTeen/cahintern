@@ -1,7 +1,7 @@
 import AppLayout from "@/layouts/app-layout";
 import { dashboard, penilaianDanSertifikat } from "@/routes";
 import { type BreadcrumbItem } from "@/types";
-import { Head, usePage } from "@inertiajs/react";
+import { Head, usePage, router } from "@inertiajs/react";
 import { useMemo, useState } from "react";
 import {
   Card,
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Status = "belum" | "proses" | "terbit";
 
@@ -44,6 +45,21 @@ type Props = {
     per_page: number;
     total: number;
   };
+  sertifikatData?: {
+    data: Array<{
+      id: number;
+      nama_peserta: string;
+      bidang_magang: string;
+      tanggal_terbit: string;
+      nomor_sertifikat: string | null;
+      file_path: string | null;
+      status: Status;
+    }>;
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -52,14 +68,38 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function PenilaianSertifikat() {
-  const { penilaianData } = usePage<Props>().props;
-  const [data] = useState<PenilaianData[]>(penilaianData.data);
+  const props = usePage<Props>().props;
+  const isCertificateView = Boolean(props.sertifikatData);
+  const [selected, setSelected] = useState<number[]>([]);
+  const prefix = typeof window !== "undefined" && window.location.pathname.startsWith("/pic") ? "/pic" : "/admin";
+
+  const rows = useMemo(() => {
+    if (isCertificateView) {
+      return props.sertifikatData!.data.map((s) => ({
+        id: s.id,
+        nama_peserta: s.nama_peserta,
+        bidang_magang: s.bidang_magang,
+        tanggal: s.tanggal_terbit,
+        status: s.status,
+        file_path: s.file_path,
+      }));
+    }
+    return props.penilaianData.data.map((d) => ({
+      id: d.id,
+      nama_peserta: d.nama_peserta,
+      bidang_magang: d.bidang_magang,
+      tanggal: d.tanggal_penilaian,
+      status: d.status,
+      file_path: null as string | null,
+    }));
+  }, [props, isCertificateView]);
+
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "Semua">("Semua");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return data.filter((d) => {
+    return rows.filter((d) => {
       if (statusFilter !== "Semua" && d.status !== statusFilter) return false;
       if (!q) return true;
       return (
@@ -67,7 +107,7 @@ export default function PenilaianSertifikat() {
         d.bidang_magang.toLowerCase().includes(q)
       );
     });
-  }, [data, query, statusFilter]);
+  }, [rows, query, statusFilter]);
 
   const badgeColor = (status: Status) => {
     switch (status) {
@@ -93,9 +133,44 @@ export default function PenilaianSertifikat() {
               Kelola penilaian mahasiswa dan penerbitan sertifikat
             </p>
           </div>
-          <Button className="bg-red-600 hover:bg-red-700 text-white">
-            + Generate Sertifikat
-          </Button>
+          {isCertificateView ? (
+            <div className="flex gap-2">
+              <Button
+                variant="default"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={selected.length === 0}
+                onClick={() => {
+                  selected.forEach((id) => router.post(`${prefix}/sertifikat/${id}/regenerate`));
+                }}
+              >
+                Regenerate Batch
+              </Button>
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 text-white"
+                disabled={selected.length === 0}
+                onClick={() => {
+                  selected.forEach((id) => router.post(`${prefix}/sertifikat/${id}/validate`));
+                }}
+              >
+                Publish Batch
+              </Button>
+              <Button
+                variant="default"
+                className="bg-gray-700 hover:bg-gray-800 text-white"
+                disabled={selected.length === 0}
+                onClick={() => {
+                  selected.forEach((id) => window.open(`${prefix}/sertifikat/${id}/download`, "_blank"));
+                }}
+              >
+                Download Batch
+              </Button>
+            </div>
+          ) : (
+            <Button className="bg-red-600 hover:bg-red-700 text-white">
+              + Generate Sertifikat
+            </Button>
+          )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
@@ -151,9 +226,18 @@ export default function PenilaianSertifikat() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {isCertificateView && <TableHead>
+                    <Checkbox
+                      checked={selected.length === filtered.length && filtered.length > 0}
+                      onCheckedChange={(checked) => {
+                        if (checked) setSelected(filtered.map((d) => d.id));
+                        else setSelected([]);
+                      }}
+                    />
+                  </TableHead>}
                   <TableHead>Nama Mahasiswa</TableHead>
                   <TableHead>Bidang</TableHead>
-                  <TableHead>Tanggal Penilaian</TableHead>
+                  <TableHead>{isCertificateView ? "Tanggal Terbit" : "Tanggal Penilaian"}</TableHead>
                   <TableHead>Nilai Akhir</TableHead>
                   <TableHead>Status Sertifikat</TableHead>
                   <TableHead className="text-center">Aksi</TableHead>
@@ -162,46 +246,111 @@ export default function PenilaianSertifikat() {
               <TableBody>
                 {filtered.map((d) => (
                   <TableRow key={d.id}>
+                    {isCertificateView && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selected.includes(d.id)}
+                          onCheckedChange={(checked) => {
+                            setSelected((prev) => checked ? [...prev, d.id] : prev.filter((x) => x !== d.id));
+                          }}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell>{d.nama_peserta}</TableCell>
                     <TableCell>{d.bidang_magang}</TableCell>
-                    <TableCell>{d.tanggal_penilaian}</TableCell>
-                    <TableCell>{d.nilai_total}</TableCell>
+                    <TableCell>{d.tanggal}</TableCell>
+                    <TableCell>{"nilai_total" in d ? (d as any).nilai_total : "-"}</TableCell>
                     <TableCell>
                       <Badge className={badgeColor(d.status)}>{d.status === "belum" ? "Belum" : d.status === "proses" ? "Proses" : d.status === "terbit" ? "Terbit" : d.status}</Badge>
                     </TableCell>
                     <TableCell className="flex justify-center gap-2">
-                      <Button variant="ghost" size="icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-5 h-5 text-orange-500"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M16.862 4.487l1.651 1.651a1.5 1.5 0 010 2.122l-9.193 9.193-3.764.418a.375.375 0 01-.414-.414l.418-3.764 9.193-9.193a1.5 1.5 0 012.122 0z"
-                          />
-                        </svg>
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-5 h-5 text-blue-600"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-                          />
-                        </svg>
-                      </Button>
+                      {isCertificateView ? (
+                        <>
+                          <Button variant="ghost" size="icon" onClick={() => router.post(`${prefix}/sertifikat/${d.id}/regenerate`)}>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="w-5 h-5 text-orange-500"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M16.862 4.487l1.651 1.651a1.5 1.5 0 010 2.122l-9.193 9.193-3.764.418a.375.375 0 01-.414-.414l.418-3.764 9.193-9.193a1.5 1.5 0 012.122 0z"
+                              />
+                            </svg>
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => window.open(`${prefix}/sertifikat/${d.id}/download`, "_blank")}>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="w-5 h-5 text-blue-600"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+                              />
+                            </svg>
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => router.post(`${prefix}/sertifikat/${d.id}/validate`)}>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="w-5 h-5 text-green-600"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M9 12l2 2 4-4"
+                              />
+                            </svg>
+                          </Button>
+                        </>
+                      ) : (
+                        <Button variant="ghost" size="icon">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-5 h-5 text-orange-500"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M16.862 4.487l1.651 1.651a1.5 1.5 0 010 2.122l-9.193 9.193-3.764.418a.375.375 0 01-.414-.414l.418-3.764 9.193-9.193a1.5 1.5 0 012.122 0z"
+                            />
+                          </svg>
+                        </Button>
+                      )}
+                      {!isCertificateView && (
+                        <Button variant="ghost" size="icon">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={2}
+                            stroke="currentColor"
+                            className="w-5 h-5 text-blue-600"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+                            />
+                          </svg>
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -53,22 +53,17 @@ export default function ProgramSection() {
             key={i}
             className="bg-white rounded-2xl shadow-lg p-6"
           >
-            {/* Icon */}
             <div
               className={`w-14 h-14 rounded-xl bg-gradient-to-r ${program.iconColor} flex items-center justify-center mx-auto mb-4`}
             >
               {program.icon}
             </div>
-
-            {/* Title & Description */}
             <h3 className="text-xl font-semibold mb-2 text-center">
               {program.title}
             </h3>
             <p className="text-sm text-center text-gray-600 mb-4">
               {program.description}
             </p>
-
-            {/* Items */}
             <ul className="space-y-2 text-sm mb-4">
               {program.items.map((item, index) => (
                 <li key={index} className="flex items-center gap-2">
@@ -77,8 +72,6 @@ export default function ProgramSection() {
                 </li>
               ))}
             </ul>
-
-            {/* Kuota & Status */}
             <div className="flex items-center justify-between text-sm text-gray-700 mt-4">
               <p>Kuota: {program.quota}</p>
               <span

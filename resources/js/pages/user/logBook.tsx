@@ -145,7 +145,6 @@ const LogbookPage = () => {
         <AppLayout>
             <div className="space-y-6 px-6 py-6">
                 <div className="mx-auto max-w-7xl space-y-6">
-                    {/* Header */}
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
                             Logbook Mahasiswa
@@ -155,7 +154,6 @@ const LogbookPage = () => {
                         </p>
                     </div>
 
-                    {/* Form Logbook Harian */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg md:text-xl">
@@ -224,7 +222,6 @@ const LogbookPage = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Riwayat Logbook */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg md:text-xl">
@@ -232,7 +229,6 @@ const LogbookPage = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {/* Desktop Table */}
                             <div className="hidden overflow-x-auto md:block">
                                 <Table>
                                     <TableHeader>
@@ -308,7 +304,6 @@ const LogbookPage = () => {
                                 </Table>
                             </div>
 
-                            {/* Mobile Cards */}
                             <div className="space-y-4 md:hidden">
                                 {logs.map((log, i) => (
                                     <div

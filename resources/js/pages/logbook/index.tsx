@@ -1,7 +1,9 @@
 import AppLayout from '@/layouts/app-layout';
 import { dashboard, logbookMahasiswa } from '@/routes';
+import { detail as logbookDetail } from '@/routes/logbook';
+import { show as showLogbookMahasiswa } from '@/routes/logbook/mahasiswa';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import { useMemo, useState } from "react";
 import {
   Card,
@@ -21,12 +23,21 @@ import {
   TableCell
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { Clock } from 'lucide-react';
-type Status = "pending" | "disetujui" | "revision";
+import { Eye, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+type Status = "pending" | "disetujui" | "ditolak" | "revision";
 
 type LogbookData = {
   id: number;
   nama_peserta: string;
+  peserta_profile_id: number;
   bidang_magang: string;
   tanggal: string;
   kegiatan: string;
@@ -38,6 +49,18 @@ type LogbookData = {
   status_label: string;
   catatan_pembimbing: string | null;
   dokumentasi: string | null;
+};
+
+type GroupedLogbook = {
+  nama_peserta: string;
+  peserta_profile_id: number;
+  bidang_magang: string;
+  logbooks: LogbookData[];
+  total_logbook: number;
+  pending: number;
+  disetujui: number;
+  revision: number;
+  ditolak: number;
 };
 
 type Props = {
@@ -60,6 +83,9 @@ export default function LogbookMahasiswa() {
   const [data] = useState<LogbookData[]>(logbookData.data);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Status | "Semua">("Semua");
+  const [viewMode, setViewMode] = useState<"list" | "grouped">("list");
+  const [sortBy, setSortBy] = useState<"tanggal" | "nama" | "status">("tanggal");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -74,17 +100,88 @@ export default function LogbookMahasiswa() {
     });
   }, [data, query, statusFilter]);
 
+  const sorted = useMemo(() => {
+    const sorted = [...filtered];
+    sorted.sort((a, b) => {
+      let comparison = 0;
+      if (sortBy === "nama") {
+        comparison = a.nama_peserta.localeCompare(b.nama_peserta);
+      } else if (sortBy === "tanggal") {
+        comparison = new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime();
+      } else if (sortBy === "status") {
+        comparison = a.status.localeCompare(b.status);
+      }
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+    return sorted;
+  }, [filtered, sortBy, sortOrder]);
+
+  const groupedData = useMemo(() => {
+    const groups: Record<number, GroupedLogbook> = {};
+
+    sorted.forEach((logbook) => {
+      const id = logbook.peserta_profile_id;
+      if (!groups[id]) {
+        groups[id] = {
+          nama_peserta: logbook.nama_peserta,
+          peserta_profile_id: logbook.peserta_profile_id,
+          bidang_magang: logbook.bidang_magang,
+          logbooks: [],
+          total_logbook: 0,
+          pending: 0,
+          disetujui: 0,
+          revision: 0,
+          ditolak: 0,
+        };
+      }
+
+      groups[id].logbooks.push(logbook);
+      groups[id].total_logbook++;
+
+      if (logbook.status === 'pending') groups[id].pending++;
+      if (logbook.status === 'disetujui') groups[id].disetujui++;
+      if (logbook.status === 'revision') groups[id].revision++;
+      if (logbook.status === 'ditolak') groups[id].ditolak++;
+    });
+
+    return Object.values(groups);
+  }, [sorted]);
+
   const badgeColor = (status: Status) => {
     switch (status) {
       case "disetujui":
-        return "bg-green-500 text-white";
+        return "bg-green-500 text-white hover:bg-green-600";
       case "pending":
-        return "bg-yellow-400 text-black";
+        return "bg-yellow-500 text-white hover:bg-yellow-600";
       case "revision":
-        return "bg-red-500 text-white";
+        return "bg-orange-500 text-white hover:bg-orange-600";
+      case "ditolak":
+        return "bg-red-500 text-white hover:bg-red-600";
       default:
         return "bg-gray-300 text-black";
     }
+  };
+
+  const handleViewLogbook = (pesertaProfileId: number) => {
+    router.visit(showLogbookMahasiswa(pesertaProfileId).url);
+  };
+
+  const handleViewDetail = (logbookId: number) => {
+    router.visit(logbookDetail(logbookId).url);
+  };
+
+  const toggleSort = (field: "tanggal" | "nama" | "status") => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
+
+  const SortIcon = ({ field }: { field: "tanggal" | "nama" | "status" }) => {
+    if (sortBy !== field) return null;
+    return sortOrder === "asc" ? <ChevronUp className="w-4 h-4 inline ml-1" /> : <ChevronDown className="w-4 h-4 inline ml-1" />;
   };
 
   return (
@@ -98,20 +195,21 @@ export default function LogbookMahasiswa() {
             Lihat dan validasi logbook harian mahasiswa
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">
                 Menunggu Validasi
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-3xl font-semibold text-orange-500">
+            <CardContent className="text-3xl font-semibold text-yellow-500">
               {data.filter(d => d.status === 'pending').length}
             </CardContent>
           </Card>
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">
                 Sudah Divalidasi
               </CardTitle>
             </CardHeader>
@@ -120,33 +218,60 @@ export default function LogbookMahasiswa() {
             </CardContent>
           </Card>
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">
                 Diminta Revisi
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-3xl font-semibold text-red-500">
+            <CardContent className="text-3xl font-semibold text-orange-500">
               {data.filter(d => d.status === 'revision').length}
             </CardContent>
           </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium">
+                Ditolak
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-3xl font-semibold text-red-500">
+              {data.filter(d => d.status === 'ditolak').length}
+            </CardContent>
+          </Card>
         </div>
+
         <Card>
           <CardContent className="p-4 space-y-4">
-            <Input
-              placeholder="Cari logbook (nama, bidang, atau judul kegiatan)..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+            <div className="flex flex-col md:flex-row gap-4">
+              <Input
+                placeholder="Cari logbook (nama, bidang, atau judul kegiatan)..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="flex-1"
+              />
+
+              <Select value={viewMode} onValueChange={(value: "list" | "grouped") => setViewMode(value)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Tampilan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="list">List View</SelectItem>
+                  <SelectItem value="grouped">Group by Student</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="flex flex-wrap gap-2">
-              {["Semua", "pending", "disetujui", "revision"].map((status) => (
+              {["Semua", "pending", "disetujui", "revision", "ditolak"].map((status) => (
                 <Button
                   key={status}
                   variant={statusFilter === status ? "default" : "outline"}
                   size="sm"
                   onClick={() => setStatusFilter(status as Status | "Semua")}
                 >
-                  {status === "pending" ? "Menunggu" : status === "disetujui" ? "Valid" : status === "revision" ? "Revisi" : status}
+                  {status === "pending" ? "Menunggu" :
+                   status === "disetujui" ? "Valid" :
+                   status === "revision" ? "Revisi" :
+                   status === "ditolak" ? "Ditolak" : status}
                 </Button>
               ))}
             </div>
@@ -154,64 +279,142 @@ export default function LogbookMahasiswa() {
             <Separator />
 
             <p className="text-sm text-muted-foreground">
-              Menampilkan {filtered.length} logbook
+              Menampilkan {viewMode === "list" ? sorted.length : groupedData.length} {viewMode === "list" ? "logbook" : "mahasiswa"}
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nama Mahasiswa</TableHead>
-                  <TableHead>Bidang</TableHead>
-                  <TableHead>Tanggal</TableHead>
-                  <TableHead>Waktu</TableHead>
-                  <TableHead>Judul Logbook</TableHead>
-                  <TableHead>Status Validasi</TableHead>
-                  <TableHead className="text-center">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((d) => (
-                  <TableRow key={d.id}>
-                    <TableCell>{d.nama_peserta}</TableCell>
-                    <TableCell>{d.bidang_magang}</TableCell>
-                    <TableCell>{d.tanggal}</TableCell>
-                    <TableCell>{d.durasi}</TableCell>
-                    <TableCell>{d.kegiatan}</TableCell>
-                    <TableCell>
-                      <Badge className={badgeColor(d.status)}>{d.status_label}</Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button variant="ghost" size="icon">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={2}
-                          stroke="currentColor"
-                          className="w-5 h-5 text-blue-500"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                      </Button>
-                    </TableCell>
+
+        {viewMode === "list" ? (
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => toggleSort("nama")}
+                    >
+                      Nama Mahasiswa <SortIcon field="nama" />
+                    </TableHead>
+                    <TableHead>Bidang</TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => toggleSort("tanggal")}
+                    >
+                      Tanggal <SortIcon field="tanggal" />
+                    </TableHead>
+                    <TableHead>Durasi</TableHead>
+                    <TableHead>Judul Kegiatan</TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => toggleSort("status")}
+                    >
+                      Status <SortIcon field="status" />
+                    </TableHead>
+                    <TableHead className="text-center">Aksi</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {sorted.map((d) => (
+                    <TableRow key={d.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{d.nama_peserta}</TableCell>
+                      <TableCell>{d.bidang_magang}</TableCell>
+                      <TableCell>{d.tanggal}</TableCell>
+                      <TableCell>{d.durasi}</TableCell>
+                      <TableCell>{d.kegiatan}</TableCell>
+                      <TableCell>
+                        <Badge className={badgeColor(d.status)}>{d.status_label}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleViewDetail(d.id)}
+                        >
+                          <Eye className="w-5 h-5 text-blue-500" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {groupedData.map((group) => (
+              <Card key={group.peserta_profile_id} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-full">
+                        <Users className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{group.nama_peserta}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{group.bidang_magang}</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleViewLogbook(group.peserta_profile_id)}
+                    >
+                      Lihat Semua Logbook
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div className="text-center p-3 bg-muted rounded-lg">
+                      <p className="text-2xl font-bold">{group.total_logbook}</p>
+                      <p className="text-xs text-muted-foreground">Total</p>
+                    </div>
+                    <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                      <p className="text-2xl font-bold text-yellow-600">{group.pending}</p>
+                      <p className="text-xs text-muted-foreground">Pending</p>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <p className="text-2xl font-bold text-green-600">{group.disetujui}</p>
+                      <p className="text-xs text-muted-foreground">Disetujui</p>
+                    </div>
+                    <div className="text-center p-3 bg-orange-50 rounded-lg">
+                      <p className="text-2xl font-bold text-orange-600">{group.revision}</p>
+                      <p className="text-xs text-muted-foreground">Revisi</p>
+                    </div>
+                    <div className="text-center p-3 bg-red-50 rounded-lg">
+                      <p className="text-2xl font-bold text-red-600">{group.ditolak}</p>
+                      <p className="text-xs text-muted-foreground">Ditolak</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Logbook Terbaru:</p>
+                    {group.logbooks.slice(0, 3).map((logbook) => (
+                      <div
+                        key={logbook.id}
+                        className="flex items-center justify-between p-2 bg-muted/50 rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handleViewDetail(logbook.id)}
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{logbook.kegiatan}</p>
+                          <p className="text-xs text-muted-foreground">{logbook.tanggal} • {logbook.durasi}</p>
+                        </div>
+                        <Badge className={badgeColor(logbook.status)} variant="secondary">
+                          {logbook.status_label}
+                        </Badge>
+                      </div>
+                    ))}
+                    {group.logbooks.length > 3 && (
+                      <p className="text-xs text-muted-foreground text-center pt-2">
+                        Dan {group.logbooks.length - 3} logbook lainnya...
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </AppLayout>
   );

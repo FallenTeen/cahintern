@@ -24,7 +24,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
+import { dashboard, dataPendaftaran } from '@/routes';
+import { show as showPendaftaran, approve as approvePendaftaran, reject as rejectPendaftaran, destroy as destroyPendaftaran } from '@/routes/dataPendaftaran';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { Select } from '@radix-ui/react-select';
@@ -74,7 +75,7 @@ export default function DataPendaftaran({
 
     const handleSearch = () => {
         setLoading(true);
-        router.get('/data-pendaftaran', {
+        router.get(dataPendaftaran().url, {
             search: search,
             status: status,
         }, {
@@ -85,7 +86,7 @@ export default function DataPendaftaran({
 
     const handleApprove = (id: number) => {
         if (confirm('Apakah Anda yakin ingin menerima pendaftar ini?')) {
-            router.post(`/data-pendaftaran/${id}/approve`, {}, {
+            router.post(approvePendaftaran(id).url, {}, {
                 onSuccess: () => {
                     router.reload();
                 },
@@ -96,7 +97,7 @@ export default function DataPendaftaran({
     const handleReject = (id: number) => {
         const reason = prompt('Masukkan alasan penolakan:');
         if (reason) {
-            router.post(`/data-pendaftaran/${id}/reject`, { alasan_tolak: reason }, {
+            router.post(rejectPendaftaran(id).url, { alasan_tolak: reason }, {
                 onSuccess: () => {
                     router.reload();
                 },
@@ -106,7 +107,7 @@ export default function DataPendaftaran({
 
     const handleDelete = (id: number) => {
         if (confirm('Apakah Anda yakin ingin menghapus data pendaftar ini?')) {
-            router.delete(`/data-pendaftaran/${id}`, {
+            router.delete(destroyPendaftaran(id).url, {
                 onSuccess: () => {
                     router.reload();
                 },
@@ -246,7 +247,7 @@ export default function DataPendaftaran({
                                                     size="icon"
                                                     className="h-8 w-8 hover:bg-blue-100"
                                                     title="Lihat Data"
-                                                    onClick={() => router.visit(`/data-pendaftaran/${pendaftar.id}`)}
+                                                    onClick={() => router.visit(showPendaftaran(pendaftar.id).url)}
                                                 >
                                                     <Eye className="h-4 w-4 text-blue-500" />
                                                 </Button>
@@ -354,7 +355,7 @@ export default function DataPendaftaran({
                                             size="icon"
                                             className="h-8 w-8 hover:bg-gray-100"
                                             title="Lihat Data"
-                                            onClick={() => router.visit(`/data-pendaftaran/${pendaftar.id}`)}
+                                            onClick={() => router.visit(showPendaftaran(pendaftar.id).url)}
                                         >
                                             <Eye className="h-4 w-4 text-blue-500" />
                                         </Button>

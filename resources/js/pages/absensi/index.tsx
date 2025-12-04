@@ -92,7 +92,6 @@ export default function AbsensiMahasiswa() {
             <Head title="Absensi Mahasiswa" />
 
             <div className="space-y-6 p-6">
-                {/* Header */}
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-semibold">
                         Absensi Mahasiswa
@@ -117,7 +116,6 @@ export default function AbsensiMahasiswa() {
                     </div>
                 </div>
 
-                {/* Info Cards */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader>
@@ -151,7 +149,6 @@ export default function AbsensiMahasiswa() {
                     </Card>
                 </div>
 
-                {/* Filter Section */}
                 <Card>
                     <CardContent className="space-y-4 p-4">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -206,7 +203,6 @@ export default function AbsensiMahasiswa() {
                     </CardContent>
                 </Card>
 
-                {/* Table Section */}
                 <Card>
                     <CardContent className="p-0">
                         <Table>

@@ -6,6 +6,7 @@ use App\Http\Controllers\LogbookController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\PenilaianController;
 use App\Http\Controllers\PICCOntroller;
+use App\Http\Controllers\PICUserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -95,6 +96,12 @@ Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        // Kelola PIC Users (Admin)
+        Route::get('/kelola-pic', [PICUserController::class, 'index'])->name('kelolaPIC.index');
+        Route::post('/kelola-pic', [PICUserController::class, 'store'])->name('kelolaPIC.store');
+        Route::match(['put', 'patch'], '/kelola-pic/{user}', [PICUserController::class, 'update'])->name('kelolaPIC.update');
+        Route::delete('/kelola-pic/{user}', [PICUserController::class, 'destroy'])->name('kelolaPIC.destroy');
+
         Route::get('/sertifikat', [SertifikatController::class, 'adminIndex'])
             ->name('sertifikat.index');
 
@@ -112,6 +119,12 @@ Route::middleware(['auth', 'role:pic'])
     ->prefix('pic')
     ->name('pic.')
     ->group(function () {
+        // Kelola PIC Users (PIC)
+        Route::get('/kelola-pic', [PICUserController::class, 'index'])->name('kelolaPIC.index');
+        Route::post('/kelola-pic', [PICUserController::class, 'store'])->name('kelolaPIC.store');
+        Route::match(['put', 'patch'], '/kelola-pic/{user}', [PICUserController::class, 'update'])->name('kelolaPIC.update');
+        Route::delete('/kelola-pic/{user}', [PICUserController::class, 'destroy'])->name('kelolaPIC.destroy');
+
         Route::get('/sertifikat', [SertifikatController::class, 'picIndex'])
             ->name('sertifikat.index');
 

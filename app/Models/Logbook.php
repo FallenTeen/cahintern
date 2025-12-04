@@ -34,6 +34,15 @@ class Logbook extends Model
         'jam_selesai' => 'datetime',
         'disetujui_pada' => 'datetime',
     ];
+
+    protected $appends = [
+        'duration_in_hours',
+        'duration_in_minutes',
+        'formatted_duration',
+        'status_badge_class',
+        'status_label',
+    ];
+
     public function pesertaProfile()
     {
         return $this->belongsTo(PesertaProfile::class);

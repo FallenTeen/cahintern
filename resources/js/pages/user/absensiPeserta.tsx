@@ -20,8 +20,6 @@ import {
     Upload,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
-// ✅ Komponen DatePicker (sama seperti di Logbook)
 const DatePicker = ({ id, label, date, setDate }) => {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -99,7 +97,6 @@ const AbsensiMagang = () => {
         },
     ]);
 
-    // Jam real-time
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
@@ -126,7 +123,6 @@ const AbsensiMagang = () => {
         <AppLayout>
             <div className="space-y-6 px-6 py-6">
                 <div className="mx-auto max-w-7xl space-y-6">
-                    {/* Header */}
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
@@ -138,7 +134,6 @@ const AbsensiMagang = () => {
                             </p>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                            {/* Jam Real-Time */}
                             <p className="text-mx mt-1 font-medium text-red-500">
                                 {currentTime.toLocaleTimeString('id-ID')}
                             </p>
@@ -153,7 +148,6 @@ const AbsensiMagang = () => {
                         </div>
                     </div>
 
-                    {/* Absen Datang / Pulang */}
                     <div className="grid gap-6 md:grid-cols-2">
                         <Card>
                             <CardHeader className="pb-2">
@@ -195,7 +189,6 @@ const AbsensiMagang = () => {
                         </Card>
                     </div>
 
-                    {/* Formulir Izin/Sakit */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg md:text-xl">
@@ -211,7 +204,6 @@ const AbsensiMagang = () => {
                                     Keterangan
                                 </Label>
                             </div>
-                            {/* Pilihan Status */}
                             <div className="flex gap-1.5">
                                 <Button
                                     variant={
@@ -245,7 +237,6 @@ const AbsensiMagang = () => {
                                 </Button>
                             </div>
 
-                            {/* Date Picker */}
                             <DatePicker
                                 id="tanggal_izin"
                                 label="Tanggal"
@@ -253,7 +244,6 @@ const AbsensiMagang = () => {
                                 setDate={setSelectedDate}
                             />
 
-                            {/* Alasan */}
                             <div className="flex flex-col gap-1.5">
                                 <Label
                                     htmlFor="alasan"
@@ -279,7 +269,6 @@ const AbsensiMagang = () => {
                                     File Pendukung (Opsional)
                                 </Label>
                             </div>
-                            {/* Upload Bukti */}
                             <div className="flex cursor-pointer flex-col items-center rounded-md border-2 border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 transition-colors hover:border-gray-400">
                                 <Upload className="mb-2 h-6 w-6" />
                                 <p className="font-medium">
@@ -300,7 +289,6 @@ const AbsensiMagang = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Riwayat Absensi */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg md:text-xl">

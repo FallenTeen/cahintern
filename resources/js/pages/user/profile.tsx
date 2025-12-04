@@ -23,7 +23,6 @@ export default function Profile() {
             <Head title="Profil Magang" />
 
             <div className="w-full gap-6 p-6">
-                {/* Kolom kiri - Informasi Profil */}
                 <Card className="rounded-2xl shadow-md lg:col-span-2">
                     <CardContent className="p-6">
                         <div className="mb-4 flex items-center justify-between">
@@ -40,9 +39,7 @@ export default function Profile() {
                             </Button>
                         </div>
 
-                        {/* Foto dan Form */}
                         <div className="flex flex-col gap-6 sm:flex-row">
-                            {/* Foto profil */}
                             <div className="flex flex-col items-center">
                                 <div className="relative">
                                     <img
@@ -59,7 +56,6 @@ export default function Profile() {
                                 </p>
                             </div>
 
-                            {/* Form Profil */}
                             <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                     <label className="text-sm font-semibold text-gray-600">
@@ -126,63 +122,6 @@ export default function Profile() {
                         )}
                     </CardContent>
                 </Card>
-
-                {/* Kolom kanan */}
-                {/* <div className="space-y-6">
-          <Card className="shadow-md rounded-2xl">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Informasi Magang
-              </h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li>
-                  <strong>Nama Instansi:</strong> Dinas Pendidikan Kabupaten Banyumas
-                </li>
-                <li>
-                  <strong>Pembimbing Lapangan:</strong> Drs. Ahmad Santoso, M.Pd
-                </li>
-                <li>
-                  <strong>Periode:</strong> 1 Agustus - 30 Oktober 2024 (3 bulan / 90 hari)
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-md rounded-2xl">
-            <CardContent className="p-6">
-              <h3 className="flex gap-2 text-lg font-semibold text-gray-800 mb-4">
-                <ChartLine className='text-red-600' /> Progress Magang
-              </h3>
-
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    Kehadiran <span className="float-right">85%</span>
-                  </p>
-                  <Progress value={85} className="h-2 mt-1" />
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    Logbook <span className="float-right">76/90</span>
-                  </p>
-                  <Progress value={84} className="h-2 mt-1" />  
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-gray-700">
-                    Waktu Tersisa <span className="float-right">14 hari</span>
-                  </p>
-                  <Progress value={80} className="h-2 mt-1" />
-                </div>
-              </div>
-
-              <p className="mt-4 text-xs text-red-600 bg-red-50 p-2 rounded-md">
-                ⚠️ Silakan lengkapi logbook harian untuk menyelesaikan program magang.
-              </p>
-            </CardContent>
-          </Card>
-        </div> */}
             </div>
         </AppLayout>
     );

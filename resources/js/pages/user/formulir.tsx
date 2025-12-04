@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-// shadcn/ui components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -9,13 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Trash2, FileText, Download } from "lucide-react";
 import AppLayout from "@/layouts/app-layout";
-import { motion, AnimatePresence } from "framer-motion";
+
 
 type UploadItem = {
   id: string;
   file: File;
   preview?: string;
-  progress: number; // 0..100
+  progress: number;
   status: "idle" | "uploading" | "done" | "error";
 };
 
@@ -25,11 +24,9 @@ export default function PremiumFormUpload() {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    // cleanup objectURLs on unmount
     return () => {
       items.forEach((it) => it.preview && URL.revokeObjectURL(it.preview));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addFiles = useCallback((files: FileList | File[]) => {
@@ -44,7 +41,6 @@ export default function PremiumFormUpload() {
     setItems((prev) => [...mapped, ...prev]);
   }, []);
 
-  // native drag events
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
@@ -72,7 +68,6 @@ export default function PremiumFormUpload() {
   };
 
   const startUploadAll = async () => {
-    // simple sequential upload to show per-file progress; adapt to parallel if needed
     for (const it of items) {
       if (it.status === "done") continue;
       await uploadSingle(it.id);
@@ -123,7 +118,6 @@ export default function PremiumFormUpload() {
   };
 
   const downloadTemplate = () => {
-    // prefer hosted template; adjust path to your asset
     window.open("formulir/TemplateKesanggupanMahasiswa.doc", "_blank");
   };
 
@@ -163,12 +157,7 @@ export default function PremiumFormUpload() {
                     dragActive ? "border-blue-400 bg-blue-50" : "border-dashed border-gray-200 bg-white"
                   }`}
                 >
-                  <motion.div
-                    initial={{ opacity: 0.9, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="flex flex-col items-center justify-center gap-3"
-                  >
+                  <div className="flex flex-col items-center justify-center gap-3">
                     <div className="text-center">
                       <h3 className="font-semibold">Drop files here</h3>
                     </div>
@@ -189,22 +178,17 @@ export default function PremiumFormUpload() {
                       </label>
                       <Button variant="ghost" onClick={() => setItems([])}>Clear All</Button>
                     </div>
-                  </motion.div>
+                  </div>
                 </div>
 
                 <div className="mt-4 space-y-3">
-                  <AnimatePresence>
-                    {items.map((it) => (
-                      <motion.div
-                        key={it.id}
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.96 }}
-                        className="rounded-md border p-3 bg-white flex items-start gap-3"
-                      >
+                  {items.map((it) => (
+                    <div
+                      key={it.id}
+                      className="rounded-md border p-3 bg-white flex items-start gap-3"
+                    >
                         <div className="w-14 h-14 flex items-center justify-center rounded-md bg-gray-50 border">
                           {it.preview ? (
-                            // image preview
                             <img src={it.preview} alt={it.file.name} className="w-12 h-12 object-cover rounded" />
                           ) : (
                             <FileText className="h-6 w-6 text-muted-foreground" />
@@ -231,9 +215,8 @@ export default function PremiumFormUpload() {
                             <Progress value={it.progress} />
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
-                  </AnimatePresence>
                 </div>
 
                 <div className="mt-4 flex gap-2 justify-end">

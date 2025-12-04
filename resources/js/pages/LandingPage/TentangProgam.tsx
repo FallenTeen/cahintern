@@ -9,7 +9,6 @@ import {
 export default function TentangProgram() {
     return (
         <section className="bg-white text-gray-800 flex flex-col items-center justify-between gap-8 py-12 md:flex-row">
-            {/* ILUSTRASI DENGAN TULISAN DI ATAS GAMBAR */}
             <div className="flex flex-1 justify-center gap-5">
                 <div className="relative w-80 md:w-96 py-15">
                     <img
@@ -27,8 +26,6 @@ export default function TentangProgram() {
                     </div>
                 </div>
             </div>
-
-            {/* KANAN: TEKS DAN ACCORDION */}
             <div className="flex-1 w-full md:max-w-lg lg:max-w-none px-4">
                 <Accordion
                     type="single"

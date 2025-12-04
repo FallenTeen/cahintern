@@ -149,10 +149,32 @@ export function AppSidebar() {
 
     const navItems = useMemo(() => {
         let items = [...commonNavItems];
-        if (auth && auth.role === 'admin') {
-            items = [...items, ...adminNavItems];
-        } else if (auth && auth.role === 'peserta') {
-            items = [...items, ...pesertaNavItems];
+        if (auth) {
+            if (auth.role === 'admin') {
+                items = [...items, ...adminNavItems];
+                // Tambahkan item khusus pengelolaan PIC untuk admin
+                items = [
+                    ...items,
+                    {
+                        title: 'Kelola PIC',
+                        href: '/admin/kelola-pic',
+                        icon: UserCog,
+                    },
+                ];
+            } else if (auth.role === 'pic') {
+                // Role PIC mendapat menu yang relevan mirip admin
+                items = [...items, ...adminNavItems];
+                items = [
+                    ...items,
+                    {
+                        title: 'Kelola PIC',
+                        href: '/pic/kelola-pic',
+                        icon: UserCog,
+                    },
+                ];
+            } else if (auth.role === 'peserta') {
+                items = [...items, ...pesertaNavItems];
+            }
         }
         return items;
     }, [auth]);

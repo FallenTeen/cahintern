@@ -1,4 +1,3 @@
-// Components
 import EmailVerificationNotificationController from '@/actions/App/Http/Controllers/Auth/EmailVerificationNotificationController';
 import { logout } from '@/routes';
 import { Form, Head } from '@inertiajs/react';

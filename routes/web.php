@@ -35,12 +35,12 @@ Route::get('/waitingroom-pendaftaran', function () {
 })->name('tungguakun');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Route disini buat yang udah acc jadi peserta (role nya)
     Route::middleware('bukancalonpeserta')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
 
 });
+
 Route::get('/data-pendaftaran', [PendaftaranController::class, 'index'])->name('dataPendaftaran');
 Route::get('/data-pendaftaran/{id}', [PendaftaranController::class, 'show'])->name('dataPendaftaran.show');
 Route::post('/data-pendaftaran/{id}/approve', [PendaftaranController::class, 'approve'])->name('dataPendaftaran.approve');
@@ -48,12 +48,21 @@ Route::post('/data-pendaftaran/{id}/reject', [PendaftaranController::class, 'rej
 Route::delete('/data-pendaftaran/{id}', [PendaftaranController::class, 'destroy'])->name('dataPendaftaran.destroy');
 
 Route::get('/data-mahasiswa-aktif', [MahasiswaController::class, 'index'])->name('dataMahasiswaAktif');
+Route::get('/data-mahasiswa-aktif/{id}', [MahasiswaController::class, 'show'])->name('dataMahasiswaAktif.show');
 
 Route::get('/data-pic', [PICCOntroller::class, 'index'])->name('dataPIC');
 
 Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
-
 Route::get('/absensi', [AbsensiController::class, 'absensiPeserta'])->name('absensi');
+
+Route::prefix('logbook')->name('logbook.')->group(function () {
+    Route::get('/', [LogbookController::class, 'index'])->name('index');
+    Route::get('/mahasiswa/{pesertaProfileId}', [LogbookController::class, 'showLogbookMahasiswa'])
+        ->name('mahasiswa.show')
+        ->where('pesertaProfileId', '[0-9]+');
+    Route::get('/detail/{logbook}', [LogbookController::class, 'showDetailLogbook'])
+        ->name('detail');
+});
 
 Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');
 

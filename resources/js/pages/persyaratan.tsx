@@ -44,7 +44,7 @@ const PersyaratanMagang = () => {
                                 <li className="pb-2 border-b border-gray-100">
                                     <span className="font-medium">Surat pengantar resmi</span> dari kampus yang masih berlaku
                                 </li>
-                                <li className="pb-2 border-b border-gray-100">
+                                {/* <li className="pb-2 border-b border-gray-100">
                                     <span className="font-medium">Curriculum Vitae (CV)</span> atau riwayat hidup terbaru
                                 </li>
                                 <li className="pb-2 border-b border-gray-100">
@@ -55,14 +55,14 @@ const PersyaratanMagang = () => {
                                 </li>
                                 <li className="pb-2">
                                     <span className="font-medium">Pas foto</span> terbaru ukuran 3x4 (2 lembar)
-                                </li>
+                                </li> */}
                             </ol>
 
-                            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
                                 <p className="text-sm text-blue-700 font-medium">
                                     📝 Durasi magang minimum 2 bulan dan maksimum 6 bulan
                                 </p>
-                            </div>
+                            </div> */}
                         </CardContent>
                     </Card>
                     <Card className="rounded-xl border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl hover:border-green-200">
@@ -84,12 +84,12 @@ const PersyaratanMagang = () => {
 
                             <ol className="list-inside list-decimal space-y-3 text-gray-700">
                                 <li className="pb-2 border-b border-gray-100">
-                                    <span className="font-medium">Siswa aktif</span> kelas XI atau XII dari SMK
+                                    <span className="font-medium">Siswa aktif</span> ditugaskan oleh sekolah untuk melaksanakan PKL
                                 </li>
                                 <li className="pb-2 border-b border-gray-100">
                                     <span className="font-medium">Surat pengantar</span> dari sekolah yang masih berlaku
                                 </li>
-                                <li className="pb-2 border-b border-gray-100">
+                                {/* <li className="pb-2 border-b border-gray-100">
                                     <span className="font-medium">Biodata singkat</span> atau Curriculum Vitae
                                 </li>
                                 <li className="pb-2 border-b border-gray-100">
@@ -100,18 +100,18 @@ const PersyaratanMagang = () => {
                                 </li>
                                 <li className="pb-2">
                                     <span className="font-medium">Surat izin orang tua</span> yang telah ditandatangani
-                                </li>
+                                </li> */}
                             </ol>
 
-                            <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
+                            {/* <div className="mt-6 p-4 bg-green-50 rounded-lg border border-green-100">
                                 <p className="text-sm text-green-700 font-medium">
                                     📚 Program magang disesuaikan dengan kompetensi keahlian siswa
                                 </p>
-                            </div>
+                            </div> */}
                         </CardContent>
                     </Card>
                 </div>
-                <div className="mt-12 mb-5 bg-white rounded-xl border border-gray-200 shadow-sm p-6 md:p-8 max-w-6xl mx-auto">
+                {/* <div className="mt-12 mb-5 bg-white rounded-xl border border-gray-200 shadow-sm p-6 md:p-8 max-w-6xl mx-auto">
                     <h3 className="text-xl font-bold text-gray-900 mb-4">
                         Informasi Tambahan
                     </h3>
@@ -134,7 +134,7 @@ const PersyaratanMagang = () => {
                             </ul>
                         </div>
                     </div>
-                </div>
+                </div> */}
             </main>
             <FooterSection />
         </div>

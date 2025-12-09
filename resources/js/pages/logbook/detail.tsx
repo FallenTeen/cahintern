@@ -53,7 +53,6 @@ type Peserta = {
   nama: string;
   nim_nisn: string;
   email: string;
-  bidang_magang: string;
   asal_instansi: string;
 };
 
@@ -425,16 +424,7 @@ export default function DetailLogbook() {
                   <p className="text-sm">{logbook.peserta.email}</p>
                 </div>
                 <Separator />
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                    <Building2 className="w-3 h-3" />
-                    Bidang Magang
-                  </p>
-                  <Badge variant="secondary" className="mt-1">
-                    {logbook.peserta.bidang_magang}
-                  </Badge>
-                </div>
-                <Separator />
+                
                 <div>
                   <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                     <Building2 className="w-3 h-3" />

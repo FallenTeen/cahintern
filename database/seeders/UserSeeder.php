@@ -61,7 +61,6 @@ class UserSeeder extends Seeder
                 'status' => 'aktif',
                 'password' => Hash::make('123'),
                 'email_verified_at' => now(),
-                'bidang_magang_id' => rand(1, 2), // Assuming 2 bidang magang
             ]);
         }
     }

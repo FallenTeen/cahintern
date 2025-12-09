@@ -6,137 +6,187 @@ use App\Http\Controllers\LogbookController;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\PenilaianController;
 use App\Http\Controllers\PICCOntroller;
+use App\Http\Controllers\IzinController;
 use App\Http\Controllers\PICUserController;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SertifikatController;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('welcome');
-})->name('home');
+/*
+|--------------------------------------------------------------------------
+| PUBLIC (STATIC)
+|--------------------------------------------------------------------------
+*/
+Route::get('/', fn () => Inertia::render('welcome'))->name('home');
+Route::get('/persyaratan', fn () => Inertia::render('persyaratan'))->name('persyaratan');
 
-Route::get('/persyaratan', function () {
-    return Inertia::render('persyaratan');
-})->name('persyaratan');
-
+/*
+|--------------------------------------------------------------------------
+| PENDAFTARAN (STATIC → SPESIFIK → DINAMIS)
+|--------------------------------------------------------------------------
+*/
 Route::prefix('pendaftaran')->name('pendaftaran.')->group(function () {
     Route::get('/', [PendaftaranController::class, 'halPendaftaranGuest'])->name('halPendaftaranGuest');
     Route::post('/', [PendaftaranController::class, 'guestDaftar'])->name('guestDaftar');
-    Route::get('/bidang', [PendaftaranController::class, 'getBidangMagang'])->name('bidang');
+
     Route::get('/menunggu-verifikasi', [PendaftaranController::class, 'waitingRoom'])->name('tunggu');
     Route::post('/cek-status', [PendaftaranController::class, 'checkStatus'])->name('cek-status');
 });
 
-Route::get('/waitingroom-pendaftaran', function () {
-    return redirect()->route('pendaftaran.tunggu');
-})->name('tungguakun');
+Route::get('/waitingroom-pendaftaran', fn () => redirect()->route('pendaftaran.tunggu'))
+    ->name('tungguakun');
 
+/*
+|--------------------------------------------------------------------------
+| DASHBOARD (AUTH ONLY)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::middleware('bukancalonpeserta')->group(function () {
-        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::middleware(['bukancalonpeserta'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
 });
 
+/*
+|--------------------------------------------------------------------------
+| ADMIN + PIC — DATA (STATIC FIRST, THEN DYNAMIC)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:admin,pic'])->group(function () {
+
+    // DATA PENDAFTARAN
     Route::get('/data-pendaftaran', [PendaftaranController::class, 'index'])->name('dataPendaftaran');
-    Route::get('/data-pendaftaran/{id}', [PendaftaranController::class, 'show'])->name('dataPendaftaran.show');
     Route::post('/data-pendaftaran/{id}/approve', [PendaftaranController::class, 'approve'])->name('dataPendaftaran.approve');
     Route::post('/data-pendaftaran/{id}/reject', [PendaftaranController::class, 'reject'])->name('dataPendaftaran.reject');
     Route::delete('/data-pendaftaran/{id}', [PendaftaranController::class, 'destroy'])->name('dataPendaftaran.destroy');
+    Route::get('/data-pendaftaran/{id}', [PendaftaranController::class, 'show'])->name('dataPendaftaran.show');
 
+    // MAHASISWA AKTIF
     Route::get('/data-mahasiswa-aktif', [MahasiswaController::class, 'index'])->name('dataMahasiswaAktif');
     Route::get('/data-mahasiswa-aktif/{id}', [MahasiswaController::class, 'show'])->name('dataMahasiswaAktif.show');
 
+    // PIC
     Route::get('/data-pic', [PICCOntroller::class, 'index'])->name('dataPIC');
 
+    // ABSEN MAHASISWA
     Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
+    Route::post('/absen-jadwal', [AbsensiController::class, 'updateSchedule'])->name('absenJadwal.update');
 
+    // LOGBOOK (ADMIN+PIC)
     Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');
 
+    // IZIN (STATIC)
+    Route::get('/izin', [IzinController::class, 'index'])->name('izin.index');
+    Route::post('/izin', [IzinController::class, 'store'])->name('izin.store');
+    Route::post('/izin/{izin}/approve', [IzinController::class, 'approve'])->name('izin.approve');
+    Route::post('/izin/{izin}/reject', [IzinController::class, 'reject'])->name('izin.reject');
+
+    /*
+     |---------------- LOGBOOK GROUP ----------------
+     */
     Route::prefix('logbook')->name('logbook.')->group(function () {
         Route::get('/', [LogbookController::class, 'index'])->name('index');
+        Route::get('/export', [LogbookController::class, 'exportCsv'])->name('export');
+
         Route::get('/mahasiswa/{pesertaProfileId}', [LogbookController::class, 'showLogbookMahasiswa'])
             ->name('mahasiswa.show')
             ->where('pesertaProfileId', '[0-9]+');
-        Route::get('/detail/{logbook}', [LogbookController::class, 'showDetailLogbook'])
-            ->name('detail');
 
-        Route::post('/{logbook}/approve', [LogbookController::class, 'approve'])
-            ->name('approve');
-        Route::post('/{logbook}/reject', [LogbookController::class, 'reject'])
-            ->name('reject');
-        Route::post('/{logbook}/revision', [LogbookController::class, 'requestRevision'])
-            ->name('revision');
+        Route::get('/detail/{logbook}', [LogbookController::class, 'showDetailLogbook'])->name('detail');
+
+        Route::post('/{logbook}/approve', [LogbookController::class, 'approve'])->name('approve');
+        Route::post('/{logbook}/reject', [LogbookController::class, 'reject'])->name('reject');
+        Route::post('/{logbook}/revision', [LogbookController::class, 'requestRevision'])->name('revision');
     });
 
+    // PENILAIAN DAN KONTEN
     Route::get('/penilaian-dan-sertifikat', [PenilaianController::class, 'index'])->name('penilaianDanSertifikat');
     Route::get('/pengumuman-dan-konten', [KontenController::class, 'index'])->name('pengumumanKonten');
 });
 
+/*
+|--------------------------------------------------------------------------
+| PESERTA ROUTES
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:peserta'])->group(function () {
+
+    // ABSENSI
     Route::get('/absensi', [AbsensiController::class, 'absensiPeserta'])->name('absensi');
-    Route::get('/logBook', function () {
-        return Inertia::render('user/logBook');
-    })->name('logBook');
-    Route::get('/formulir', function () {
-        return Inertia::render('user/formulir');
-    })->name('formulir');
+    Route::post('/absensi/check-in', [AbsensiController::class, 'checkIn'])->name('absensi.checkIn');
+    Route::post('/absensi/check-out', [AbsensiController::class, 'checkOut'])->name('absensi.checkOut');
+    Route::post('/absensi/izin', [AbsensiController::class, 'requestIzin'])->name('absensi.izin');
+
+    // LOGBOOK USER
+    Route::get('/logBook', [LogbookController::class, 'userIndex'])->name('logBook');
+    Route::post('/logBook', [LogbookController::class, 'storeUser'])->name('logBook.store');
+    Route::get('/logBook/export', [LogbookController::class, 'exportUserCsv'])->name('logBook.export');
+    Route::match(['put','patch'], '/logBook/{logbook}', [LogbookController::class, 'updateUser'])->name('logBook.update');
+    Route::delete('/logBook/{logbook}', [LogbookController::class, 'destroyUser'])->name('logBook.destroy');
+
+    // FORMULIR
+    Route::get('/formulir', fn () => Inertia::render('user/formulir'))->name('formulir');
+
+    // SERTIFIKAT
     Route::get('/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat');
 });
 
+/*
+|--------------------------------------------------------------------------
+| PROFILE (AUTH)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 });
 
+/*
+|--------------------------------------------------------------------------
+| ADMIN PANEL
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        // Kelola PIC Users (Admin)
+
+        // Kelola PIC
         Route::get('/kelola-pic', [PICUserController::class, 'index'])->name('kelolaPIC.index');
         Route::post('/kelola-pic', [PICUserController::class, 'store'])->name('kelolaPIC.store');
         Route::match(['put', 'patch'], '/kelola-pic/{user}', [PICUserController::class, 'update'])->name('kelolaPIC.update');
         Route::delete('/kelola-pic/{user}', [PICUserController::class, 'destroy'])->name('kelolaPIC.destroy');
 
-        Route::get('/sertifikat', [SertifikatController::class, 'adminIndex'])
-            ->name('sertifikat.index');
-
-        Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])
-            ->name('sertifikat.download');
-
-        Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])
-            ->name('sertifikat.regenerate');
-
-        Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])
-            ->name('sertifikat.validate');
+        // Sertifikat Admin
+        Route::get('/sertifikat', [SertifikatController::class, 'adminIndex'])->name('sertifikat.index');
+        Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
+        Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
+        Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');
     });
 
+/*
+|--------------------------------------------------------------------------
+| PIC PANEL
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'role:pic'])
     ->prefix('pic')
     ->name('pic.')
     ->group(function () {
-        // Kelola PIC Users (PIC)
+
+        // Kelola PIC
         Route::get('/kelola-pic', [PICUserController::class, 'index'])->name('kelolaPIC.index');
         Route::post('/kelola-pic', [PICUserController::class, 'store'])->name('kelolaPIC.store');
         Route::match(['put', 'patch'], '/kelola-pic/{user}', [PICUserController::class, 'update'])->name('kelolaPIC.update');
         Route::delete('/kelola-pic/{user}', [PICUserController::class, 'destroy'])->name('kelolaPIC.destroy');
 
-        Route::get('/sertifikat', [SertifikatController::class, 'picIndex'])
-            ->name('sertifikat.index');
-
-        Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])
-            ->name('sertifikat.download');
-
-        Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])
-            ->name('sertifikat.regenerate');
-
-        Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])
-            ->name('sertifikat.validate');
+        // Sertifikat PIC
+        Route::get('/sertifikat', [SertifikatController::class, 'picIndex'])->name('sertifikat.index');
+        Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
+        Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
+        Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');
     });
-
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

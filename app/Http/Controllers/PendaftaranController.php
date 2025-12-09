@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BidangMagang;
 use App\Models\PesertaProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -21,31 +20,13 @@ class PendaftaranController extends Controller
     
     public function halPendaftaranGuest()
     {
-        $bidangMagang = BidangMagang::active()
-            ->adaSlot()
-            ->select('id', 'nama_bidang', 'deskripsi', 'kuota', 'gambar_utama')
-            ->get()
-            ->map(function ($bidang) {
-                return [
-                    'id' => $bidang->id,
-                    'nama_bidang' => $bidang->nama_bidang,
-                    'deskripsi' => $bidang->deskripsi,
-                    'kuota' => $bidang->kuota,
-                    'slot_tersedia' => $bidang->getSlotTersedia(),
-                    'gambar' => $bidang->gambar_utama ? asset('storage/' . $bidang->gambar_utama) : null,
-                ];
-            });
-
-        return Inertia::render('pendaftaran', [
-            'bidangMagang' => $bidangMagang,
-        ]);
+        return Inertia::render('pendaftaran');
     }
 
     public function guestDaftar(Request $request)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'bidang_magang_id' => 'required|exists:bidang_magangs,id',
 
                 'jenjang' => 'required|in:universitas,smk',
                 'nim' => 'required_if:jenjang,universitas|nullable|string|max:50',
@@ -76,8 +57,6 @@ class PendaftaranController extends Controller
                 'cv' => 'required|file|mimes:pdf|max:2048',
                 'surat_pengantar' => 'nullable|file|mimes:pdf|max:2048',
             ], [
-                'bidang_magang_id.required' => 'Bidang magang wajib dipilih',
-                'bidang_magang_id.exists' => 'Bidang magang tidak valid',
 
                 'nim.required_if' => 'NIM wajib diisi untuk mahasiswa',
                 'nama_univ.required_if' => 'Nama universitas wajib diisi untuk mahasiswa',
@@ -126,27 +105,7 @@ class PendaftaranController extends Controller
                 return back()->withErrors($validator)->withInput();
             }
 
-            $bidang = BidangMagang::find($request->bidang_magang_id);
-            Log::info('Bidang magang checkkkkkk', [
-                'bidang_id' => $request->bidang_magang_id,
-                'bidang_found' => $bidang ? true : false,
-                'bidang_active' => $bidang ? $bidang->isAktif() : false,
-                'bidang_penuh' => $bidang ? $bidang->isPenuh() : false
-            ]);
-
-            if (!$bidang || !$bidang->isAktif()) {
-                Log::warning('Bidang magang not available');
-                return back()
-                    ->with('error', 'Bidang magang tidak tersedia')
-                    ->withInput();
-            }
-
-            if ($bidang->isPenuh()) {
-                Log::warning('Bidang magang penuh', ['bidang' => $bidang->nama_bidang]);
-                return back()
-                    ->with('error', 'Maaf, kuota untuk bidang magang ' . $bidang->nama_bidang . ' sudah penuh')
-                    ->withInput();
-            }
+            
 
             Log::info('Starting transaction');
 
@@ -181,7 +140,6 @@ class PendaftaranController extends Controller
                 'role' => 'guest',
                 'status' => 'pending',
                 'password' => null,
-                'bidang_magang_id' => $request->bidang_magang_id,
             ]);
 
             $semesterKelas = $request->jenjang === 'universitas'
@@ -190,7 +148,6 @@ class PendaftaranController extends Controller
 
             $pesertaProfile = PesertaProfile::create([
                 'user_id' => $user->id,
-                'bidang_magang_id' => $request->bidang_magang_id,
                 'jenis_peserta' => $request->jenjang === 'universitas' ? 'mahasiswa' : 'siswa',
                 'nim_nisn' => $request->jenjang === 'universitas' ? $request->nim : $request->nis,
                 'asal_instansi' => $request->jenjang === 'universitas' ? $request->nama_univ : $request->nama_sekolah,
@@ -273,28 +230,7 @@ class PendaftaranController extends Controller
         ]);
     }
 
-    public function getBidangMagang()
-    {
-        $bidangMagang = BidangMagang::active()
-            ->adaSlot()
-            ->get()
-            ->map(function ($bidang) {
-                return [
-                    'id' => $bidang->id,
-                    'nama_bidang' => $bidang->nama_bidang,
-                    'deskripsi' => $bidang->deskripsi,
-                    'kuota' => $bidang->kuota,
-                    'terpakai' => $bidang->getJumlahPesertaAktif(),
-                    'slot_tersedia' => $bidang->getSlotTersedia(),
-                    'gambar' => $bidang->gambar_utama ? asset('storage/' . $bidang->gambar_utama) : null,
-                ];
-            });
-
-        return response()->json([
-            'success' => true,
-            'data' => $bidangMagang
-        ]);
-    }
+    
 
     
     public function index()
@@ -302,7 +238,7 @@ class PendaftaranController extends Controller
         $search = request('search');
         $status = request('status');
 
-        $query = PesertaProfile::with('user', 'bidangMagang');
+        $query = PesertaProfile::with('user');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -334,7 +270,6 @@ class PendaftaranController extends Controller
                 'nama_lengkap' => $peserta->user->name,
                 'asal_instansi' => $peserta->asal_instansi,
                 'jurusan' => $peserta->jurusan,
-                'bidang_magang' => $peserta->bidangMagang->nama_bidang,
                 'waktu' => $weeks . ' Minggu',
                 'tanggal_mulai' => $peserta->tanggal_mulai->format('d F Y'),
                 'status' => $statusLabels[$peserta->user->status] ?? 'Tidak Diketahui',
@@ -389,7 +324,7 @@ class PendaftaranController extends Controller
 
     public function show($id)
     {
-        $peserta = PesertaProfile::with('user', 'bidangMagang')->findOrFail($id);
+        $peserta = PesertaProfile::with('user')->findOrFail($id);
 
         $start = Carbon::parse($peserta->tanggal_mulai);
         $end = Carbon::parse($peserta->tanggal_selesai);
@@ -417,7 +352,6 @@ class PendaftaranController extends Controller
             'asal_instansi' => $peserta->asal_instansi,
             'jurusan' => $peserta->jurusan,
             'semester_kelas' => $peserta->semester_kelas,
-            'bidang_magang' => $peserta->bidangMagang->nama_bidang,
             'tanggal_mulai' => $peserta->tanggal_mulai->format('d F Y'),
             'tanggal_selesai' => $peserta->tanggal_selesai->format('d F Y'),
             'waktu' => $weeks . ' Minggu',

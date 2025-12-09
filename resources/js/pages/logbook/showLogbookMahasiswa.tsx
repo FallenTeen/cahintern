@@ -66,7 +66,6 @@ type PesertaProfile = {
   id: number;
   nama: string;
   nim_nisn: string;
-  bidang_magang: string;
   asal_instansi: string;
   tanggal_mulai: string | null;
   tanggal_selesai: string | null;
@@ -309,13 +308,7 @@ export default function ShowLogbookMahasiswa() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4" />
-                    <div>
-                      <p className="text-blue-100">Bidang Magang</p>
-                      <p className="font-medium">{pesertaProfile.bidang_magang}</p>
-                    </div>
-                  </div>
+                  
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4" />
                     <div>

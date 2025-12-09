@@ -15,7 +15,6 @@ type PICData = {
     email: string;
     nim_nisn: string;
     asal_instansi: string;
-    bidang_magang: string;
     tanggal_mulai: string;
     tanggal_selesai: string;
     waktu: string;
@@ -27,11 +26,6 @@ type PICData = {
     predikat: string | null;
 };
 
-type BidangOption = {
-    id: number;
-    nama_bidang: string;
-};
-
 type Props = {
     picData: {
         data: PICData[];
@@ -40,7 +34,6 @@ type Props = {
         per_page: number;
         total: number;
     };
-    bidangOptions: BidangOption[];
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -51,11 +44,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function DataPICPage() {
-    const { picData, bidangOptions } = usePage<Props>().props;
+    const { picData } = usePage<Props>().props;
     const [dataPIC] = useState<PICData[]>(picData.data);
     const [isDesktop, setIsDesktop] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterBidang, setFilterBidang] = useState('Semua');
 
     useEffect(() => {
         const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
@@ -65,17 +57,16 @@ export default function DataPICPage() {
     }, []);
     const filteredPIC = useMemo(() => {
         return dataPIC.filter((pic) => {
-            const matchesSearch =
-                pic.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                pic.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                pic.nim_nisn.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesBidang =
-                filterBidang === 'Semua' || pic.bidang_magang === filterBidang;
-            return matchesSearch && matchesBidang;
+            const q = searchTerm.toLowerCase();
+            return (
+                pic.nama_lengkap.toLowerCase().includes(q) ||
+                pic.email.toLowerCase().includes(q) ||
+                pic.nim_nisn.toLowerCase().includes(q)
+            );
         });
-    }, [dataPIC, searchTerm, filterBidang]);
+    }, [dataPIC, searchTerm]);
 
-    const bidangList = ['Semua', ...bidangOptions.map(b => b.nama_bidang)];
+    
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -88,7 +79,7 @@ export default function DataPICPage() {
                             Data PIC (Pembimbing Lapangan)
                         </h1>
                         <p className="text-sm text-muted-foreground">
-                            Kelola data pembimbing di setiap bidang magang
+                            Kelola data pembimbing lapangan
                         </p>
                     </div>
                     <Button className="flex items-center gap-2 bg-red-500 text-white hover:bg-red-600">
@@ -106,25 +97,7 @@ export default function DataPICPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-
-                    <div className="mt-2 flex flex-wrap gap-2 sm:mt-0">
-                        {bidangList.map((f) => (
-                            <Button
-                                key={f}
-                                variant={
-                                    filterBidang === f ? 'default' : 'outline'
-                                }
-                                className={
-                                    filterBidang === f
-                                        ? 'bg-red-500 text-white hover:bg-red-600'
-                                        : ''
-                                }
-                                onClick={() => setFilterBidang(f)}
-                            >
-                                {f}
-                            </Button>
-                        ))}
-                    </div>
+                    
                 </div>
                 {filteredPIC.length === 0 ? (
                     <div className="py-10 text-center text-muted-foreground">
@@ -136,7 +109,7 @@ export default function DataPICPage() {
                             <thead className="bg-gray-100 text-gray-700">
                                 <tr>
                                     <th className="p-3 text-left">Nama Mahasiswa</th>
-                                    <th className="p-3 text-left">Bidang</th>
+                                    
                                     <th className="p-3 text-left">
                                         NIM/NISN
                                     </th>
@@ -157,7 +130,7 @@ export default function DataPICPage() {
                                         className="border-t hover:bg-gray-50"
                                     >
                                         <td className="p-3">{pic.nama_lengkap}</td>
-                                        <td className="p-3">{pic.bidang_magang}</td>
+                                        
                                         <td className="p-3">{pic.nim_nisn}</td>
                                         <td className="p-3">{pic.email}</td>
                                         <td className="p-3">{pic.asal_instansi}</td>
@@ -208,10 +181,7 @@ export default function DataPICPage() {
                                 </CardHeader>
                                 <CardContent className="space-y-2 text-sm">
                                     <div className="flex justify-between">
-                                        <span className="font-medium">
-                                            Bidang:
-                                        </span>
-                                        <Badge>{pic.bidang_magang}</Badge>
+                                        
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="font-medium">

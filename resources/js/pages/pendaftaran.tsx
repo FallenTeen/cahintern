@@ -6,15 +6,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+ 
 import { router } from '@inertiajs/react';
 import { guestDaftar } from '@/routes/pendaftaran';
 import {
@@ -76,7 +68,7 @@ const DatePicker = ({ id, label, date, setDate }) => {
     );
 };
 
-export default function Pendaftaran({ bidangMagang = [] }) {
+export default function Pendaftaran() {
     const [jenjang, setJenjang] = useState<'universitas' | 'smk'>(
         'universitas',
     );
@@ -102,7 +94,6 @@ export default function Pendaftaran({ bidangMagang = [] }) {
         nama_pembimbing: '',
         no_hp_pembimbing: '',
 
-        bidang_magang_id: '',
         tanggal_mulai: undefined as Date | undefined,
         tanggal_selesai: undefined as Date | undefined,
 
@@ -161,7 +152,7 @@ export default function Pendaftaran({ bidangMagang = [] }) {
             );
         }
 
-        data.append('bidang_magang_id', formData.bidang_magang_id);
+        
 
         if (formData.tanggal_mulai) {
             data.append(
@@ -678,59 +669,7 @@ export default function Pendaftaran({ bidangMagang = [] }) {
                                     </h2>
 
                                     <div className="space-y-4">
-                                        <div>
-                                            <label
-                                                htmlFor="bidang_magang_id"
-                                                className="mb-2 block font-medium text-gray-700"
-                                            >
-                                                Bidang Magang{' '}
-                                                <span className="text-red-500">
-                                                    *
-                                                </span>
-                                            </label>
-                                            <Select
-                                                value={
-                                                    formData.bidang_magang_id
-                                                }
-                                                onValueChange={(value) =>
-                                                    setFormData((prev) => ({
-                                                        ...prev,
-                                                        bidang_magang_id: value,
-                                                    }))
-                                                }
-                                            >
-                                                <SelectTrigger className="h-11 w-full">
-                                                    <SelectValue placeholder="Pilih bidang magang" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectGroup>
-                                                        <SelectLabel>
-                                                            Bidang Magang
-                                                            Tersedia
-                                                        </SelectLabel>
-                                                        {bidangMagang.map(
-                                                            (bidang) => (
-                                                                <SelectItem
-                                                                    key={
-                                                                        bidang.id
-                                                                    }
-                                                                    value={bidang.id.toString()}
-                                                                >
-                                                                    {
-                                                                        bidang.nama_bidang
-                                                                    }{' '}
-                                                                    (Sisa:{' '}
-                                                                    {
-                                                                        bidang.slot_tersedia
-                                                                    }{' '}
-                                                                    slot)
-                                                                </SelectItem>
-                                                            ),
-                                                        )}
-                                                    </SelectGroup>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
+                                        
 
                                         <div className="grid gap-4 md:grid-cols-2">
                                             <DatePicker

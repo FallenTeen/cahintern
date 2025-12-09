@@ -41,14 +41,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface DataPendaftar {
-    id: number;
-    nama_lengkap: string;
-    asal_instansi: string;
-    jurusan: string;
-    bidang_magang: string;
-    waktu: string;
-    tanggal_mulai: string;
-    status: string;
+  id: number;
+  nama_lengkap: string;
+  asal_instansi: string;
+  jurusan: string;
+  waktu: string;
+  tanggal_mulai: string;
+  status: string;
 }
 
 interface PaginatedData {
@@ -194,9 +193,7 @@ export default function DataPendaftaran({
                                     <TableHead className="min-w-[140px] text-center align-middle">
                                         Jurusan
                                     </TableHead>
-                                    <TableHead className="min-w-[140px] text-center align-middle">
-                                        Bidang Magang
-                                    </TableHead>
+                                    
                                     <TableHead className="min-w-[100px] text-center align-middle">
                                         Waktu
                                     </TableHead>
@@ -226,9 +223,7 @@ export default function DataPendaftaran({
                                         <TableCell className="text-gray-600">
                                             {pendaftar.jurusan}
                                         </TableCell>
-                                        <TableCell className="text-gray-600">
-                                            {pendaftar.bidang_magang}
-                                        </TableCell>
+                                        
                                         <TableCell className="text-gray-600">
                                             {pendaftar.waktu}
                                         </TableCell>
@@ -324,14 +319,7 @@ export default function DataPendaftaran({
                                                 {pendaftar.jurusan}
                                             </p>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500">
-                                                Bidang
-                                            </p>
-                                            <p className="font-medium text-gray-900">
-                                                {pendaftar.bidang_magang}
-                                            </p>
-                                        </div>
+                                        
                                         <div>
                                             <p className="text-xs text-gray-500">
                                                 Durasi

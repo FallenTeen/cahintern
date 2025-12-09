@@ -32,7 +32,6 @@ interface MhsAktif {
     nim_nisn: string;
     asal_instansi: string;
     jurusan: string;
-    bidang_magang: string;
     tanggal_mulai: string | Date | null;
     tanggal_selesai: string | Date | null;
     waktu: string;
@@ -325,14 +324,7 @@ export default function ShowMhsAktif({
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                    <label className="text-sm font-medium text-gray-500">
-                                        Bidang Magang
-                                    </label>
-                                    <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.bidang_magang}
-                                    </p>
-                                </div>
+                                
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">
                                         Durasi Magang

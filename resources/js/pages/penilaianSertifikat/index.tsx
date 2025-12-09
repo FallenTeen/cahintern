@@ -21,7 +21,6 @@ type Status = "belum" | "proses" | "terbit";
 type PenilaianData = {
   id: number;
   nama_peserta: string;
-  bidang_magang: string;
   tanggal_penilaian: string;
   nilai_disiplin: number;
   nilai_kerjasama: number;
@@ -49,7 +48,6 @@ type Props = {
     data: Array<{
       id: number;
       nama_peserta: string;
-      bidang_magang: string;
       tanggal_terbit: string;
       nomor_sertifikat: string | null;
       file_path: string | null;
@@ -78,7 +76,6 @@ export default function PenilaianSertifikat() {
       return props.sertifikatData!.data.map((s) => ({
         id: s.id,
         nama_peserta: s.nama_peserta,
-        bidang_magang: s.bidang_magang,
         tanggal: s.tanggal_terbit,
         status: s.status,
         file_path: s.file_path,
@@ -87,7 +84,6 @@ export default function PenilaianSertifikat() {
     return props.penilaianData.data.map((d) => ({
       id: d.id,
       nama_peserta: d.nama_peserta,
-      bidang_magang: d.bidang_magang,
       tanggal: d.tanggal_penilaian,
       status: d.status,
       file_path: null as string | null,
@@ -104,7 +100,7 @@ export default function PenilaianSertifikat() {
       if (!q) return true;
       return (
         d.nama_peserta.toLowerCase().includes(q) ||
-        d.bidang_magang.toLowerCase().includes(q)
+        false
       );
     });
   }, [rows, query, statusFilter]);
@@ -195,7 +191,7 @@ export default function PenilaianSertifikat() {
         <Card>
           <CardContent className="p-4 space-y-4">
             <Input
-              placeholder="Cari berdasarkan nama atau bidang..."
+              placeholder="Cari berdasarkan nama..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -236,7 +232,7 @@ export default function PenilaianSertifikat() {
                     />
                   </TableHead>}
                   <TableHead>Nama Mahasiswa</TableHead>
-                  <TableHead>Bidang</TableHead>
+                  
                   <TableHead>{isCertificateView ? "Tanggal Terbit" : "Tanggal Penilaian"}</TableHead>
                   <TableHead>Nilai Akhir</TableHead>
                   <TableHead>Status Sertifikat</TableHead>
@@ -257,7 +253,7 @@ export default function PenilaianSertifikat() {
                       </TableCell>
                     )}
                     <TableCell>{d.nama_peserta}</TableCell>
-                    <TableCell>{d.bidang_magang}</TableCell>
+                    
                     <TableCell>{d.tanggal}</TableCell>
                     <TableCell>{"nilai_total" in d ? (d as any).nilai_total : "-"}</TableCell>
                     <TableCell>

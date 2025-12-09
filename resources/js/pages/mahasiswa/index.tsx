@@ -24,7 +24,6 @@ type MahasiswaData = {
     nim_nisn: string;
     asal_instansi: string;
     jurusan: string;
-    bidang_magang: string;
     tanggal_mulai: string;
     tanggal_selesai: string;
     waktu: string;
@@ -32,11 +31,6 @@ type MahasiswaData = {
     nilai_akhir: number | null;
     predikat: string | null;
     sertifikat: string | null;
-};
-
-type BidangOption = {
-    id: number;
-    nama_bidang: string;
 };
 
 type Props = {
@@ -47,7 +41,6 @@ type Props = {
         per_page: number;
         total: number;
     };
-    bidangOptions: BidangOption[];
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -58,20 +51,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function DataMahasiswaAktif() {
-    const { mahasiswaData, bidangOptions } = usePage<Props>().props;
-    const [filter, setFilter] = useState('Semua');
+    const { mahasiswaData } = usePage<Props>().props;
     const [search, setSearch] = useState('');
 
     const dataMahasiswa = mahasiswaData.data;
 
-    const bidangList = ['Semua', ...bidangOptions.map(b => b.nama_bidang)];
-
     const filteredData = useMemo(() => {
         let filtered = dataMahasiswa;
-
-        if (filter !== 'Semua') {
-            filtered = filtered.filter((m) => m.bidang_magang === filter);
-        }
 
         if (search.trim()) {
             const q = search.toLowerCase();
@@ -83,7 +69,7 @@ export default function DataMahasiswaAktif() {
         }
 
         return filtered;
-    }, [dataMahasiswa, filter, search]);
+    }, [dataMahasiswa, search]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -109,22 +95,7 @@ export default function DataMahasiswaAktif() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
-                <div className="flex flex-wrap gap-2">
-                    {bidangList.map((b) => (
-                        <Button
-                            key={b}
-                            variant={filter === b ? 'default' : 'outline'}
-                            onClick={() => setFilter(b)}
-                            className={
-                                filter === b
-                                    ? 'bg-red-600 text-white hover:bg-red-700'
-                                    : 'text-gray-700'
-                            }
-                        >
-                            {b}
-                        </Button>
-                    ))}
-                </div>
+                
                 <p className="text-sm text-gray-500">
                     Menampilkan {filteredData.length} dari{' '}
                     {dataMahasiswa.length} mahasiswa aktif
@@ -136,7 +107,7 @@ export default function DataMahasiswaAktif() {
                                 <TableHead>Nama Mahasiswa</TableHead>
                                 <TableHead>Asal Instansi</TableHead>
                                 <TableHead>Jurusan</TableHead>
-                                <TableHead>Bidang</TableHead>
+                                
                                 <TableHead>NIM/NISN</TableHead>
                                 <TableHead>Durasi Magang</TableHead>
                                 <TableHead>Tanggal Mulai</TableHead>
@@ -152,7 +123,7 @@ export default function DataMahasiswaAktif() {
                                     <TableCell>{mhs.nama_lengkap}</TableCell>
                                     <TableCell>{mhs.asal_instansi}</TableCell>
                                     <TableCell>{mhs.jurusan}</TableCell>
-                                    <TableCell>{mhs.bidang_magang}</TableCell>
+                                    
                                     <TableCell>{mhs.nim_nisn}</TableCell>
                                     <TableCell>{mhs.waktu}</TableCell>
                                     <TableCell>{mhs.tanggal_mulai}</TableCell>

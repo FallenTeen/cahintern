@@ -20,7 +20,6 @@ class User extends Authenticatable
         'password',
         'email_verified_at',
         'avatar',
-        'bidang_magang_id',
     ];
 
     protected $hidden = [
@@ -47,10 +46,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notifikasi::class);
     }
-    public function bidangMagang()
-    {
-        return $this->belongsTo(BidangMagang::class);
-    }
+    
 
     public function isAdmin(): bool
     {

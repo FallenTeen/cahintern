@@ -34,7 +34,6 @@ class PesertaProfileSeeder extends Seeder
 
             PesertaProfile::create([
                 'user_id' => $user->id,
-                'bidang_magang_id' => $user->bidang_magang_id ?? rand(1, 2),
                 'jenis_peserta' => (rand(0,1) ? 'mahasiswa' : 'siswa'),
                 'nim_nisn' => 'NIM' . str_pad($user->id, 4, '0', STR_PAD_LEFT),
                 'asal_instansi' => 'Instansi ' . ($user->id),

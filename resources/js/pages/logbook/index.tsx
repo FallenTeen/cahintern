@@ -38,7 +38,6 @@ type LogbookData = {
   id: number;
   nama_peserta: string;
   peserta_profile_id: number;
-  bidang_magang: string;
   tanggal: string;
   kegiatan: string;
   deskripsi: string | null;
@@ -54,7 +53,6 @@ type LogbookData = {
 type GroupedLogbook = {
   nama_peserta: string;
   peserta_profile_id: number;
-  bidang_magang: string;
   logbooks: LogbookData[];
   total_logbook: number;
   pending: number;
@@ -86,6 +84,8 @@ export default function LogbookMahasiswa() {
   const [viewMode, setViewMode] = useState<"list" | "grouped">("list");
   const [sortBy, setSortBy] = useState<"tanggal" | "nama" | "status">("tanggal");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [start, setStart] = useState<string>("");
+  const [end, setEnd] = useState<string>("");
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -94,7 +94,6 @@ export default function LogbookMahasiswa() {
       if (!q) return true;
       return (
         d.nama_peserta.toLowerCase().includes(q) ||
-        d.bidang_magang.toLowerCase().includes(q) ||
         d.kegiatan.toLowerCase().includes(q)
       );
     });
@@ -125,7 +124,6 @@ export default function LogbookMahasiswa() {
         groups[id] = {
           nama_peserta: logbook.nama_peserta,
           peserta_profile_id: logbook.peserta_profile_id,
-          bidang_magang: logbook.bidang_magang,
           logbooks: [],
           total_logbook: 0,
           pending: 0,
@@ -243,7 +241,7 @@ export default function LogbookMahasiswa() {
           <CardContent className="p-4 space-y-4">
             <div className="flex flex-col md:flex-row gap-4">
               <Input
-                placeholder="Cari logbook (nama, bidang, atau judul kegiatan)..."
+                placeholder="Cari logbook (nama atau judul kegiatan)..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="flex-1"
@@ -274,6 +272,13 @@ export default function LogbookMahasiswa() {
                    status === "ditolak" ? "Ditolak" : status}
                 </Button>
               ))}
+              <Input type="date" value={start} onChange={(e) => setStart(e.target.value)} className="w-40" />
+              <Input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className="w-40" />
+              <Button variant="outline" onClick={() => router.get('/logbook', { status: statusFilter === 'Semua' ? undefined : statusFilter, start, end })}>Terapkan Periode</Button>
+              <Button onClick={() => {
+                const url = `/logbook/export?${new URLSearchParams({ status: statusFilter === 'Semua' ? '' : statusFilter, start, end }).toString()}`;
+                window.location.href = url;
+              }}>Export CSV</Button>
             </div>
 
             <Separator />
@@ -296,7 +301,7 @@ export default function LogbookMahasiswa() {
                     >
                       Nama Mahasiswa <SortIcon field="nama" />
                     </TableHead>
-                    <TableHead>Bidang</TableHead>
+                    
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => toggleSort("tanggal")}
@@ -304,7 +309,7 @@ export default function LogbookMahasiswa() {
                       Tanggal <SortIcon field="tanggal" />
                     </TableHead>
                     <TableHead>Durasi</TableHead>
-                    <TableHead>Judul Kegiatan</TableHead>
+                    <TableHead>Deskripsi Singkat</TableHead>
                     <TableHead
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => toggleSort("status")}
@@ -318,21 +323,61 @@ export default function LogbookMahasiswa() {
                   {sorted.map((d) => (
                     <TableRow key={d.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">{d.nama_peserta}</TableCell>
-                      <TableCell>{d.bidang_magang}</TableCell>
+                      
                       <TableCell>{d.tanggal}</TableCell>
                       <TableCell>{d.durasi}</TableCell>
-                      <TableCell>{d.kegiatan}</TableCell>
+                      <TableCell>{d.deskripsi ? `${d.deskripsi.slice(0, 80)}${d.deskripsi.length > 80 ? '...' : ''}` : '-'}</TableCell>
                       <TableCell>
                         <Badge className={badgeColor(d.status)}>{d.status_label}</Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleViewDetail(d.id)}
-                        >
-                          <Eye className="w-5 h-5 text-blue-500" />
-                        </Button>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewDetail(d.id)}
+                          >
+                            <Eye className="w-5 h-5 text-blue-500" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const note = window.prompt('Catatan/verifikasi (opsional)') || '';
+                              router.post(`/logbook/${d.id}/approve`, { catatan_pembimbing: note });
+                            }}
+                          >
+                            Verifikasi
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const note = window.prompt('Alasan penolakan (min 10 karakter)') || '';
+                              if (note.trim().length < 10) {
+                                window.alert('Alasan terlalu singkat');
+                                return;
+                              }
+                              router.post(`/logbook/${d.id}/reject`, { catatan_pembimbing: note });
+                            }}
+                          >
+                            Tolak
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const note = window.prompt('Catatan revisi (min 10 karakter)') || '';
+                              if (note.trim().length < 10) {
+                                window.alert('Catatan terlalu singkat');
+                                return;
+                              }
+                              router.post(`/logbook/${d.id}/revision`, { catatan_pembimbing: note });
+                            }}
+                          >
+                            Revisi
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -352,7 +397,7 @@ export default function LogbookMahasiswa() {
                       </div>
                       <div>
                         <CardTitle className="text-lg">{group.nama_peserta}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{group.bidang_magang}</p>
+                        
                       </div>
                     </div>
                     <Button

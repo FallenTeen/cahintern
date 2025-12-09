@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PesertaProfile;
-use App\Models\BidangMagang;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,9 +13,7 @@ class PICCOntroller extends Controller
     public function index(){
         $search = request('search');
         $status = request('status');
-        $bidang = request('bidang');
-
-        $query = PesertaProfile::with('user', 'bidangMagang', 'absensi', 'logbook', 'penilaianAkhir');
+        $query = PesertaProfile::with('user', 'absensi', 'logbook', 'penilaianAkhir');
 
         if ($search) {
             $query->whereHas('user', function ($q) use ($search) {
@@ -31,9 +28,6 @@ class PICCOntroller extends Controller
             });
         }
 
-        if ($bidang && $bidang !== 'semua') {
-            $query->where('bidang_magang_id', $bidang);
-        }
 
         $picData = $query->paginate(10)->through(function ($peserta) {
             $start = Carbon::parse($peserta->tanggal_mulai);
@@ -56,7 +50,6 @@ class PICCOntroller extends Controller
                 'email' => $peserta->user->email,
                 'nim_nisn' => $peserta->nim_nisn,
                 'asal_instansi' => $peserta->asal_instansi,
-                'bidang_magang' => $peserta->bidangMagang->nama_bidang,
                 'tanggal_mulai' => $peserta->tanggal_mulai->format('d F Y'),
                 'tanggal_selesai' => $peserta->tanggal_selesai->format('d F Y'),
                 'waktu' => $weeks . ' Minggu',
@@ -68,12 +61,9 @@ class PICCOntroller extends Controller
                 'predikat' => $peserta->penilaianAkhir ? $peserta->penilaianAkhir->predikat : null,
             ];
         });
-
-        $bidangOptions = BidangMagang::select('id', 'nama_bidang')->get();
-
+        
         return Inertia::render('pic/index', [
             'picData' => $picData,
-            'bidangOptions' => $bidangOptions,
         ]);
     }
 }

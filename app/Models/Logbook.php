@@ -26,6 +26,7 @@ class Logbook extends Model
         'disetujui_pada',
         'masalah',
         'solusi',
+        'hasil',
     ];
 
     protected $casts = [

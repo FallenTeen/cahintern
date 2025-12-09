@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PesertaProfile;
-use App\Models\BidangMagang;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,9 +13,7 @@ class MahasiswaController extends Controller
     public function index(){
         $search = request('search');
         $status = request('status');
-        $bidang = request('bidang');
-
-        $query = PesertaProfile::with('user', 'bidangMagang', 'penilaianAkhir', 'sertifikat');
+        $query = PesertaProfile::with('user', 'penilaianAkhir', 'sertifikat');
 
         if ($search) {
             $query->whereHas('user', function ($q) use ($search) {
@@ -30,9 +27,6 @@ class MahasiswaController extends Controller
             $q->where('status', 'diterima');
         });
 
-        if ($bidang && $bidang !== 'semua') {
-            $query->where('bidang_magang_id', $bidang);
-        }
 
         $mahasiswaData = $query->paginate(10)->through(function ($peserta) {
             $start = Carbon::parse($peserta->tanggal_mulai);
@@ -52,7 +46,6 @@ class MahasiswaController extends Controller
                 'nim_nisn' => $peserta->nim_nisn,
                 'asal_instansi' => $peserta->asal_instansi,
                 'jurusan' => $peserta->jurusan,
-                'bidang_magang' => $peserta->bidangMagang->nama_bidang,
                 'tanggal_mulai' => $peserta->tanggal_mulai->format('d F Y'),
                 'tanggal_selesai' => $peserta->tanggal_selesai->format('d F Y'),
                 'waktu' => $weeks . ' Minggu',
@@ -62,17 +55,13 @@ class MahasiswaController extends Controller
                 'sertifikat' => $peserta->sertifikat ? $peserta->sertifikat->getFile() : null,
             ];
         });
-
-        $bidangOptions = BidangMagang::select('id', 'nama_bidang')->get();
-
         return Inertia::render('mahasiswa/index', [
             'mahasiswaData' => $mahasiswaData,
-            'bidangOptions' => $bidangOptions,
         ]);
     }
 
     public function show($id){
-        $peserta = PesertaProfile::with('user', 'bidangMagang', 'penilaianAkhir', 'sertifikat')->findOrFail($id);
+        $peserta = PesertaProfile::with('user', 'penilaianAkhir', 'sertifikat')->findOrFail($id);
         if (! $peserta->user || ($peserta->user->status ?? null) !== 'diterima') {
             abort(404);
         }
@@ -105,7 +94,6 @@ class MahasiswaController extends Controller
             'semester_kelas' => $peserta->semester_kelas ?? '',
             'nama_pembimbing' => $peserta->nama_pembimbing_sekolah ?? '',
             'no_hp_pembimbing' => $peserta->no_hp_pembimbing_sekolah ?? '',
-            'bidang_magang' => $peserta->bidangMagang->nama_bidang,
             'tanggal_mulai' => $peserta->tanggal_mulai ? $peserta->tanggal_mulai->toDateString() : null,
             'tanggal_selesai' => $peserta->tanggal_selesai ? $peserta->tanggal_selesai->toDateString() : null,
             'waktu' => $weeks . ' Minggu',

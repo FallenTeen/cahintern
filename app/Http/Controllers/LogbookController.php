@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Models\LogbookHistory;
+use App\Models\Notifikasi;
 
 class LogbookController extends Controller
 {
@@ -16,16 +18,16 @@ class LogbookController extends Controller
         $search = request('search');
         $status = request('status');
         $tanggal = request('tanggal');
+        $start = request('start');
+        $end = request('end');
         $pesertaId = request('peserta_id');
 
-        $query = Logbook::with('pesertaProfile.user', 'pesertaProfile.bidangMagang');
+        $query = Logbook::with('pesertaProfile.user');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('pesertaProfile.user', function ($subQ) use ($search) {
                     $subQ->where('name', 'like', '%' . $search . '%');
-                })->orWhereHas('pesertaProfile.bidangMagang', function ($subQ) use ($search) {
-                    $subQ->where('nama_bidang', 'like', '%' . $search . '%');
                 })->orWhere('kegiatan', 'like', '%' . $search . '%');
             });
         }
@@ -36,6 +38,12 @@ class LogbookController extends Controller
 
         if ($tanggal) {
             $query->whereDate('tanggal', $tanggal);
+        }
+        if ($start) {
+            $query->whereDate('tanggal', '>=', $start);
+        }
+        if ($end) {
+            $query->whereDate('tanggal', '<=', $end);
         }
 
         if ($pesertaId) {
@@ -56,7 +64,6 @@ class LogbookController extends Controller
                 'id' => $logbook->id,
                 'peserta_profile_id' => $logbook->peserta_profile_id,
                 'nama_peserta' => $logbook->pesertaProfile->user->name,
-                'bidang_magang' => $logbook->pesertaProfile->bidangMagang->nama_bidang,
                 'tanggal' => $logbook->tanggal->format('d F Y'),
                 'kegiatan' => $logbook->kegiatan,
                 'deskripsi' => $logbook->deskripsi,
@@ -77,14 +84,209 @@ class LogbookController extends Controller
                 'search' => $search,
                 'status' => $status,
                 'tanggal' => $tanggal,
+                'start' => $start,
+                'end' => $end,
                 'peserta_id' => $pesertaId,
             ],
         ]);
     }
 
+    public function userIndex()
+    {
+        $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
+        $logbooks = Logbook::where('peserta_profile_id', $profile->id)
+            ->orderBy('tanggal', 'desc')
+            ->paginate(10)
+            ->through(function ($logbook) {
+                return [
+                    'id' => $logbook->id,
+                    'tanggal' => $logbook->tanggal->format('d M Y'),
+                    'tanggal_raw' => $logbook->tanggal->format('Y-m-d'),
+                    'kegiatan' => $logbook->kegiatan,
+                    'deskripsi' => $logbook->deskripsi,
+                    'jam_mulai' => $logbook->jam_mulai ? $logbook->jam_mulai->format('H:i') : null,
+                    'jam_selesai' => $logbook->jam_selesai ? $logbook->jam_selesai->format('H:i') : null,
+                    'file' => $logbook->dokumentasi ? basename($logbook->dokumentasi) : null,
+                    'status' => $logbook->status_label,
+                ];
+            });
+
+        return Inertia::render('user/logBook', [
+            'logbooks' => $logbooks,
+        ]);
+    }
+
+    public function storeUser(Request $request)
+    {
+        $validated = $request->validate([
+            'tanggal' => 'required|date',
+            'kegiatan' => 'required|string|max:255',
+            'deskripsi' => 'required|string|min:50',
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'hasil' => 'required|string|min:3',
+            'dokumentasi' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
+
+        $path = null;
+        if ($request->file('dokumentasi')) {
+            $path = $request->file('dokumentasi')->store('logbook', 'public');
+        }
+
+        $logbook = Logbook::create([
+            'peserta_profile_id' => $profile->id,
+            'tanggal' => $validated['tanggal'],
+            'kegiatan' => $validated['kegiatan'],
+            'deskripsi' => $validated['deskripsi'],
+            'jam_mulai' => $validated['jam_mulai'] . ':00',
+            'jam_selesai' => $validated['jam_selesai'] . ':00',
+            'hasil' => $validated['hasil'],
+            'status' => 'pending',
+            'dokumentasi' => $path,
+        ]);
+        LogbookHistory::create([
+            'logbook_id' => $logbook->id,
+            'user_id' => Auth::id(),
+            'action' => 'create',
+            'note' => null,
+        ]);
+
+        return back()->with('success', 'Logbook berhasil dikirim');
+    }
+
+    public function updateUser(Request $request, Logbook $logbook)
+    {
+        $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
+        if ($logbook->peserta_profile_id !== $profile->id) {
+            return back()->with('error', 'Tidak diizinkan');
+        }
+        if (!in_array($logbook->status, ['pending', 'revision'])) {
+            return back()->with('error', 'Tidak dapat mengubah logbook yang sudah diproses');
+        }
+        $validated = $request->validate([
+            'tanggal' => 'required|date',
+            'kegiatan' => 'required|string|max:255',
+            'deskripsi' => 'required|string|min:50',
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'hasil' => 'required|string|min:3',
+            'dokumentasi' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        if ($request->file('dokumentasi')) {
+            $path = $request->file('dokumentasi')->store('logbook', 'public');
+            $logbook->dokumentasi = $path;
+        }
+
+        $logbook->update([
+            'tanggal' => $validated['tanggal'],
+            'kegiatan' => $validated['kegiatan'],
+            'deskripsi' => $validated['deskripsi'],
+            'jam_mulai' => $validated['jam_mulai'] . ':00',
+            'jam_selesai' => $validated['jam_selesai'] . ':00',
+            'hasil' => $validated['hasil'],
+        ]);
+
+        LogbookHistory::create([
+            'logbook_id' => $logbook->id,
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'note' => null,
+        ]);
+
+        return back()->with('success', 'Logbook diperbarui');
+    }
+
+    public function destroyUser(Logbook $logbook)
+    {
+        $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
+        if ($logbook->peserta_profile_id !== $profile->id) {
+            return back()->with('error', 'Tidak diizinkan');
+        }
+        if (!in_array($logbook->status, ['pending', 'revision'])) {
+            return back()->with('error', 'Tidak dapat menghapus logbook yang sudah diproses');
+        }
+
+        $id = $logbook->id;
+        $logbook->delete();
+
+        LogbookHistory::create([
+            'logbook_id' => $id,
+            'user_id' => Auth::id(),
+            'action' => 'delete',
+            'note' => null,
+        ]);
+
+        return back()->with('success', 'Logbook dihapus');
+    }
+
+    public function exportCsv(Request $request)
+    {
+        $query = Logbook::with('pesertaProfile.user');
+        if ($request->filled('status') && $request->status !== 'semua') {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('start')) {
+            $query->whereDate('tanggal', '>=', $request->start);
+        }
+        if ($request->filled('end')) {
+            $query->whereDate('tanggal', '<=', $request->end);
+        }
+        if ($request->filled('peserta_id')) {
+            $query->where('peserta_profile_id', $request->peserta_id);
+        }
+        $rows = $query->orderBy('tanggal', 'desc')->get();
+        $csv = "Nama,Tanggal,Jam Mulai,Jam Selesai,Durasi,Judul,Deskripsi,Status\n";
+        foreach ($rows as $r) {
+            $csv .= sprintf(
+                "%s,%s,%s,%s,%s,%s,%s,%s\n",
+                $r->pesertaProfile->user->name,
+                $r->tanggal->format('d/m/Y'),
+                $r->jam_mulai ? $r->jam_mulai->format('H:i') : '',
+                $r->jam_selesai ? $r->jam_selesai->format('H:i') : '',
+                $r->formatted_duration,
+                str_replace(["\n",","], [' ', ' '], $r->kegiatan),
+                str_replace(["\n",","], [' ', ' '], $r->deskripsi),
+                $r->status_label
+            );
+        }
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="logbook_export.csv"',
+        ]);
+    }
+
+    public function exportUserCsv(Request $request)
+    {
+        $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
+        $query = Logbook::where('peserta_profile_id', $profile->id);
+        if ($request->filled('start')) { $query->whereDate('tanggal', '>=', $request->start); }
+        if ($request->filled('end')) { $query->whereDate('tanggal', '<=', $request->end); }
+        $rows = $query->orderBy('tanggal', 'desc')->get();
+        $csv = "Tanggal,Jam Mulai,Jam Selesai,Durasi,Judul,Deskripsi,Status\n";
+        foreach ($rows as $r) {
+            $csv .= sprintf(
+                "%s,%s,%s,%s,%s,%s,%s\n",
+                $r->tanggal->format('d/m/Y'),
+                $r->jam_mulai ? $r->jam_mulai->format('H:i') : '',
+                $r->jam_selesai ? $r->jam_selesai->format('H:i') : '',
+                $r->formatted_duration,
+                str_replace(["\n",","], [' ', ' '], $r->kegiatan),
+                str_replace(["\n",","], [' ', ' '], $r->deskripsi),
+                $r->status_label
+            );
+        }
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="logbook_saya.csv"',
+        ]);
+    }
+
     public function showLogbookMahasiswa($pesertaProfileId)
     {
-        $pesertaProfile = PesertaProfile::with('user', 'bidangMagang')->findOrFail($pesertaProfileId);
+        $pesertaProfile = PesertaProfile::with('user')->findOrFail($pesertaProfileId);
 
         $search = request('search');
         $status = request('status');
@@ -183,7 +385,6 @@ class LogbookController extends Controller
                 'id' => $pesertaProfile->id,
                 'nama' => $pesertaProfile->user->name,
                 'nim_nisn' => $pesertaProfile->nim_nisn,
-                'bidang_magang' => $pesertaProfile->bidangMagang->nama_bidang,
                 'asal_instansi' => $pesertaProfile->asal_instansi,
                 'tanggal_mulai' => $pesertaProfile->tanggal_mulai ? $pesertaProfile->tanggal_mulai->format('d F Y') : null,
                 'tanggal_selesai' => $pesertaProfile->tanggal_selesai ? $pesertaProfile->tanggal_selesai->format('d F Y') : null,
@@ -202,7 +403,7 @@ class LogbookController extends Controller
 
     public function showDetailLogbook(Logbook $logbook)
     {
-        $logbook->load('pesertaProfile.user', 'pesertaProfile.bidangMagang', 'approvedBy');
+        $logbook->load('pesertaProfile.user', 'approvedBy');
 
         $logbookDetail = [
             'id' => $logbook->id,
@@ -211,7 +412,6 @@ class LogbookController extends Controller
                 'nama' => $logbook->pesertaProfile->user->name,
                 'nim_nisn' => $logbook->pesertaProfile->nim_nisn,
                 'email' => $logbook->pesertaProfile->user->email,
-                'bidang_magang' => $logbook->pesertaProfile->bidangMagang->nama_bidang,
                 'asal_instansi' => $logbook->pesertaProfile->asal_instansi,
             ],
             'tanggal' => $logbook->tanggal->format('d F Y'),
@@ -229,6 +429,7 @@ class LogbookController extends Controller
             'catatan_pembimbing' => $logbook->catatan_pembimbing,
             'masalah' => $logbook->masalah,
             'solusi' => $logbook->solusi,
+            'hasil' => $logbook->hasil,
             'dokumentasi' => $logbook->dokumentasi ? asset('storage/' . $logbook->dokumentasi) : null,
             'is_editable' => $logbook->isEditable(),
             'needs_approval' => $logbook->needsApproval(),
@@ -297,6 +498,19 @@ class LogbookController extends Controller
                 Auth::user(),
                 $validated['catatan_pembimbing'] ?? null
             );
+            LogbookHistory::create([
+                'logbook_id' => $logbook->id,
+                'user_id' => Auth::id(),
+                'action' => 'approve',
+                'note' => $validated['catatan_pembimbing'] ?? null,
+            ]);
+            Notifikasi::create([
+                'user_id' => $logbook->pesertaProfile->user_id,
+                'judul' => 'Logbook Disetujui',
+                'pesan' => 'Logbook tanggal ' . $logbook->tanggal->format('d M Y') . ' telah disetujui.',
+                'tipe' => 'success',
+                'dibaca' => false,
+            ]);
 
             return back()->with('success', 'Logbook berhasil disetujui');
         } catch (\Exception $e) {
@@ -324,6 +538,19 @@ class LogbookController extends Controller
                 Auth::user(),
                 $validated['catatan_pembimbing']
             );
+            LogbookHistory::create([
+                'logbook_id' => $logbook->id,
+                'user_id' => Auth::id(),
+                'action' => 'reject',
+                'note' => $validated['catatan_pembimbing'],
+            ]);
+            Notifikasi::create([
+                'user_id' => $logbook->pesertaProfile->user_id,
+                'judul' => 'Logbook Ditolak',
+                'pesan' => 'Logbook tanggal ' . $logbook->tanggal->format('d M Y') . ' ditolak. Alasan: ' . $validated['catatan_pembimbing'],
+                'tipe' => 'warning',
+                'dibaca' => false,
+            ]);
 
             return back()->with('success', 'Logbook berhasil ditolak');
         } catch (\Exception $e) {
@@ -351,6 +578,19 @@ class LogbookController extends Controller
                 Auth::user(),
                 $validated['catatan_pembimbing']
             );
+            LogbookHistory::create([
+                'logbook_id' => $logbook->id,
+                'user_id' => Auth::id(),
+                'action' => 'revision',
+                'note' => $validated['catatan_pembimbing'],
+            ]);
+            Notifikasi::create([
+                'user_id' => $logbook->pesertaProfile->user_id,
+                'judul' => 'Logbook Perlu Revisi',
+                'pesan' => 'Logbook tanggal ' . $logbook->tanggal->format('d M Y') . ' memerlukan revisi. Catatan: ' . $validated['catatan_pembimbing'],
+                'tipe' => 'info',
+                'dibaca' => false,
+            ]);
 
             return back()->with('success', 'Permintaan revisi berhasil dikirim');
         } catch (\Exception $e) {

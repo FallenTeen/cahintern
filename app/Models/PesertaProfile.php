@@ -13,7 +13,6 @@ class PesertaProfile extends Model
 
     protected $fillable = [
         'user_id',
-        'bidang_magang_id',
         'jenis_peserta',
         'nim_nisn',
         'asal_instansi',
@@ -55,10 +54,7 @@ class PesertaProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function bidangMagang()
-    {
-        return $this->belongsTo(BidangMagang::class);
-    }
+    
 
     public function approvedBy()
     {
@@ -169,8 +165,5 @@ class PesertaProfile extends Model
         return $query->where('asal_instansi', 'like', '%' . $university . '%');
     }
 
-    public function scopeByBidang($query, $bidangId)
-    {
-        return $query->where('bidang_magang_id', $bidangId);
-    }
+    
 }

@@ -17,7 +17,7 @@ class SertifikatController extends Controller
 
     public function adminIndex()
     {
-        $sertifikatData = Sertifikat::with(['pesertaProfile.user', 'pesertaProfile.bidangMagang'])
+        $sertifikatData = Sertifikat::with(['pesertaProfile.user'])
             ->paginate(10)
             ->through(function ($s) {
                 $status = 'belum';
@@ -28,7 +28,6 @@ class SertifikatController extends Controller
                 return [
                     'id' => $s->id,
                     'nama_peserta' => $s->pesertaProfile->user->name ?? '',
-                    'bidang_magang' => optional($s->pesertaProfile->bidangMagang)->nama_bidang ?? '',
                     'tanggal_terbit' => $s->tanggal_terbit ? $s->tanggal_terbit->format('d F Y') : '-',
                     'nomor_sertifikat' => $s->nomor_sertifikat,
                     'file_path' => $s->file_path,
@@ -43,7 +42,7 @@ class SertifikatController extends Controller
 
     public function picIndex()
     {
-        $sertifikatData = Sertifikat::with(['pesertaProfile.user', 'pesertaProfile.bidangMagang'])
+        $sertifikatData = Sertifikat::with(['pesertaProfile.user'])
             ->paginate(10)
             ->through(function ($s) {
                 $status = 'belum';
@@ -54,7 +53,6 @@ class SertifikatController extends Controller
                 return [
                     'id' => $s->id,
                     'nama_peserta' => $s->pesertaProfile->user->name ?? '',
-                    'bidang_magang' => optional($s->pesertaProfile->bidangMagang)->nama_bidang ?? '',
                     'tanggal_terbit' => $s->tanggal_terbit ? $s->tanggal_terbit->format('d F Y') : '-',
                     'nomor_sertifikat' => $s->nomor_sertifikat,
                     'file_path' => $s->file_path,

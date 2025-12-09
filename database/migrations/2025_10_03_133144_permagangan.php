@@ -7,29 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('bidang_magangs', function (Blueprint $table) {
-            $table->id();
-            $table->string('nama_bidang');
-            $table->text('deskripsi')->nullable();
-            $table->integer('kuota')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->string('gambar_utama')->nullable();
-            $table->json('gambar_deskriptif')->nullable();
-            $table->string('slug')->unique();
-
-            $table->timestamps();
-            $table->softDeletes();
-            $table->index(['is_active', 'slug']);
-        });
-
-        // Dibikin disini ben lancar wkwkwk
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('bidang_magang_id')->nullable()->constrained('bidang_magangs')->onDelete('set null');
-        });
-
-        Schema::table('peserta_profiles', function (Blueprint $table) {
-            $table->foreignId('bidang_magang_id')->nullable()->constrained('bidang_magangs')->onDelete('set null');
-        });
+        
 
         Schema::create('absensis', function (Blueprint $table) {
             $table->id();
@@ -125,17 +103,5 @@ return new class extends Migration {
         Schema::dropIfExists('penilaian_akhirs');
         Schema::dropIfExists('logbooks');
         Schema::dropIfExists('absensis');
-
-        Schema::table('peserta_profiles', function (Blueprint $table) {
-            $table->dropForeign(['bidang_magang_id']);
-            $table->dropColumn('bidang_magang_id');
-        });
-
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['bidang_magang_id']);
-            $table->dropColumn('bidang_magang_id');
-        });
-
-        Schema::dropIfExists('bidang_magangs');
     }
 };

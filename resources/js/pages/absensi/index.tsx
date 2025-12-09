@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { absenMahasiswa, dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +24,6 @@ type Status = 'hadir' | 'izin' | 'sakit' | 'terlambat';
 type AbsensiData = {
     id: number;
     nama_peserta: string;
-    bidang_magang: string;
     tanggal: string;
     jam_masuk: string | null;
     jam_keluar: string | null;
@@ -43,6 +42,13 @@ type Props = {
         per_page: number;
         total: number;
     };
+    schedule?: {
+        jam_buka: string;
+        jam_tutup: string;
+        toleransi_menit: number;
+        effective_start_date?: string | null;
+        effective_end_date?: string | null;
+    } | null;
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -51,11 +57,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function AbsensiMahasiswa() {
-    const { absensiData } = usePage<Props>().props;
+    const { absensiData, schedule } = usePage<Props>().props;
     const [students] = useState<AbsensiData[]>(absensiData.data);
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<Status | 'Semua'>('Semua');
     const [showOnlyWithTime, setShowOnlyWithTime] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
+    const [form, setForm] = useState({
+        jam_buka: schedule?.jam_buka ?? '08:00',
+        jam_tutup: schedule?.jam_tutup ?? '17:00',
+        toleransi_menit: schedule?.toleransi_menit ?? 0,
+        effective_start_date: new Date().toISOString().slice(0, 10),
+        effective_end_date: '' as string | null,
+    });
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -66,7 +80,6 @@ export default function AbsensiMahasiswa() {
             if (!q) return true;
             return (
                 s.nama_peserta.toLowerCase().includes(q) ||
-                s.bidang_magang.toLowerCase().includes(q) ||
                 (s.keterangan ?? '').toLowerCase().includes(q)
             );
         });
@@ -105,11 +118,7 @@ export default function AbsensiMahasiswa() {
                         />
                         <Button
                             variant="destructive"
-                            onClick={() =>
-                                window.alert(
-                                    'Buka modal/halaman atur jadwal (implementasi backend).',
-                                )
-                            }
+                            onClick={() => setOpenDialog(true)}
                         >
                             Atur Jadwal Absensi
                         </Button>
@@ -124,7 +133,7 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            {students.length > 0 ? students[0].jam_masuk || '07:00' : '07:00'}
+                            {schedule?.jam_buka ?? '08:00'}
                         </CardContent>
                     </Card>
                     <Card>
@@ -134,7 +143,7 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            {students.length > 0 ? students[0].jam_keluar || '07:30' : '07:30'}
+                            {schedule?.jam_tutup ?? '17:00'}
                         </CardContent>
                     </Card>
                     <Card>
@@ -144,16 +153,59 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            {students.length > 0 ? students[0].tanggal : '16/01/2025'}
+                            {schedule?.effective_start_date ?? new Date().toLocaleDateString('id-ID')}
                         </CardContent>
                     </Card>
                 </div>
+
+                {openDialog && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                        <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                            <h2 className="mb-4 text-lg font-semibold">Atur Jadwal Absensi</h2>
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="text-sm">Jam Buka</label>
+                                    <Input type="time" value={form.jam_buka} onChange={(e) => setForm({ ...form, jam_buka: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Jam Tutup</label>
+                                    <Input type="time" value={form.jam_tutup} onChange={(e) => setForm({ ...form, jam_tutup: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Toleransi Telat (menit)</label>
+                                    <Input type="number" value={form.toleransi_menit} onChange={(e) => setForm({ ...form, toleransi_menit: Number(e.target.value) })} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Mulai Berlaku</label>
+                                    <Input type="date" value={form.effective_start_date} onChange={(e) => setForm({ ...form, effective_start_date: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="text-sm">Berakhir (opsional)</label>
+                                    <Input type="date" value={form.effective_end_date ?? ''} onChange={(e) => setForm({ ...form, effective_end_date: e.target.value || null })} />
+                                </div>
+                            </div>
+                            <div className="mt-4 flex justify-end gap-2">
+                                <Button variant="outline" onClick={() => setOpenDialog(false)}>Batal</Button>
+                                <Button
+                                    className="bg-red-600 text-white hover:bg-red-700"
+                                    onClick={() => {
+                                        router.post('/absen-jadwal', form, {
+                                            onSuccess: () => setOpenDialog(false),
+                                        });
+                                    }}
+                                >
+                                    Simpan Jadwal
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <Card>
                     <CardContent className="space-y-4 p-4">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <Input
-                                placeholder="Cari berdasarkan nama atau bidang..."
+                                placeholder="Cari berdasarkan nama..."
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                             />
@@ -209,7 +261,7 @@ export default function AbsensiMahasiswa() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Nama Mahasiswa</TableHead>
-                                    <TableHead>Bidang</TableHead>
+                                    
                                     <TableHead>Tanggal</TableHead>
                                     <TableHead>Waktu Absen</TableHead>
                                     <TableHead>Status</TableHead>
@@ -224,7 +276,7 @@ export default function AbsensiMahasiswa() {
                                     filtered.map((s) => (
                                         <TableRow key={s.id}>
                                             <TableCell>{s.nama_peserta}</TableCell>
-                                            <TableCell>{s.bidang_magang}</TableCell>
+                                            
                                             <TableCell>{s.tanggal}</TableCell>
                                             <TableCell>
                                                 {s.jam_masuk ?? '-'}

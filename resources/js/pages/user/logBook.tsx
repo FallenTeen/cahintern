@@ -1,363 +1,414 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { ChevronDown, Paperclip, Save, Upload } from 'lucide-react';
-import React, { useState } from 'react';
+import { Head, usePage, router, Link } from '@inertiajs/react';
+import { format, parseISO } from 'date-fns';
+import { id } from 'date-fns/locale';
+import { Calendar as CalendarIcon, ChevronDown, Edit, Eye, FileText, Plus, Save, Trash2, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
-interface Log {
-    date: string;
-    title: string;
-    description: string;
-    file?: string;
-    status: 'Disetujui' | 'Menunggu Review' | 'Perlu Revisi';
+interface Logbook {
+    id: number;
+    tanggal: string;
+    kegiatan: string;
+    deskripsi: string;
+    jam_mulai: string | null;
+    jam_selesai: string | null;
+    status: string;
+    dokumentasi: string | null;
+    catatan_pembimbing?: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
-const DatePicker = ({ id, label, date, setDate }) => {
-    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+interface LogbookPageProps {
+    logbooks: {
+        data: Logbook[];
+        links: any[];
+    };
+    auth: {
+        user: {
+            id: number;
+            name: string;
+        };
+    };
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+}
 
-    return (
-        <div className="flex flex-col gap-1.5">
-            <Label htmlFor={id} className="text-sm font-medium">
-                {label}
-            </Label>
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                <PopoverTrigger asChild>
-                    <Button
-                        variant="outline"
-                        id={id}
-                        className="w-full justify-between text-left font-normal"
-                    >
-                        {date
-                            ? date.toLocaleDateString('id-ID', {
-                                  day: 'numeric',
-                                  month: 'long',
-                                  year: 'numeric',
-                              })
-                            : 'Pilih tanggal'}
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                    className="w-auto overflow-hidden p-0"
-                    align="start"
-                >
-                    <Calendar
-                        mode="single"
-                        selected={date}
-                        captionLayout="dropdown"
-                        onSelect={(newDate) => {
-                            setDate(newDate);
-                            setIsPopoverOpen(false);
-                        }}
-                        initialFocus
-                    />
-                </PopoverContent>
-            </Popover>
-        </div>
-    );
+const statusVariant = {
+    pending: 'bg-yellow-100 text-yellow-800',
+    disetujui: 'bg-green-100 text-green-800',
+    revisi: 'bg-blue-100 text-blue-800',
+    ditolak: 'bg-red-100 text-red-800',
+};
+
+const statusLabel = {
+    pending: 'Menunggu',
+    disetujui: 'Disetujui',
+    revisi: 'Perlu Revisi',
+    ditolak: 'Ditolak',
 };
 
 const LogbookPage = () => {
-    const [logs, setLogs] = useState<Log[]>([
-        {
-            date: '12 Nov 2024',
-            title: 'Analisis Sistem Database',
-            description:
-                'Melakukan analisis dan dokumentasi sistem database perusahaan.',
-            file: 'dokumentasi.pdf',
-            status: 'Disetujui',
-        },
-        {
-            date: '12 Nov 2024',
-            title: 'Meeting Tim',
-            description: 'Mengikuti meeting mingguan dengan tim pengembang.',
-            file: 'meeting.jpg',
-            status: 'Menunggu Review',
-        },
-        {
-            date: '12 Nov 2024',
-            title: 'Coding Frontend Website',
-            description: 'Mengerjakan tampilan frontend untuk modul baru.',
-            file: '',
-            status: 'Perlu Revisi',
-        },
-    ]);
+    const { logbooks, auth, flash } = usePage<LogbookPageProps>().props;
+    const [date, setDate] = useState<Date | undefined>(new Date());
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [viewMode, setViewMode] = useState<'list' | 'create' | 'view' | 'edit'>('list');
+    const [selectedLogbook, setSelectedLogbook] = useState<Logbook | null>(null);
 
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>();
     const [form, setForm] = useState({
-        title: '',
-        description: '',
-        file: '',
+        tanggal: new Date().toISOString().split('T')[0],
+        kegiatan: '',
+        deskripsi: '',
+        jam_mulai: '',
+        jam_selesai: '',
+        dokumentasi: null as File | null,
     });
 
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    ) => {
-        const { name, value } = e.target;
-        setForm({ ...form, [name]: value });
+    const resetForm = () => {
+        setForm({
+            tanggal: new Date().toISOString().split('T')[0],
+            kegiatan: '',
+            deskripsi: '',
+            jam_mulai: '',
+            jam_selesai: '',
+            dokumentasi: null,
+        });
     };
 
-    const handleSubmit = () => {
-        if (!selectedDate || !form.title) {
-            return alert('Isi tanggal dan judul kegiatan!');
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setForm(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setForm(prev => ({
+                ...prev,
+                dokumentasi: e.target.files![0]
+            }));
+        }
+    };
+
+    const formatDate = (dateString: string) => {
+        return format(parseISO(dateString), 'EEEE, d MMMM yyyy', { locale: id });
+    };
+
+    const formatTime = (timeString: string | null) => {
+        if (!timeString) return '-';
+        return format(new Date(`1970-01-01T${timeString}`), 'HH:mm');
+    };
+
+    const handleViewLogbook = (logbook: Logbook) => {
+        setSelectedLogbook(logbook);
+        setViewMode('view');
+    };
+
+    const handleEditLogbook = (logbook: Logbook) => {
+        setSelectedLogbook(logbook);
+        setForm({
+            tanggal: logbook.tanggal.split('T')[0],
+            kegiatan: logbook.kegiatan,
+            deskripsi: logbook.deskripsi,
+            jam_mulai: logbook.jam_mulai || '',
+            jam_selesai: logbook.jam_selesai || '',
+            dokumentasi: null,
+        });
+        setViewMode('edit');
+    };
+
+    const handleCreateNew = () => {
+        resetForm();
+        setViewMode('create');
+    };
+
+    const handleBackToList = () => {
+        setViewMode('list');
+        setSelectedLogbook(null);
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        const formData = new FormData();
+        formData.append('tanggal', form.tanggal);
+        formData.append('kegiatan', form.kegiatan);
+        formData.append('deskripsi', form.deskripsi);
+        formData.append('jam_mulai', form.jam_mulai);
+        formData.append('jam_selesai', form.jam_selesai);
+        if (form.dokumentasi) {
+            formData.append('dokumentasi', form.dokumentasi);
         }
 
-        const formattedDate = selectedDate.toLocaleDateString('id-ID', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-        });
+        const url = selectedLogbook && viewMode === 'edit'
+            ? `/logbooks/${selectedLogbook.id}`
+            : '/logbooks';
+        const method = selectedLogbook && viewMode === 'edit' ? 'put' : 'post';
 
-        setLogs([
-            ...logs,
-            {
-                date: formattedDate,
-                title: form.title,
-                description: form.description,
-                file: form.file,
-                status: 'Menunggu Review',
+        router[method](url, formData, {
+            onSuccess: () => {
+                setViewMode('list');
+                resetForm();
             },
-        ]);
+            onError: (errors) => {
+                console.error(errors);
+            },
+            onFinish: () => {
+                setIsSubmitting(false);
+            },
+            forceFormData: true,
+        });
+    };
 
-        setForm({ title: '', description: '', file: '' });
-        setSelectedDate(undefined);
+    const handleDelete = (id: number) => {
+        if (confirm('Apakah Anda yakin ingin menghapus logbook ini?')) {
+            router.delete(`/logbooks/${id}`);
+        }
+    };
+
+    const calculateDuration = (start: string, end: string) => {
+        if (!start || !end) return '-';
+
+        const [startHours, startMinutes] = start.split(':').map(Number);
+        const [endHours, endMinutes] = end.split(':').map(Number);
+
+        let diffHours = endHours - startHours;
+        let diffMinutes = endMinutes - startMinutes;
+
+        if (diffMinutes < 0) {
+            diffHours--;
+            diffMinutes += 60;
+        }
+
+        if (diffHours < 0) {
+            diffHours += 24;
+        }
+
+        return `${diffHours} jam ${diffMinutes} menit`;
+    };
+
+    const renderLogbookList = () => (
+        <>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-semibold">Logbook Harian</h1>
+                    <p className="mt-1 text-gray-600">Catat kegiatan harian Anda selama magang</p>
+                </div>
+                <Button onClick={() => { resetForm(); setViewMode('create'); }}>Tambah Logbook</Button>
+            </div>
+
+            <Card className="mt-4">
+                <CardHeader>
+                    <CardTitle>Daftar Logbook</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Tanggal</TableHead>
+                                <TableHead>Kegiatan</TableHead>
+                                <TableHead>Jam</TableHead>
+                                <TableHead>Durasi</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Aksi</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {logbooks.data.length > 0 ? (
+                                logbooks.data.map((log) => (
+                                    <TableRow key={log.id}>
+                                        <TableCell className="font-medium">{log.tanggal}</TableCell>
+                                        <TableCell className="max-w-xs"><div className="line-clamp-1">{log.kegiatan}</div></TableCell>
+                                        <TableCell>{(log.jam_mulai ?? '-') + ' - ' + (log.jam_selesai ?? '-')}</TableCell>
+                                        <TableCell>{log.jam_mulai && log.jam_selesai ? calculateDuration(log.jam_mulai, log.jam_selesai) : '-'}</TableCell>
+                                        <TableCell><span className="text-sm">{log.status}</span></TableCell>
+                                        <TableCell className="text-right space-x-1">
+                                            <Button variant="ghost" size="icon" title="Lihat" onClick={() => { setSelectedLogbook(log as any); setViewMode('view'); }}>
+                                                <Eye className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" title="Edit" onClick={() => {
+                                                setSelectedLogbook(log as any);
+                                                setForm({
+                                                    tanggal: (log as any).tanggal_raw || '',
+                                                    kegiatan: log.kegiatan,
+                                                    deskripsi: log.deskripsi,
+                                                    jam_mulai: log.jam_mulai || '',
+                                                    jam_selesai: log.jam_selesai || '',
+                                                    dokumentasi: null,
+                                                });
+                                                setViewMode('edit');
+                                            }}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" title="Hapus" onClick={() => handleDelete(log.id)}>
+                                                <Trash2 className="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="h-24 text-center">Tidak ada data logbook</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </>
+    );
+
+    const renderForm = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-semibold">{viewMode === 'edit' ? 'Edit Logbook' : 'Tambah Logbook Baru'}</h1>
+                    <p className="mt-1 text-gray-600">Isi detail kegiatan harian Anda</p>
+                </div>
+                <Button variant="outline" onClick={() => { setViewMode('list'); setSelectedLogbook(null); }}>Kembali ke Daftar</Button>
+            </div>
+
+            <Card>
+                <form onSubmit={handleSubmit}>
+                    <CardHeader>
+                        <CardTitle>Form Logbook</CardTitle>
+                        <CardDescription>Lengkapi form berikut untuk menambahkan logbook harian</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="tanggal">Tanggal Kegiatan</Label>
+                                    <Input id="tanggal" name="tanggal" type="date" value={form.tanggal} onChange={handleChange} required />
+                                </div>
+                                <div>
+                                    <Label htmlFor="kegiatan">Judul Kegiatan</Label>
+                                    <Input id="kegiatan" name="kegiatan" value={form.kegiatan} onChange={handleChange} placeholder="Contoh: Implementasi fitur X" required />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="jam_mulai">Jam Mulai</Label>
+                                        <Input id="jam_mulai" name="jam_mulai" type="time" value={form.jam_mulai} onChange={handleChange} required />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="jam_selesai">Jam Selesai</Label>
+                                        <Input id="jam_selesai" name="jam_selesai" type="time" value={form.jam_selesai} onChange={handleChange} required />
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label htmlFor="dokumentasi">Dokumentasi</Label>
+                                    <Input id="dokumentasi" name="dokumentasi" type="file" onChange={handleFileChange} accept="image/*,.pdf" />
+                                    <p className="mt-1 text-xs text-gray-500">Format: JPG, PNG, PDF. Maks 5MB</p>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <Label htmlFor="deskripsi">Deskripsi Kegiatan</Label>
+                                    <Textarea id="deskripsi" name="deskripsi" value={form.deskripsi} onChange={handleChange} placeholder="Jelaskan detail kegiatan yang Anda lakukan..." className="min-h-[200px]" required />
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-end space-x-2 border-t px-6 py-4">
+                        <Button type="button" variant="outline" onClick={() => { setViewMode('list'); setSelectedLogbook(null); }} disabled={isSubmitting}>Batal</Button>
+                        <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Menyimpan...' : 'Simpan Logbook'}</Button>
+                    </CardFooter>
+                </form>
+            </Card>
+        </div>
+    );
+
+    const renderViewLogbook = () => {
+        if (!selectedLogbook) return null;
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-semibold">Detail Logbook</h1>
+                        <p className="mt-1 text-gray-600">Detail lengkap logbook kegiatan Anda</p>
+                    </div>
+                    <Button variant="outline" onClick={() => { setViewMode('list'); setSelectedLogbook(null); }}>Kembali ke Daftar</Button>
+                </div>
+
+                <Card>
+                    <CardHeader>
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <CardTitle>{selectedLogbook.kegiatan}</CardTitle>
+                                <CardDescription className="mt-1">{selectedLogbook.tanggal}</CardDescription>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100">{selectedLogbook.status}</span>
+                                <Button variant="outline" size="sm" onClick={() => {
+                                    setForm({
+                                        tanggal: (selectedLogbook as any).tanggal_raw || '',
+                                        kegiatan: selectedLogbook.kegiatan,
+                                        deskripsi: selectedLogbook.deskripsi,
+                                        jam_mulai: selectedLogbook.jam_mulai || '',
+                                        jam_selesai: selectedLogbook.jam_selesai || '',
+                                        dokumentasi: null,
+                                    });
+                                    setViewMode('edit');
+                                }}>Edit</Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-500">Waktu Pelaksanaan</h3>
+                                    <p className="mt-1">
+                                        {(selectedLogbook.jam_mulai ?? '-')} - {(selectedLogbook.jam_selesai ?? '-')}
+                                        {selectedLogbook.jam_mulai && selectedLogbook.jam_selesai && (
+                                            <span className="text-gray-500 ml-2">({calculateDuration(selectedLogbook.jam_mulai, selectedLogbook.jam_selesai)})</span>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-medium text-gray-500 mb-2">Deskripsi Kegiatan</h3>
+                                <div className="prose max-w-none">
+                                    <p className="whitespace-pre-line">{selectedLogbook.deskripsi}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    };
+
+    const renderContent = () => {
+        switch (viewMode) {
+            case 'create':
+            case 'edit':
+                return renderForm();
+            case 'view':
+                return renderViewLogbook();
+            default:
+                return renderLogbookList();
+        }
     };
 
     return (
         <AppLayout>
-            <div className="space-y-6 px-6 py-6">
-                <div className="mx-auto max-w-7xl space-y-6">
-                    <div className="mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
-                            Logbook Mahasiswa
-                        </h1>
-                        <p className="mt-1 text-sm text-gray-600">
-                            Catat aktivitas harian Anda
-                        </p>
-                    </div>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg md:text-xl">
-                                Logbook Harian
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <DatePicker
-                                    id="tanggal_mulai"
-                                    label="Tanggal"
-                                    date={selectedDate}
-                                    setDate={setSelectedDate}
-                                />
-                                <div className="flex flex-col gap-1.5">
-                                    <Label
-                                        htmlFor="title"
-                                        className="text-sm font-medium"
-                                    >
-                                        Judul Aktivitas
-                                    </Label>
-                                    <Input
-                                        id="title"
-                                        name="title"
-                                        value={form.title}
-                                        onChange={handleChange}
-                                        placeholder="Judul Aktivitas/Pekerjaan"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-1.5">
-                                <Label
-                                    htmlFor="description"
-                                    className="text-sm font-medium"
-                                >
-                                    Deskripsi
-                                </Label>
-                                <Textarea
-                                    id="description"
-                                    name="description"
-                                    value={form.description}
-                                    onChange={handleChange}
-                                    placeholder="Deskripsikan aktivitas yang dilakukan secara detail..."
-                                    rows={4}
-                                />
-                            </div>
-
-                            <div className="flex cursor-pointer flex-col items-center rounded-md border-2 border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 transition-colors hover:border-gray-400">
-                                <Upload className="mb-2 h-6 w-6" />
-                                <p className="font-medium">
-                                    Klik untuk upload atau drag & drop file
-                                </p>
-                                <p className="mt-1 text-xs text-gray-400">
-                                    (Format: PDF, JPG, PNG - Max 5MB)
-                                </p>
-                            </div>
-
-                            <Button
-                                className="w-full bg-red-500 text-white hover:bg-red-600"
-                                onClick={handleSubmit}
-                            >
-                                <Save className="mr-2 h-4 w-4" />
-                                Simpan Logbook
-                            </Button>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg md:text-xl">
-                                Riwayat Logbook
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="hidden overflow-x-auto md:block">
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="w-[120px]">
-                                                Tanggal
-                                            </TableHead>
-                                            <TableHead className="w-[200px]">
-                                                Judul Aktivitas
-                                            </TableHead>
-                                            <TableHead>
-                                                Deskripsi Singkat
-                                            </TableHead>
-                                            <TableHead className="w-[150px]">
-                                                Bukti
-                                            </TableHead>
-                                            <TableHead className="w-[140px]">
-                                                Status
-                                            </TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {logs.map((log, i) => (
-                                            <TableRow key={i}>
-                                                <TableCell className="font-medium">
-                                                    {log.date}
-                                                </TableCell>
-                                                <TableCell className="font-medium">
-                                                    {log.title}
-                                                </TableCell>
-                                                <TableCell className="text-gray-600">
-                                                    {log.description}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.file ? (
-                                                        <div className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
-                                                            <Paperclip
-                                                                size={14}
-                                                            />
-                                                            <span className="max-w-[100px] truncate text-sm">
-                                                                {log.file}
-                                                            </span>
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-gray-400">
-                                                            -
-                                                        </span>
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.status ===
-                                                        'Disetujui' && (
-                                                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                                                            Disetujui
-                                                        </Badge>
-                                                    )}
-                                                    {log.status ===
-                                                        'Menunggu Review' && (
-                                                        <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">
-                                                            Menunggu Review
-                                                        </Badge>
-                                                    )}
-                                                    {log.status ===
-                                                        'Perlu Revisi' && (
-                                                        <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
-                                                            Perlu Revisi
-                                                        </Badge>
-                                                    )}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </div>
-
-                            <div className="space-y-4 md:hidden">
-                                {logs.map((log, i) => (
-                                    <div
-                                        key={i}
-                                        className="space-y-3 rounded-lg border bg-white p-4"
-                                    >
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1">
-                                                <h3 className="font-semibold text-gray-900">
-                                                    {log.title}
-                                                </h3>
-                                                <p className="mt-1 text-xs text-gray-500">
-                                                    {log.date}
-                                                </p>
-                                            </div>
-                                            {log.status === 'Disetujui' && (
-                                                <Badge className="bg-green-100 text-xs text-green-700 hover:bg-green-100">
-                                                    Disetujui
-                                                </Badge>
-                                            )}
-                                            {log.status ===
-                                                'Menunggu Review' && (
-                                                <Badge className="bg-yellow-100 text-xs text-yellow-700 hover:bg-yellow-100">
-                                                    Menunggu
-                                                </Badge>
-                                            )}
-                                            {log.status === 'Perlu Revisi' && (
-                                                <Badge className="bg-red-100 text-xs text-red-700 hover:bg-red-100">
-                                                    Revisi
-                                                </Badge>
-                                            )}
-                                        </div>
-                                        <p className="text-sm text-gray-600">
-                                            {log.description}
-                                        </p>
-                                        {log.file && (
-                                            <div className="flex items-center gap-1 text-sm text-blue-600">
-                                                <Paperclip size={14} />
-                                                <span>{log.file}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {logs.length === 0 && (
-                                <div className="py-8 text-center text-gray-500">
-                                    <p>Belum ada riwayat logbook</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+            <Head title="Logbook Harian" />
+            <div className="space-y-6 p-6">{renderContent()}</div>
         </AppLayout>
     );
 };

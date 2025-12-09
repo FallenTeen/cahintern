@@ -61,7 +61,6 @@ class Sertifikat extends Model
     {
         $profile = $this->pesertaProfile;
         $user = $profile->user;
-        $bidang = $profile->bidangMagang;
         $penilaian = $profile->penilaianAkhir;
 
         return [
@@ -69,7 +68,7 @@ class Sertifikat extends Model
             'nim' => $profile->nim_nisn ?? '',
             'institution' => $profile->asal_instansi ?? '',
             'major' => $profile->jurusan ?? '',
-            'internship_field' => $bidang->nama_bidang ?? '',
+            'internship_field' => '',
             'start_date' => $profile->tanggal_mulai ? $profile->tanggal_mulai->format('d F Y') : '',
             'end_date' => $profile->tanggal_selesai ? $profile->tanggal_selesai->format('d F Y') : '',
             'certificate_number' => $this->nomor_sertifikat,

@@ -1,6 +1,11 @@
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
+import { dashboard, logBook, absensi, sertifikat } from '@/routes';
+import { type BreadcrumbItem } from '@/types';
 import {
     AlertCircle,
     Award,
@@ -8,6 +13,9 @@ import {
     CheckCircle2,
     UserCheck,
     Users,
+    NotebookText,
+    CalendarCheck,
+    Medal,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -19,37 +27,61 @@ type PageProps = {
     auth?: {
         user: User;
     };
-    jesonResponse: any;
-    statistik: {
+    mode?: 'admin' | 'peserta';
+    jesonResponse?: unknown;
+    statistik?: {
         totalPendaftar: number;
         pesertaAktif: number;
         logbookHariIni: number;
         sertifikatTerbit: number;
     };
-    absensiMingguIni: Array<{
+    absensiMingguIni?: Array<{
         day: string;
         hadir: number;
         izin: number;
         sakit: number;
         terlambat: number;
     }>;
-    logbookMingguan: Array<{
+    logbookMingguan?: Array<{
         week: string;
         submitted: number;
         validated: number;
         revision: number;
     }>;
-    absensiHariIni: {
+    absensiHariIni?: {
         hadir: number;
         izin: number;
         sakit: number;
         terlambat: number;
         belumAbsen: number;
     };
-    notifikasi: {
-        pendaftarBaru: number;
-        logbookPending: number;
+    notifikasi?: {
+        pendaftarBaru?: number;
+        logbookPending?: number;
+        unread?: number;
+        list?: Array<{ judul: string; pesan: string; tipe: string; dibaca: boolean; waktu: string }>;
     };
+    peserta?: {
+        nama: string;
+        asal_instansi: string;
+        nim_nisn: string;
+        tanggal_mulai?: string | null;
+        tanggal_selesai?: string | null;
+    } | null;
+    schedule?: { jam_buka: string; jam_tutup: string } | null;
+    absensiStats?: { hadir: number; izin: number; sakit: number; terlambat: number };
+    recentAbsensi?: Array<{ tanggal: string; jam_masuk: string; jam_keluar: string; status: string }>;
+    notifikasiUser?: { unread: number; list: Array<{ judul: string; pesan: string; tipe: string; dibaca: boolean; waktu: string }> };
+    absensiChart?: {
+        daily: Array<{ day: string; hadir: number; izin: number; sakit: number; terlambat: number }>;
+        weekly: Array<{ week: string; hadir: number; izin: number; sakit: number; terlambat: number }>;
+        monthly: Array<{ month: string; hadir: number; izin: number; sakit: number; terlambat: number }>;
+    };
+    logbookCompletionPercent?: number;
+    logbookProgress?: number;
+    recentLogbooks?: Array<{ tanggal: string; judul: string; status: string }>;
+    tasks?: string[];
+    quickActions?: Array<{ label: string; href: string }>;
 };
 
 function BarChart({
@@ -72,7 +104,7 @@ function BarChart({
         terlambat: '#ef4444',
     };
 
-    const handleBarHover = (day: string, e: React.MouseEvent) => {
+    const handleBarHover = (day: string) => {
         setHoveredDay(day);
     };
 
@@ -87,7 +119,7 @@ function BarChart({
                         <div
                             key={idx}
                             className="group flex flex-1 cursor-pointer flex-col items-center gap-2"
-                            onMouseEnter={(e) => handleBarHover(item.day, e)}
+                            onMouseEnter={() => handleBarHover(item.day)}
                             onMouseLeave={() => setHoveredDay(null)}
                         >
                             <div className="relative flex h-48 w-full items-end justify-center gap-0.5">
@@ -325,30 +357,41 @@ function LineChart({
 }
 
 export default function Dashboard() {
-    const { auth, statistik, absensiMingguIni, logbookMingguan, absensiHariIni, notifikasi } = usePage<PageProps>().props;
+    const props = usePage<PageProps>().props;
+    const { auth, mode } = props;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: mode === 'peserta' ? 'Dashboard Peserta' : 'Dashboard',
+            href: dashboard().url,
+        },
+    ];
+
+    const [absensiPeriod, setAbsensiPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+    type AbsensiItem = { day?: string; week?: string; month?: string; hadir: number; izin: number; sakit: number; terlambat: number };
 
     const statsCards = [
         {
             label: 'Total Mahasiswa Terdaftar',
-            value: (statistik?.totalPendaftar ?? 0).toString(),
+            value: (props.statistik?.totalPendaftar ?? 0).toString(),
             icon: Users,
             color: 'bg-blue-100 text-blue-600',
         },
         {
             label: 'Mahasiswa Aktif',
-            value: (statistik?.pesertaAktif ?? 0).toString(),
+            value: (props.statistik?.pesertaAktif ?? 0).toString(),
             icon: UserCheck,
             color: 'bg-green-100 text-green-600',
         },
         {
             label: 'Logbook Hari Ini',
-            value: (statistik?.logbookHariIni ?? 0).toString(),
+            value: (props.statistik?.logbookHariIni ?? 0).toString(),
             icon: BookOpen,
             color: 'bg-purple-100 text-purple-600',
         },
         {
             label: 'Sertifikat Terbit',
-            value: (statistik?.sertifikatTerbit ?? 0).toString(),
+            value: (props.statistik?.sertifikatTerbit ?? 0).toString(),
             icon: Award,
             color: 'bg-yellow-100 text-yellow-600',
         },
@@ -358,13 +401,13 @@ export default function Dashboard() {
         {
             type: 'warning',
             title: 'Pendaftar Baru',
-            description: `Ada ${notifikasi.pendaftarBaru} pendaftar baru yang menunggu verifikasi`,
+            description: `Ada ${props.notifikasi?.pendaftarBaru ?? 0} pendaftar baru yang menunggu verifikasi`,
             icon: AlertCircle,
         },
         {
             type: 'info',
             title: 'Logbook Belum Divalidasi',
-            description: `${notifikasi.logbookPending} logbook menunggu validasi dari admin`,
+            description: `${props.notifikasi?.logbookPending ?? 0} logbook menunggu validasi dari admin`,
             icon: BookOpen,
         },
         {
@@ -375,8 +418,165 @@ export default function Dashboard() {
         },
     ];
 
+    if (mode === 'peserta') {
+        const unreadBadge = props.notifikasi?.unread ?? props.notifikasiUser?.unread ?? 0;
+        return (
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head title="Dashboard Peserta" />
+                <div className="space-y-6 px-6 py-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h1 className="text-2xl font-semibold">Dashboard Peserta</h1>
+                            <p className="mt-2 text-gray-600">Selamat datang <span className="font-medium">{auth?.user?.name ?? 'Peserta'}</span></p>
+                        </div>
+                        <div className="relative">
+                            <span className="text-sm text-gray-600">Notifikasi</span>
+                            {unreadBadge > 0 && <span className="ml-2 inline-flex items-center rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">{unreadBadge}</span>}
+                        </div>
+                    </div>
+
+                    <Card className="border-0 p-6 shadow-sm">
+                        <h2 className="mb-4 text-lg font-semibold text-gray-900">Akses Cepat</h2>
+                        <div className="flex flex-wrap gap-3">
+                            <Button variant="outline" asChild>
+                                <Link href={logBook().url}>
+                                    <NotebookText className="mr-2 h-4 w-4" />
+                                    LogBook
+                                </Link>
+                            </Button>
+                            <Button variant="outline" asChild>
+                                <Link href={absensi().url}>
+                                    <CalendarCheck className="mr-2 h-4 w-4" />
+                                    Absensi
+                                </Link>
+                            </Button>
+                            <Button variant="outline" asChild>
+                                <Link href={sertifikat().url}>
+                                    <Medal className="mr-2 h-4 w-4" />
+                                    Sertifikat
+                                </Link>
+                            </Button>
+                        </div>
+                    </Card>
+
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Card className="border-0 p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Informasi Magang</h2>
+                            <div className="grid gap-3">
+                                <div className="flex justify-between"><span className="text-sm text-gray-600">Tanggal Masuk</span><span className="font-medium">{props.peserta?.tanggal_mulai ?? '-'}</span></div>
+                                <div className="flex justify-between"><span className="text-sm text-gray-600">Tanggal Selesai</span><span className="font-medium">{props.peserta?.tanggal_selesai ?? '-'}</span></div>
+                                <div className="flex justify-between"><span className="text-sm text-gray-600">Jadwal Absensi Hari Ini</span><span className="font-medium">{props.schedule ? `${props.schedule.jam_buka}–${props.schedule.jam_tutup}` : '-'}</span></div>
+                            </div>
+                        </Card>
+                        <Card className="border-0 p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Informasi & Pengumuman</h2>
+                            <div className="space-y-3">
+                                {(props.notifikasi?.list ?? props.notifikasiUser?.list ?? []).map((n, idx) => (
+                                    <div key={idx} className="rounded-lg border bg-blue-50 p-4">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <p className="font-semibold text-gray-900">{n.judul}</p>
+                                                <p className="mt-1 text-sm text-gray-700">{n.pesan}</p>
+                                            </div>
+                                            <span className="text-xs text-gray-500">{n.waktu}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+                    </div>
+
+                    <div className="grid gap-6 md:grid-cols-2">
+                        <Card className="border-0 p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Progress Logbook</h2>
+                            <div className="flex items-center gap-4">
+                                <Progress value={props.logbookProgress ?? 0} />
+                                <span className="text-sm font-medium text-gray-700">{(props.logbookProgress ?? 0)}%</span>
+                            </div>
+                        </Card>
+                        <Card className="border-0 p-6 shadow-sm">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Tugas Hari Ini</h2>
+                            <div className="space-y-2">
+                                {((props.tasks ?? []).length === 0) ? (
+                                    <p className="text-sm text-gray-600">Tidak ada tugas</p>
+                                ) : (
+                                    (props.tasks ?? []).map((t, idx) => (
+                                        <div key={idx} className="rounded-md border bg-gray-50 px-3 py-2 text-sm text-gray-700">{t}</div>
+                                    ))
+                                )}
+                            </div>
+                        </Card>
+                    </div>
+
+                    <Card className="border-0 p-6 shadow-sm">
+                        <h2 className="mb-4 text-lg font-semibold text-gray-900">Aktivitas Logbook Terbaru</h2>
+                        <div className="space-y-3">
+                            {(props.recentLogbooks ?? []).map((l, idx) => (
+                                <div key={idx} className="flex items-center justify-between rounded-md border bg-white px-4 py-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-900">{l.judul}</p>
+                                        <p className="text-xs text-gray-600">{l.tanggal}</p>
+                                    </div>
+                                    <span className="text-xs font-medium text-gray-700">{l.status}</span>
+                                </div>
+                            ))}
+                            {(props.recentLogbooks ?? []).length === 0 && <p className="text-sm text-gray-600">Belum ada aktivitas</p>}
+                        </div>
+                    </Card>
+
+                    <Card className="border-0 p-6 shadow-sm">
+                        <h2 className="mb-4 text-lg font-semibold text-gray-900">Statistik Absensi (30 Hari)</h2>
+                        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                            <div className="rounded-lg bg-green-50 p-4 text-center"><p className="text-2xl font-bold text-green-600">{props.absensiStats?.hadir ?? 0}</p><p className="mt-1 text-sm text-gray-600">Hadir</p></div>
+                            <div className="rounded-lg bg-blue-50 p-4 text-center"><p className="text-2xl font-bold text-blue-600">{props.absensiStats?.izin ?? 0}</p><p className="mt-1 text-sm text-gray-600">Izin</p></div>
+                            <div className="rounded-lg bg-yellow-50 p-4 text-center"><p className="text-2xl font-bold text-yellow-600">{props.absensiStats?.sakit ?? 0}</p><p className="mt-1 text-sm text-gray-600">Sakit</p></div>
+                            <div className="rounded-lg bg-red-50 p-4 text-center"><p className="text-2xl font-bold text-red-600">{props.absensiStats?.terlambat ?? 0}</p><p className="mt-1 text-sm text-gray-600">Terlambat</p></div>
+                        </div>
+                        <div className="mt-6 overflow-x-auto">
+                            <table className="min-w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-gray-600">
+                                        <th className="py-2 pr-4">Tanggal</th>
+                                        <th className="py-2 pr-4">Masuk</th>
+                                        <th className="py-2 pr-4">Pulang</th>
+                                        <th className="py-2 pr-4">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(props.recentAbsensi ?? []).map((r, idx) => (
+                                        <tr key={idx} className="border-t">
+                                            <td className="py-2 pr-4">{r.tanggal}</td>
+                                            <td className="py-2 pr-4">{r.jam_masuk}</td>
+                                            <td className="py-2 pr-4">{r.jam_keluar}</td>
+                                            <td className="py-2 pr-4">{r.status}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                </div>
+            </AppLayout>
+        );
+    }
+
+    const absensiChartData = (() => {
+        const chart = props.absensiChart;
+        if (!chart) {
+            return props.absensiMingguIni ?? [];
+        }
+        const arr = absensiPeriod === 'daily' ? chart.daily : absensiPeriod === 'weekly' ? chart.weekly : chart.monthly;
+        return arr.map((item: AbsensiItem) => ({
+            day: (item.day ?? item.week ?? item.month ?? ''),
+            hadir: item.hadir,
+            izin: item.izin,
+            sakit: item.sakit,
+            terlambat: item.terlambat,
+        }));
+    })();
+
     return (
-        <AppLayout>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="space-y-6 px-6 py-6">
                 <div>
@@ -409,15 +609,45 @@ export default function Dashboard() {
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <Card className="border-0 p-6 shadow-sm">
-                        <h2 className="mb-4 text-lg font-semibold text-gray-900">Statistik Kehadiran Mingguan</h2>
-                        <BarChart data={absensiMingguIni} />
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-gray-900">Grafik Kehadiran</h2>
+                            <Tabs value={absensiPeriod} onValueChange={(v) => setAbsensiPeriod(v as 'daily' | 'weekly' | 'monthly')}>
+                                <TabsList>
+                                    <TabsTrigger value="daily">Harian</TabsTrigger>
+                                    <TabsTrigger value="weekly">Mingguan</TabsTrigger>
+                                    <TabsTrigger value="monthly">Bulanan</TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+                        </div>
+                        <div className="mt-4">
+                            <BarChart data={absensiChartData} />
+                        </div>
                     </Card>
 
                     <Card className="border-0 p-6 shadow-sm">
                         <h2 className="mb-4 text-lg font-semibold text-gray-900">Status Logbook Mingguan</h2>
-                        <LineChart data={logbookMingguan} />
+                        <LineChart data={props.logbookMingguan ?? []} />
                     </Card>
                 </div>
+
+                <Card className="border-0 p-6 shadow-sm">
+                    <h2 className="mb-4 text-lg font-semibold text-gray-900">Penyelesaian Logbook Bulan Ini</h2>
+                    <div className="flex items-center gap-4">
+                        <Progress value={props.logbookCompletionPercent ?? 0} />
+                        <span className="text-sm font-medium text-gray-700">{(props.logbookCompletionPercent ?? 0)}%</span>
+                    </div>
+                </Card>
+
+                <Card className="border-0 p-6 shadow-sm">
+                    <h2 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h2>
+                    <div className="flex flex-wrap gap-3">
+                        {(props.quickActions ?? []).map((a, idx) => (
+                            <Button key={idx} variant="outline" asChild>
+                                <Link href={a.href}>{a.label}</Link>
+                            </Button>
+                        ))}
+                    </div>
+                </Card>
 
                 <Card className="border-0 p-6 shadow-sm">
                     <h2 className="mb-4 text-lg font-semibold text-gray-900">Notifikasi Penting</h2>
@@ -455,27 +685,28 @@ export default function Dashboard() {
                     <h2 className="mb-4 text-lg font-semibold text-gray-900">Status Absensi Hari Ini</h2>
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                         <div className="rounded-lg bg-green-50 p-4 text-center">
-                            <p className="text-2xl font-bold text-green-600">{absensiHariIni.hadir}</p>
+                            <p className="text-2xl font-bold text-green-600">{props.absensiHariIni?.hadir ?? 0}</p>
                             <p className="mt-1 text-sm text-gray-600">Hadir</p>
                         </div>
                         <div className="rounded-lg bg-blue-50 p-4 text-center">
-                            <p className="text-2xl font-bold text-blue-600">{absensiHariIni.izin}</p>
+                            <p className="text-2xl font-bold text-blue-600">{props.absensiHariIni?.izin ?? 0}</p>
                             <p className="mt-1 text-sm text-gray-600">Izin</p>
                         </div>
                         <div className="rounded-lg bg-yellow-50 p-4 text-center">
-                            <p className="text-2xl font-bold text-yellow-600">{absensiHariIni.sakit}</p>
+                            <p className="text-2xl font-bold text-yellow-600">{props.absensiHariIni?.sakit ?? 0}</p>
                             <p className="mt-1 text-sm text-gray-600">Sakit</p>
                         </div>
                         <div className="rounded-lg bg-red-50 p-4 text-center">
-                            <p className="text-2xl font-bold text-red-600">{absensiHariIni.terlambat}</p>
+                            <p className="text-2xl font-bold text-red-600">{props.absensiHariIni?.terlambat ?? 0}</p>
                             <p className="mt-1 text-sm text-gray-600">Terlambat</p>
                         </div>
                         <div className="rounded-lg bg-gray-50 p-4 text-center">
-                            <p className="text-2xl font-bold text-gray-600">{absensiHariIni.belumAbsen}</p>
+                            <p className="text-2xl font-bold text-gray-600">{props.absensiHariIni?.belumAbsen ?? 0}</p>
                             <p className="mt-1 text-sm text-gray-600">Belum Absen</p>
                         </div>
                     </div>
                 </Card>
+
             </div>
         </AppLayout>
     );

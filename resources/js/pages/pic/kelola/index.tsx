@@ -6,7 +6,7 @@ import { dashboard } from '@/routes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+ 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -18,8 +18,6 @@ type PicUser = {
   name: string;
   email: string;
   phone?: string | null;
-  bidang_magang_id?: number | null;
-  bidang_magang?: string | null;
   status?: string | null;
 };
 
@@ -33,10 +31,9 @@ type Paginated<T> = {
 
 type Props = {
   picUsers: Paginated<PicUser>;
-  bidangOptions: { value: number; label: string }[];
 };
 
-export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
+export default function KelolaPICPage({ picUsers }: Props) {
   const page = usePage();
   const isAdmin = useMemo(() => page.url.startsWith('/admin'), [page.url]);
   const base = isAdmin ? '/admin' : '/pic';
@@ -47,33 +44,28 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
   ];
 
   const [search, setSearch] = useState<string>('');
-  const [bidang, setBidang] = useState<string | undefined>(undefined);
   const [openAdd, setOpenAdd] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
   const [editingUser, setEditingUser] = useState<PicUser | null>(null);
-  const [addForm, setAddForm] = useState({ name: '', email: '', phone: '', bidang_magang_id: '', password: '' });
-  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', bidang_magang_id: '', password: '' });
+  const [addForm, setAddForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', password: '' });
 
   useEffect(() => {
     // Initialize filters from URL params if available
     const url = new URL(window.location.href);
     const s = url.searchParams.get('search') ?? '';
-    const b = url.searchParams.get('bidang') ?? undefined;
     setSearch(s);
-    setBidang(b ?? undefined);
   }, []);
 
   const onSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const params: Record<string, string> = {};
     if (search) params.search = search;
-    if (bidang && bidang !== 'semua') params.bidang = bidang;
     router.get(`${base}/kelola-pic`, params, { preserveState: true });
   };
 
   const onResetFilters = () => {
     setSearch('');
-    setBidang(undefined);
     router.get(`${base}/kelola-pic`, {}, { preserveState: true });
   };
 
@@ -83,12 +75,11 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
       name: addForm.name,
       email: addForm.email,
       phone: addForm.phone || undefined,
-      bidang_magang_id: addForm.bidang_magang_id ? Number(addForm.bidang_magang_id) : undefined,
       password: addForm.password,
     }, {
       onSuccess: () => {
         setOpenAdd(false);
-        setAddForm({ name: '', email: '', phone: '', bidang_magang_id: '', password: '' });
+        setAddForm({ name: '', email: '', phone: '', password: '' });
       },
     });
   };
@@ -99,7 +90,6 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
       name: user.name ?? '',
       email: user.email ?? '',
       phone: user.phone ?? '',
-      bidang_magang_id: user.bidang_magang_id ? String(user.bidang_magang_id) : '',
       password: '',
     });
     setOpenEdit(true);
@@ -112,7 +102,6 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
       name: editForm.name,
       email: editForm.email,
       phone: editForm.phone || undefined,
-      bidang_magang_id: editForm.bidang_magang_id ? Number(editForm.bidang_magang_id) : undefined,
       password: editForm.password || undefined,
     }, {
       onSuccess: () => {
@@ -153,21 +142,7 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <div className="w-full sm:w-1/3">
-                <Select value={bidang} onValueChange={(v) => setBidang(v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filter Bidang" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="semua">Semua Bidang</SelectItem>
-                    {bidangOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={String(opt.value)}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              
               <div className="flex gap-2">
                 <Button type="submit" className="bg-red-500 text-white hover:bg-red-600">Terapkan</Button>
                 <Button type="button" variant="outline" onClick={onResetFilters}>Reset</Button>
@@ -181,7 +156,6 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
                     <TableHead>Nama</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Telepon</TableHead>
-                    <TableHead>Bidang</TableHead>
                     <TableHead>Aksi</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -196,7 +170,6 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
                       <TableCell>{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{user.phone || '-'}</TableCell>
-                      <TableCell>{user.bidang_magang || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" onClick={() => openEditDialog(user)} className="flex items-center gap-1">
@@ -248,21 +221,7 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
                   <Label>Telepon</Label>
                   <Input value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })} />
                 </div>
-                <div>
-                  <Label>Bidang</Label>
-                  <Select value={addForm.bidang_magang_id} onValueChange={(v) => setAddForm({ ...addForm, bidang_magang_id: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Bidang (opsional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bidangOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={String(opt.value)}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                
                 <div className="sm:col-span-2">
                   <Label>Password</Label>
                   <Input type="password" value={addForm.password} onChange={(e) => setAddForm({ ...addForm, password: e.target.value })} required />
@@ -296,21 +255,7 @@ export default function KelolaPICPage({ picUsers, bidangOptions }: Props) {
                   <Label>Telepon</Label>
                   <Input value={editForm.phone} onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })} />
                 </div>
-                <div>
-                  <Label>Bidang</Label>
-                  <Select value={editForm.bidang_magang_id} onValueChange={(v) => setEditForm({ ...editForm, bidang_magang_id: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Bidang (opsional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bidangOptions.map((opt) => (
-                        <SelectItem key={opt.value} value={String(opt.value)}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                
                 <div className="sm:col-span-2">
                   <Label>Password (opsional)</Label>
                   <Input type="password" value={editForm.password} placeholder="Biarkan kosong jika tidak diubah" onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />

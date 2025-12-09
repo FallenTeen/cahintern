@@ -15,13 +15,11 @@ class PenilaianController extends Controller
         $status = request('status');
         $predikat = request('predikat');
 
-        $query = PenilaianAkhir::with('pesertaProfile.user', 'pesertaProfile.bidangMagang');
+        $query = PenilaianAkhir::with('pesertaProfile.user');
 
         if ($search) {
             $query->whereHas('pesertaProfile.user', function ($q) use ($search) {
                 $q->where('name', 'like', '%' . $search . '%');
-            })->orWhereHas('pesertaProfile.bidangMagang', function ($q) use ($search) {
-                $q->where('nama_bidang', 'like', '%' . $search . '%');
             });
         }
 
@@ -37,7 +35,6 @@ class PenilaianController extends Controller
             return [
                 'id' => $penilaian->id,
                 'nama_peserta' => $penilaian->pesertaProfile->user->name,
-                'bidang_magang' => $penilaian->pesertaProfile->bidangMagang->nama_bidang,
                 'tanggal_penilaian' => $penilaian->tanggal_penilaian->format('d F Y'),
                 'nilai_disiplin' => $penilaian->nilai_disiplin,
                 'nilai_kerjasama' => $penilaian->nilai_kerjasama,

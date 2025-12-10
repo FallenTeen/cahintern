@@ -2,6 +2,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
     Table,
     TableBody,
     TableCell,
@@ -13,7 +22,7 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { show as dataMahasiswaAktifShow } from '@/routes/dataMahasiswaAktif';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -43,6 +52,19 @@ type Props = {
     };
 };
 
+interface PaginatedData {
+    data: MahasiswaData[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: {
+        url: string | null;
+        label: string;
+        active: boolean;
+    }[];
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -50,8 +72,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function DataMahasiswaAktif() {
-    const { mahasiswaData } = usePage<Props>().props;
+export default function DataMahasiswaAktif({
+    mahasiswaData,
+}: {
+    mahasiswaData: PaginatedData;
+}) {
     const [search, setSearch] = useState('');
 
     const dataMahasiswa = mahasiswaData.data;
@@ -110,14 +135,28 @@ export default function DataMahasiswaAktif() {
                     <Table className="align-item-center text-center">
                         <TableHeader className="text-center align-middle">
                             <TableRow className="bg-gray-100">
-                                <TableHead className='text-center align-middle'>Nama Mahasiswa</TableHead>
-                                <TableHead className='text-center align-middle'>Asal Instansi</TableHead>
-                                <TableHead className='text-center align-middle'>Jurusan</TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Nama Mahasiswa
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Asal Instansi
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Jurusan
+                                </TableHead>
 
-                                <TableHead className='text-center align-middle'>NIM/NISN</TableHead>
-                                <TableHead className='text-center align-middle'>Durasi Magang</TableHead>
-                                <TableHead className='text-center align-middle'>Tanggal Mulai</TableHead>
-                                <TableHead className='text-center align-middle'>Status</TableHead>
+                                <TableHead className="text-center align-middle">
+                                    NIM/NISN
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Durasi Magang
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Tanggal Mulai
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Status
+                                </TableHead>
                                 <TableHead className="text-center">
                                     Aksi
                                 </TableHead>
@@ -165,34 +204,66 @@ export default function DataMahasiswaAktif() {
                             ))}
                         </TableBody>
                     </Table>
-                    {/* <div className="border-t border-gray-200 p-4">
+                    <div className="border-t border-gray-200 p-4">
                         <Pagination>
                             <PaginationContent className="flex-wrap gap-1">
-                                {mhs.links.map((link, index) => (
-                                    <PaginationItem key={index}>
-                                        {link.label.includes('Previous') ? (
-                                            <PaginationPrevious
-                                                href={link.url || '#'}
-                                                className="h-9"
-                                                onClick={(e) => {
-                                                    if (!link.url)
-                                                        e.preventDefault();
-                                                    else router.get(link.url);
-                                                }}
-                                            />
-                                        ) : link.label.includes('Next') ? (
-                                            <PaginationNext
-                                                href={link.url || '#'}
-                                                className="h-9"
-                                                onClick={(e) => {
-                                                    if (!link.url)
-                                                        e.preventDefault();
-                                                    else router.get(link.url);
-                                                }}
-                                            />
-                                        ) : link.label === '...' ? (
-                                            <PaginationEllipsis />
-                                        ) : (
+                                {mahasiswaData.links.map((link, index) => {
+                                    const isPrevious = link.label
+                                        .toLowerCase()
+                                        .includes('previous');
+                                    const isNext = link.label
+                                        .toLowerCase()
+                                        .includes('next');
+                                    const isEllipsis = link.label === '...';
+
+                                    if (isPrevious) {
+                                        return (
+                                            <PaginationItem key={index}>
+                                                <PaginationPrevious
+                                                    href={link.url || '#'}
+                                                    className="h-9"
+                                                    onClick={(e) => {
+                                                        if (!link.url)
+                                                            e.preventDefault();
+                                                        else
+                                                            router.get(
+                                                                link.url,
+                                                            );
+                                                    }}
+                                                />
+                                            </PaginationItem>
+                                        );
+                                    }
+
+                                    if (isNext) {
+                                        return (
+                                            <PaginationItem key={index}>
+                                                <PaginationNext
+                                                    href={link.url || '#'}
+                                                    className="h-9"
+                                                    onClick={(e) => {
+                                                        if (!link.url)
+                                                            e.preventDefault();
+                                                        else
+                                                            router.get(
+                                                                link.url,
+                                                            );
+                                                    }}
+                                                />
+                                            </PaginationItem>
+                                        );
+                                    }
+
+                                    if (isEllipsis) {
+                                        return (
+                                            <PaginationItem key={index}>
+                                                <PaginationEllipsis />
+                                            </PaginationItem>
+                                        );
+                                    }
+
+                                    return (
+                                        <PaginationItem key={index}>
                                             <PaginationLink
                                                 href={link.url || '#'}
                                                 isActive={link.active}
@@ -205,12 +276,12 @@ export default function DataMahasiswaAktif() {
                                             >
                                                 {link.label}
                                             </PaginationLink>
-                                        )}
-                                    </PaginationItem>
-                                ))}
+                                        </PaginationItem>
+                                    );
+                                })}
                             </PaginationContent>
                         </Pagination>
-                    </div> */}
+                    </div>
                 </div>
             </div>
         </AppLayout>

@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { dashboard, dataPendaftaran } from '@/routes';
+import { dataPendaftaran } from '@/routes';
 import { Button } from '@/components/ui/button';
 import {
     Card,

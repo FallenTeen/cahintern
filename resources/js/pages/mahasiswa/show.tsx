@@ -213,7 +213,7 @@ export default function ShowMhsAktif({
                                         Jenis Kelamin
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.jenis_kelamin || '-'}
+                                        {pendaftar.jenis_kelamin === 'L' ? 'Laki-laki' : pendaftar.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
                                     </p>
                                 </div>
                                 <div className="md:col-span-2">

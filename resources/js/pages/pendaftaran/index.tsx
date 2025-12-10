@@ -27,11 +27,12 @@ import AppLayout from '@/layouts/app-layout';
 import { dashboard, dataPendaftaran } from '@/routes';
 import { show as showPendaftaran, approve as approvePendaftaran, reject as rejectPendaftaran, destroy as destroyPendaftaran } from '@/routes/dataPendaftaran';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Select } from '@radix-ui/react-select';
 import { Check, Eye, Plus, Search, X, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
+import pendaftaran from '@/routes/pendaftaran';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -173,10 +174,12 @@ export default function DataPendaftaran({
                         </Button>
                     </div>
 
+                    <Link href="data-pendaftaran/create">
                     <Button className="flex w-full items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 sm:w-auto">
                         <Plus className="h-4 w-4" />
                         <span>Tambah Pendaftar</span>
                     </Button>
+                    </Link>
                 </div>
 
                 <div className="flex-1 rounded-xl border border-gray-200 bg-white shadow-sm">

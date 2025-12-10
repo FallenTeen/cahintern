@@ -17,7 +17,10 @@ use Illuminate\Support\Facades\Log;
 
 class PendaftaranController extends Controller
 {
-    
+    public function create()
+    {
+        return Inertia::render('pendaftaran/create');
+    }
     public function halPendaftaranGuest()
     {
         return Inertia::render('pendaftaran');
@@ -105,7 +108,7 @@ class PendaftaranController extends Controller
                 return back()->withErrors($validator)->withInput();
             }
 
-            
+
 
             Log::info('Starting transaction');
 
@@ -230,9 +233,9 @@ class PendaftaranController extends Controller
         ]);
     }
 
-    
 
-    
+
+
     public function index()
     {
         $search = request('search');

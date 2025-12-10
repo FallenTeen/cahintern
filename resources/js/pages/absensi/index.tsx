@@ -1,7 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { absenMahasiswa, dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head, usePage, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
@@ -153,7 +153,8 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            {schedule?.effective_start_date ?? new Date().toLocaleDateString('id-ID')}
+                            {schedule?.effective_start_date ??
+                                new Date().toLocaleDateString('id-ID')}
                         </CardContent>
                     </Card>
                 </div>
@@ -161,36 +162,99 @@ export default function AbsensiMahasiswa() {
                 {openDialog && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
                         <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-                            <h2 className="mb-4 text-lg font-semibold">Atur Jadwal Absensi</h2>
+                            <h2 className="mb-4 text-lg font-semibold">
+                                Atur Jadwal Absensi
+                            </h2>
                             <div className="space-y-3">
                                 <div>
                                     <label className="text-sm">Jam Buka</label>
-                                    <Input type="time" value={form.jam_buka} onChange={(e) => setForm({ ...form, jam_buka: e.target.value })} />
+                                    <Input
+                                        type="time"
+                                        value={form.jam_buka}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                jam_buka: e.target.value,
+                                            })
+                                        }
+                                    />
                                 </div>
                                 <div>
                                     <label className="text-sm">Jam Tutup</label>
-                                    <Input type="time" value={form.jam_tutup} onChange={(e) => setForm({ ...form, jam_tutup: e.target.value })} />
+                                    <Input
+                                        type="time"
+                                        value={form.jam_tutup}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                jam_tutup: e.target.value,
+                                            })
+                                        }
+                                    />
                                 </div>
                                 <div>
-                                    <label className="text-sm">Toleransi Telat (menit)</label>
-                                    <Input type="number" value={form.toleransi_menit} onChange={(e) => setForm({ ...form, toleransi_menit: Number(e.target.value) })} />
+                                    <label className="text-sm">
+                                        Toleransi Telat (menit)
+                                    </label>
+                                    <Input
+                                        type="number"
+                                        value={form.toleransi_menit}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                toleransi_menit: Number(
+                                                    e.target.value,
+                                                ),
+                                            })
+                                        }
+                                    />
                                 </div>
                                 <div>
-                                    <label className="text-sm">Mulai Berlaku</label>
-                                    <Input type="date" value={form.effective_start_date} onChange={(e) => setForm({ ...form, effective_start_date: e.target.value })} />
+                                    <label className="text-sm">
+                                        Mulai Berlaku
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={form.effective_start_date}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                effective_start_date:
+                                                    e.target.value,
+                                            })
+                                        }
+                                    />
                                 </div>
                                 <div>
-                                    <label className="text-sm">Berakhir (opsional)</label>
-                                    <Input type="date" value={form.effective_end_date ?? ''} onChange={(e) => setForm({ ...form, effective_end_date: e.target.value || null })} />
+                                    <label className="text-sm">
+                                        Berakhir (opsional)
+                                    </label>
+                                    <Input
+                                        type="date"
+                                        value={form.effective_end_date ?? ''}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                effective_end_date:
+                                                    e.target.value || null,
+                                            })
+                                        }
+                                    />
                                 </div>
                             </div>
                             <div className="mt-4 flex justify-end gap-2">
-                                <Button variant="outline" onClick={() => setOpenDialog(false)}>Batal</Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setOpenDialog(false)}
+                                >
+                                    Batal
+                                </Button>
                                 <Button
                                     className="bg-red-600 text-white hover:bg-red-700"
                                     onClick={() => {
                                         router.post('/absen-jadwal', form, {
-                                            onSuccess: () => setOpenDialog(false),
+                                            onSuccess: () =>
+                                                setOpenDialog(false),
                                         });
                                     }}
                                 >
@@ -210,26 +274,38 @@ export default function AbsensiMahasiswa() {
                                 onChange={(e) => setQuery(e.target.value)}
                             />
                             <div className="col-span-2 flex flex-wrap items-center gap-2">
-                                {['Semua', 'hadir', 'izin', 'sakit', 'terlambat'].map(
-                                    (status) => (
-                                        <Button
-                                            key={status}
-                                            variant={
-                                                statusFilter === status
-                                                    ? 'default'
-                                                    : 'outline'
-                                            }
-                                            size="sm"
-                                            onClick={() =>
-                                                setStatusFilter(
-                                                    status as Status | 'Semua',
-                                                )
-                                            }
-                                        >
-                                            {status === 'hadir' ? 'Hadir' : status === 'izin' ? 'Izin' : status === 'sakit' ? 'Sakit' : status === 'terlambat' ? 'Terlambat' : status}
-                                        </Button>
-                                    ),
-                                )}
+                                {[
+                                    'Semua',
+                                    'hadir',
+                                    'izin',
+                                    'sakit',
+                                    'terlambat',
+                                ].map((status) => (
+                                    <Button
+                                        key={status}
+                                        variant={
+                                            statusFilter === status
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size="sm"
+                                        onClick={() =>
+                                            setStatusFilter(
+                                                status as Status | 'Semua',
+                                            )
+                                        }
+                                    >
+                                        {status === 'hadir'
+                                            ? 'Hadir'
+                                            : status === 'izin'
+                                              ? 'Izin'
+                                              : status === 'sakit'
+                                                ? 'Sakit'
+                                                : status === 'terlambat'
+                                                  ? 'Terlambat'
+                                                  : status}
+                                    </Button>
+                                ))}
                             </div>
                         </div>
 
@@ -255,92 +331,89 @@ export default function AbsensiMahasiswa() {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Nama Mahasiswa</TableHead>
-                                    
-                                    <TableHead>Tanggal</TableHead>
-                                    <TableHead>Waktu Absen</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Keterangan</TableHead>
-                                    <TableHead className="text-center">
-                                        Aksi
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filtered.length > 0 ? (
-                                    filtered.map((s) => (
-                                        <TableRow key={s.id}>
-                                            <TableCell>{s.nama_peserta}</TableCell>
-                                            
-                                            <TableCell>{s.tanggal}</TableCell>
-                                            <TableCell>
-                                                {s.jam_masuk ?? '-'}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    className={badgeVariant(
-                                                        s.status,
-                                                    )}
+                <div className="overflow-hidden rounded-lg border shadow-sm">
+                    <Table className="align-item-center text-center">
+                        <TableHeader className="text-center align-middle">
+                            <TableRow className="bg-gray-100">
+                                <TableHead className='text-center align-middle'>Nama Mahasiswa</TableHead>
+                                <TableHead className='text-center align-middle'>Tanggal</TableHead>
+                                <TableHead className='text-center align-middle'>Waktu Absen</TableHead>
+                                <TableHead className='text-center align-middle'>Status</TableHead>
+                                <TableHead className='text-center align-middle'>Keterangan</TableHead>
+                                <TableHead className='text-center align-middle'>
+                                    Aksi
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filtered.length > 0 ? (
+                                filtered.map((s) => (
+                                    <TableRow key={s.id}>
+                                        <TableCell>{s.nama_peserta}</TableCell>
+
+                                        <TableCell>{s.tanggal}</TableCell>
+                                        <TableCell>
+                                            {s.jam_masuk ?? '-'}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge
+                                                className={badgeVariant(
+                                                    s.status,
+                                                )}
+                                            >
+                                                {s.status_label}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {s.keterangan ?? '-'}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                onClick={() =>
+                                                    window.alert(
+                                                        `Detail ${s.nama_peserta}`,
+                                                    )
+                                                }
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    className="h-4 w-4"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor"
                                                 >
-                                                    {s.status_label}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {s.keterangan ?? '-'}
-                                            </TableCell>
-                                            <TableCell className="text-center">
-                                                <Button
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        window.alert(
-                                                            `Detail ${s.nama_peserta}`,
-                                                        )
-                                                    }
-                                                >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className="h-4 w-4"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        stroke="currentColor"
-                                                    >
-                                                        <path
-                                                            strokeWidth={2}
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                        />
-                                                        <path
-                                                            strokeWidth={2}
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                                        />
-                                                    </svg>
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={7}
-                                            className="py-6 text-center text-muted-foreground"
-                                        >
-                                            Tidak ada data.
+                                                    <path
+                                                        strokeWidth={2}
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                    />
+                                                    <path
+                                                        strokeWidth={2}
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                    />
+                                                </svg>
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={7}
+                                        className="py-6 text-center text-muted-foreground"
+                                    >
+                                        Tidak ada data.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
         </AppLayout>
     );

@@ -10,12 +10,12 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { Eye, Plus } from 'lucide-react';
-import { useState, useMemo } from 'react';
-import { Head, usePage, Link } from '@inertiajs/react';
 import { dashboard } from '@/routes';
 import { show as dataMahasiswaAktifShow } from '@/routes/dataMahasiswaAktif';
 import { type BreadcrumbItem } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { Eye, Plus, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 type MahasiswaData = {
     id: number;
@@ -61,10 +61,11 @@ export default function DataMahasiswaAktif() {
 
         if (search.trim()) {
             const q = search.toLowerCase();
-            filtered = filtered.filter((m) =>
-                m.nama_lengkap.toLowerCase().includes(q) ||
-                m.asal_instansi.toLowerCase().includes(q) ||
-                m.jurusan.toLowerCase().includes(q)
+            filtered = filtered.filter(
+                (m) =>
+                    m.nama_lengkap.toLowerCase().includes(q) ||
+                    m.asal_instansi.toLowerCase().includes(q) ||
+                    m.jurusan.toLowerCase().includes(q),
             );
         }
 
@@ -74,44 +75,49 @@ export default function DataMahasiswaAktif() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data Mahasiswa Aktif" />
-            <div className="space-y-4 p-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h2 className="text-2xl font-semibold">
-                            Data Mahasiswa Aktif
-                        </h2>
-                        <p className="text-sm text-gray-500">
-                            Kelola data pendaftar magang ke Dinas Pendidikan
-                            Banyumas
-                        </p>
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+                <div className="space-y-1">
+                    <h2 className="text-2xl font-semibold">
+                        Data Mahasiswa Aktif
+                    </h2>
+                    <p className="text-sm text-gray-500 md:text-base">
+                        Kelola data pendaftar magang ke Dinas Pendidikan
+                        Banyumas
+                    </p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 sm:flex-1 sm:flex-row sm:items-center">
+                        <div className="relative w-full gap-2 sm:w-[400px]">
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                            <Input
+                                placeholder="Cari berdasarkan nama, universitas, atau jurusan..."
+                                className="w-full pl-9"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
                     <Button className="bg-red-600 text-white hover:bg-red-700">
                         <Plus className="mr-2 h-4 w-4" /> Tambah Mahasiswa
                     </Button>
                 </div>
-                <Input
-                    placeholder="Cari berdasarkan nama, universitas, atau jurusan..."
-                    className="max-w-md"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-                
-                <p className="text-sm text-gray-500">
+
+                {/* <p className="text-sm text-gray-500">
                     Menampilkan {filteredData.length} dari{' '}
                     {dataMahasiswa.length} mahasiswa aktif
-                </p>
+                </p> */}
                 <div className="overflow-hidden rounded-lg border shadow-sm">
-                    <Table>
-                        <TableHeader>
+                    <Table className="align-item-center text-center">
+                        <TableHeader className="text-center align-middle">
                             <TableRow className="bg-gray-100">
-                                <TableHead>Nama Mahasiswa</TableHead>
-                                <TableHead>Asal Instansi</TableHead>
-                                <TableHead>Jurusan</TableHead>
-                                
-                                <TableHead>NIM/NISN</TableHead>
-                                <TableHead>Durasi Magang</TableHead>
-                                <TableHead>Tanggal Mulai</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead className='text-center align-middle'>Nama Mahasiswa</TableHead>
+                                <TableHead className='text-center align-middle'>Asal Instansi</TableHead>
+                                <TableHead className='text-center align-middle'>Jurusan</TableHead>
+
+                                <TableHead className='text-center align-middle'>NIM/NISN</TableHead>
+                                <TableHead className='text-center align-middle'>Durasi Magang</TableHead>
+                                <TableHead className='text-center align-middle'>Tanggal Mulai</TableHead>
+                                <TableHead className='text-center align-middle'>Status</TableHead>
                                 <TableHead className="text-center">
                                     Aksi
                                 </TableHead>
@@ -123,7 +129,7 @@ export default function DataMahasiswaAktif() {
                                     <TableCell>{mhs.nama_lengkap}</TableCell>
                                     <TableCell>{mhs.asal_instansi}</TableCell>
                                     <TableCell>{mhs.jurusan}</TableCell>
-                                    
+
                                     <TableCell>{mhs.nim_nisn}</TableCell>
                                     <TableCell>{mhs.waktu}</TableCell>
                                     <TableCell>{mhs.tanggal_mulai}</TableCell>
@@ -131,7 +137,7 @@ export default function DataMahasiswaAktif() {
                                         <Badge
                                             className={
                                                 mhs.status === 'Aktif'
-                                                    ? 'bg-green-500 hover:bg-green-600 text-white'
+                                                    ? 'bg-green-500 text-white hover:bg-green-600'
                                                     : 'bg-gray-400 text-white'
                                             }
                                         >
@@ -144,7 +150,13 @@ export default function DataMahasiswaAktif() {
                                             size="icon"
                                             asChild
                                         >
-                                            <Link href={dataMahasiswaAktifShow(mhs.id).url}>
+                                            <Link
+                                                href={
+                                                    dataMahasiswaAktifShow(
+                                                        mhs.id,
+                                                    ).url
+                                                }
+                                            >
                                                 <Eye className="h-4 w-4 text-blue-600" />
                                             </Link>
                                         </Button>
@@ -153,6 +165,52 @@ export default function DataMahasiswaAktif() {
                             ))}
                         </TableBody>
                     </Table>
+                    {/* <div className="border-t border-gray-200 p-4">
+                        <Pagination>
+                            <PaginationContent className="flex-wrap gap-1">
+                                {mhs.links.map((link, index) => (
+                                    <PaginationItem key={index}>
+                                        {link.label.includes('Previous') ? (
+                                            <PaginationPrevious
+                                                href={link.url || '#'}
+                                                className="h-9"
+                                                onClick={(e) => {
+                                                    if (!link.url)
+                                                        e.preventDefault();
+                                                    else router.get(link.url);
+                                                }}
+                                            />
+                                        ) : link.label.includes('Next') ? (
+                                            <PaginationNext
+                                                href={link.url || '#'}
+                                                className="h-9"
+                                                onClick={(e) => {
+                                                    if (!link.url)
+                                                        e.preventDefault();
+                                                    else router.get(link.url);
+                                                }}
+                                            />
+                                        ) : link.label === '...' ? (
+                                            <PaginationEllipsis />
+                                        ) : (
+                                            <PaginationLink
+                                                href={link.url || '#'}
+                                                isActive={link.active}
+                                                className="h-9"
+                                                onClick={(e) => {
+                                                    if (!link.url)
+                                                        e.preventDefault();
+                                                    else router.get(link.url);
+                                                }}
+                                            >
+                                                {link.label}
+                                            </PaginationLink>
+                                        )}
+                                    </PaginationItem>
+                                ))}
+                            </PaginationContent>
+                        </Pagination>
+                    </div> */}
                 </div>
             </div>
         </AppLayout>

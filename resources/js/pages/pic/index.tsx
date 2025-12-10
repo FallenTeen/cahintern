@@ -66,19 +66,17 @@ export default function DataPICPage() {
         });
     }, [dataPIC, searchTerm]);
 
-    
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data PIC" />
 
             <div className="flex flex-col gap-6 p-6">
                 <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-                    <div>
-                        <h1 className="text-xl font-semibold">
+                    <div className="space-y-1">
+                        <h2 className="text-2xl font-semibold">
                             Data PIC (Pembimbing Lapangan)
-                        </h1>
-                        <p className="text-sm text-muted-foreground">
+                        </h2>
+                        <p className="text-sm text-gray-500 md:text-base">
                             Kelola data pembimbing lapangan
                         </p>
                     </div>
@@ -97,7 +95,6 @@ export default function DataPICPage() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    
                 </div>
                 {filteredPIC.length === 0 ? (
                     <div className="py-10 text-center text-muted-foreground">
@@ -108,18 +105,16 @@ export default function DataPICPage() {
                         <table className="min-w-full text-sm">
                             <thead className="bg-gray-100 text-gray-700">
                                 <tr>
-                                    <th className="p-3 text-left">Nama Mahasiswa</th>
-                                    
                                     <th className="p-3 text-left">
-                                        NIM/NISN
+                                        Nama Mahasiswa
                                     </th>
+
+                                    <th className="p-3 text-left">NIM/NISN</th>
                                     <th className="p-3 text-left">Email</th>
                                     <th className="p-3 text-left">
                                         Asal Instansi
                                     </th>
-                                    <th className="p-3 text-left">
-                                        Status
-                                    </th>
+                                    <th className="p-3 text-left">Status</th>
                                     <th className="p-3 text-center">Aksi</th>
                                 </tr>
                             </thead>
@@ -129,11 +124,15 @@ export default function DataPICPage() {
                                         key={pic.id}
                                         className="border-t hover:bg-gray-50"
                                     >
-                                        <td className="p-3">{pic.nama_lengkap}</td>
-                                        
+                                        <td className="p-3">
+                                            {pic.nama_lengkap}
+                                        </td>
+
                                         <td className="p-3">{pic.nim_nisn}</td>
                                         <td className="p-3">{pic.email}</td>
-                                        <td className="p-3">{pic.asal_instansi}</td>
+                                        <td className="p-3">
+                                            {pic.asal_instansi}
+                                        </td>
                                         <td className="p-3">
                                             <Badge variant="secondary">
                                                 {pic.status}
@@ -170,7 +169,10 @@ export default function DataPICPage() {
                 ) : (
                     <div className="grid grid-cols-1 gap-4">
                         {filteredPIC.map((pic) => (
-                            <Card key={pic.id} className="rounded-2xl shadow-md">
+                            <Card
+                                key={pic.id}
+                                className="rounded-2xl shadow-md"
+                            >
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-lg font-semibold">
                                         {pic.nama_lengkap}
@@ -180,9 +182,7 @@ export default function DataPICPage() {
                                     </p>
                                 </CardHeader>
                                 <CardContent className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        
-                                    </div>
+                                    <div className="flex justify-between"></div>
                                     <div className="flex justify-between">
                                         <span className="font-medium">
                                             Email:

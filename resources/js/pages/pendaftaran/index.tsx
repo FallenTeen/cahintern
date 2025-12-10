@@ -183,7 +183,7 @@ export default function DataPendaftaran({
                     <div className="hidden overflow-x-auto lg:block">
                         <Table className="align-item-center text-center">
                             <TableHeader className="text-center align-middle">
-                                <TableRow className="bg-gray-50">
+                                <TableRow className="bg-gray-100">
                                     <TableHead className="min-w-[180px] text-center align-middle">
                                         Nama Lengkap
                                     </TableHead>

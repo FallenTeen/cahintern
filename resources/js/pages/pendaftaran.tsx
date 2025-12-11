@@ -25,7 +25,6 @@ import {
     University,
 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 import FooterSection from './LandingPage/FooterSection';
 import Header from './LandingPage/Header';
 
@@ -922,11 +921,7 @@ export default function Pendaftaran() {
                                 <button
                                     type="submit"
                                     className="w-full rounded-lg bg-red-600 py-4 text-lg font-bold text-white transition-all hover:bg-red-700 hover:shadow-lg focus:ring-4 focus:ring-red-300 active:scale-[0.98]"
-                                    onClick={() =>
-                                        toast.success(
-                                            'Data berhasil ditambahkan',
-                                        )
-                                    }
+                                    onClick={() => toast.success("Data berhasil ditambahkan")}
                                 >
                                     Kirim Pendaftaran
                                 </button>

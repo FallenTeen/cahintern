@@ -6,7 +6,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
- 
+
 import { router } from '@inertiajs/react';
 import { guestDaftar } from '@/routes/pendaftaran';
 import {
@@ -19,6 +19,13 @@ import {
 import { useState } from 'react';
 import FooterSection from './LandingPage/FooterSection';
 import Header from './LandingPage/Header';
+import { Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue, } from '@/components/ui/select';
 
 const DatePicker = ({ id, label, date, setDate }) => {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -152,7 +159,7 @@ export default function Pendaftaran() {
             );
         }
 
-        
+
 
         if (formData.tanggal_mulai) {
             data.append(
@@ -669,7 +676,7 @@ export default function Pendaftaran() {
                                     </h2>
 
                                     <div className="space-y-4">
-                                        
+
 
                                         <div className="grid gap-4 md:grid-cols-2">
                                             <DatePicker

@@ -25,14 +25,18 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard, dataPendaftaran } from '@/routes';
-import { show as showPendaftaran, approve as approvePendaftaran, reject as rejectPendaftaran, destroy as destroyPendaftaran } from '@/routes/dataPendaftaran';
+import {
+    approve as approvePendaftaran,
+    destroy as destroyPendaftaran,
+    reject as rejectPendaftaran,
+    show as showPendaftaran,
+} from '@/routes/dataPendaftaran';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Select } from '@radix-ui/react-select';
-import { Check, Eye, Plus, Search, X, Trash2 } from 'lucide-react';
+import { Check, Eye, Plus, Search, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
-import { router } from '@inertiajs/react';
-import pendaftaran from '@/routes/pendaftaran';
+import Swal from 'sweetalert2';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -42,13 +46,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface DataPendaftar {
-  id: number;
-  nama_lengkap: string;
-  asal_instansi: string;
-  jurusan: string;
-  waktu: string;
-  tanggal_mulai: string;
-  status: string;
+    id: number;
+    nama_lengkap: string;
+    asal_instansi: string;
+    jurusan: string;
+    waktu: string;
+    tanggal_mulai: string;
+    status: string;
 }
 
 interface PaginatedData {
@@ -75,44 +79,111 @@ export default function DataPendaftaran({
 
     const handleSearch = () => {
         setLoading(true);
-        router.get(dataPendaftaran().url, {
-            search: search,
-            status: status,
-        }, {
-            preserveState: true,
-            onFinish: () => setLoading(false),
-        });
+        router.get(
+            dataPendaftaran().url,
+            {
+                search: search,
+                status: status,
+            },
+            {
+                preserveState: true,
+                onFinish: () => setLoading(false),
+            },
+        );
     };
 
     const handleApprove = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menerima pendaftar ini?')) {
-            router.post(approvePendaftaran(id).url, {}, {
-                onSuccess: () => {
-                    router.reload();
-                },
-            });
-        }
+        Swal.fire({
+            title: 'Terima Pendaftar?',
+            text: 'Pastikan data pendaftar sudah benar sebelum diterima.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Terima',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#38c172',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(approvePendaftaran(id).url, {}, {
+                    onSuccess: () => {
+                        Swal.fire({
+                            title: 'Diterima',
+                            text: 'Pendaftar berhasil diterima.',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500,
+                            timerProgressBar: true,
+                        });
+                        router.reload();
+                    },
+                });
+            }
+        });
     };
 
     const handleReject = (id: number) => {
-        const reason = prompt('Masukkan alasan penolakan:');
-        if (reason) {
-            router.post(rejectPendaftaran(id).url, { alasan_tolak: reason }, {
-                onSuccess: () => {
-                    router.reload();
-                },
-            });
-        }
+        Swal.fire({
+            title: 'Tolak Pendaftar',
+            input: 'textarea',
+            inputLabel: 'Alasan Penolakan',
+            inputPlaceholder: 'Masukkan alasan penolakan...',
+            showCancelButton: true,
+            confirmButtonText: 'Tolak',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#e3342f',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Alasan penolakan harus diisi!';
+                }
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(
+                    rejectPendaftaran(id).url,
+                    { alasan_tolak: result.value },
+                    {
+                        onSuccess: () => {
+                            Swal.fire({
+                                title: 'Ditolak',
+                                text: 'Pendaftar berhasil ditolak.',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500,
+                                timerProgressBar: true,
+                            });
+                            router.reload();
+                        },
+                    },
+                );
+            }
+        });
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Apakah Anda yakin ingin menghapus data pendaftar ini?')) {
-            router.delete(destroyPendaftaran(id).url, {
-                onSuccess: () => {
-                    router.reload();
-                },
-            });
-        }
+        Swal.fire({
+            title: 'Hapus Data?',
+            text: 'Data yang dihapus tidak dapat dikembalikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#e3342f',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete(destroyPendaftaran(id).url, {
+                    onSuccess: () => {
+                        Swal.fire({
+                            title: 'Dihapus',
+                            text: 'Data berhasil dihapus.',
+                            icon: 'success',
+                            showConfirmButton: false,
+                            timer: 1500,
+                            timerProgressBar: true,
+                        });
+                        router.reload();
+                    },
+                });
+            }
+        });
     };
 
     const getStatusColor = (status: string) => {
@@ -133,9 +204,7 @@ export default function DataPendaftaran({
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold">
-                        Data Pendaftaran
-                    </h1>
+                    <h1 className="text-2xl font-semibold">Data Pendaftaran</h1>
                     <p className="text-sm text-gray-500 md:text-base">
                         Kelola data pendaftar magang ke Dinas Pendidikan
                         Banyumas
@@ -151,7 +220,9 @@ export default function DataPendaftaran({
                                 className="w-full pl-9"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                                onKeyPress={(e) =>
+                                    e.key === 'Enter' && handleSearch()
+                                }
                             />
                         </div>
                         <Select value={status} onValueChange={setStatus}>
@@ -175,10 +246,10 @@ export default function DataPendaftaran({
                     </div>
 
                     <Link href="data-pendaftaran/create">
-                    <Button className="flex w-full items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 sm:w-auto">
-                        <Plus className="h-4 w-4" />
-                        <span>Tambah Pendaftar</span>
-                    </Button>
+                        <Button className="flex w-full items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 sm:w-auto">
+                            <Plus className="h-4 w-4" />
+                            <span>Tambah Pendaftar</span>
+                        </Button>
                     </Link>
                 </div>
 
@@ -196,7 +267,7 @@ export default function DataPendaftaran({
                                     <TableHead className="min-w-[140px] text-center align-middle">
                                         Jurusan
                                     </TableHead>
-                                    
+
                                     <TableHead className="min-w-[100px] text-center align-middle">
                                         Waktu
                                     </TableHead>
@@ -226,7 +297,7 @@ export default function DataPendaftaran({
                                         <TableCell className="text-gray-600">
                                             {pendaftar.jurusan}
                                         </TableCell>
-                                        
+
                                         <TableCell className="text-gray-600">
                                             {pendaftar.waktu}
                                         </TableCell>
@@ -234,7 +305,9 @@ export default function DataPendaftaran({
                                             {pendaftar.tanggal_mulai}
                                         </TableCell>
                                         <TableCell>
-                                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(pendaftar.status)}`}>
+                                            <span
+                                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(pendaftar.status)}`}
+                                            >
                                                 {pendaftar.status}
                                             </span>
                                         </TableCell>
@@ -245,19 +318,30 @@ export default function DataPendaftaran({
                                                     size="icon"
                                                     className="h-8 w-8 hover:bg-blue-100"
                                                     title="Lihat Data"
-                                                    onClick={() => router.visit(showPendaftaran(pendaftar.id).url)}
+                                                    onClick={() =>
+                                                        router.visit(
+                                                            showPendaftaran(
+                                                                pendaftar.id,
+                                                            ).url,
+                                                        )
+                                                    }
                                                 >
                                                     <Eye className="h-4 w-4 text-blue-500" />
                                                 </Button>
 
-                                                {pendaftar.status === 'Proses' && (
+                                                {pendaftar.status ===
+                                                    'Proses' && (
                                                     <>
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
                                                             className="h-8 w-8 hover:bg-green-100"
                                                             title="Terima"
-                                                            onClick={() => handleApprove(pendaftar.id)}
+                                                            onClick={() =>
+                                                                handleApprove(
+                                                                    pendaftar.id,
+                                                                )
+                                                            }
                                                         >
                                                             <Check className="h-4 w-4 text-green-500" />
                                                         </Button>
@@ -266,7 +350,11 @@ export default function DataPendaftaran({
                                                             size="icon"
                                                             className="h-8 w-8 hover:bg-orange-100"
                                                             title="Tolak"
-                                                            onClick={() => handleReject(pendaftar.id)}
+                                                            onClick={() =>
+                                                                handleReject(
+                                                                    pendaftar.id,
+                                                                )
+                                                            }
                                                         >
                                                             <X className="h-4 w-4 text-orange-500" />
                                                         </Button>
@@ -277,7 +365,11 @@ export default function DataPendaftaran({
                                                     size="icon"
                                                     className="h-8 w-8 hover:bg-red-100"
                                                     title="Hapus"
-                                                    onClick={() => handleDelete(pendaftar.id)}
+                                                    onClick={() =>
+                                                        handleDelete(
+                                                            pendaftar.id,
+                                                        )
+                                                    }
                                                 >
                                                     <Trash2 className="h-4 w-4 text-red-500" />
                                                 </Button>
@@ -309,7 +401,9 @@ export default function DataPendaftaran({
                                                 {pendaftar.asal_instansi}
                                             </p>
                                         </div>
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${getStatusColor(pendaftar.status)}`}>
+                                        <span
+                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${getStatusColor(pendaftar.status)}`}
+                                        >
                                             {pendaftar.status}
                                         </span>
                                     </div>
@@ -322,7 +416,7 @@ export default function DataPendaftaran({
                                                 {pendaftar.jurusan}
                                             </p>
                                         </div>
-                                        
+
                                         <div>
                                             <p className="text-xs text-gray-500">
                                                 Durasi
@@ -346,7 +440,13 @@ export default function DataPendaftaran({
                                             size="icon"
                                             className="h-8 w-8 hover:bg-gray-100"
                                             title="Lihat Data"
-                                            onClick={() => router.visit(showPendaftaran(pendaftar.id).url)}
+                                            onClick={() =>
+                                                router.visit(
+                                                    showPendaftaran(
+                                                        pendaftar.id,
+                                                    ).url,
+                                                )
+                                            }
                                         >
                                             <Eye className="h-4 w-4 text-blue-500" />
                                         </Button>
@@ -358,7 +458,11 @@ export default function DataPendaftaran({
                                                     size="icon"
                                                     className="h-8 w-8 hover:bg-green-100"
                                                     title="Terima"
-                                                    onClick={() => handleApprove(pendaftar.id)}
+                                                    onClick={() =>
+                                                        handleApprove(
+                                                            pendaftar.id,
+                                                        )
+                                                    }
                                                 >
                                                     <Check className="h-4 w-4 text-green-500" />
                                                 </Button>
@@ -367,7 +471,11 @@ export default function DataPendaftaran({
                                                     size="icon"
                                                     className="h-8 w-8 hover:bg-orange-100"
                                                     title="Tolak"
-                                                    onClick={() => handleReject(pendaftar.id)}
+                                                    onClick={() =>
+                                                        handleReject(
+                                                            pendaftar.id,
+                                                        )
+                                                    }
                                                 >
                                                     <X className="h-4 w-4 text-orange-500" />
                                                 </Button>
@@ -378,7 +486,9 @@ export default function DataPendaftaran({
                                             size="icon"
                                             className="h-8 w-8 hover:bg-red-100"
                                             title="Hapus"
-                                            onClick={() => handleDelete(pendaftar.id)}
+                                            onClick={() =>
+                                                handleDelete(pendaftar.id)
+                                            }
                                         >
                                             <X className="h-4 w-4 text-red-500" />
                                         </Button>
@@ -397,7 +507,8 @@ export default function DataPendaftaran({
                                                 href={link.url || '#'}
                                                 className="h-9"
                                                 onClick={(e) => {
-                                                    if (!link.url) e.preventDefault();
+                                                    if (!link.url)
+                                                        e.preventDefault();
                                                     else router.get(link.url);
                                                 }}
                                             />
@@ -406,7 +517,8 @@ export default function DataPendaftaran({
                                                 href={link.url || '#'}
                                                 className="h-9"
                                                 onClick={(e) => {
-                                                    if (!link.url) e.preventDefault();
+                                                    if (!link.url)
+                                                        e.preventDefault();
                                                     else router.get(link.url);
                                                 }}
                                             />
@@ -418,7 +530,8 @@ export default function DataPendaftaran({
                                                 isActive={link.active}
                                                 className="h-9"
                                                 onClick={(e) => {
-                                                    if (!link.url) e.preventDefault();
+                                                    if (!link.url)
+                                                        e.preventDefault();
                                                     else router.get(link.url);
                                                 }}
                                             >

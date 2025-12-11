@@ -296,7 +296,7 @@ class PendaftaranController extends Controller
         $password = 'Magang' . rand(1000, 9999);
         $user->update(['password' => Hash::make($password)]);
 
-        return response()->json(['message' => 'Pendaftar berhasil diterima']);
+        return back()->with('success', 'Pendaftar berhasil diterima');
     }
 
     public function reject(Request $request, $id)
@@ -319,9 +319,7 @@ class PendaftaranController extends Controller
         $user->alasan_tolak = $request->alasan_tolak;
         $user->save();
 
-        return response()->json([
-            'message' => 'Pendaftar berhasil ditolak'
-        ]);
+        return back()->with('success', 'Pendaftar berhasil ditolak');
     }
 
 
@@ -384,6 +382,6 @@ class PendaftaranController extends Controller
         $peserta->delete();
         $user->delete();
 
-        return response()->json(['message' => 'Data pendaftar berhasil dihapus']);
+        return back()->with('success', 'Pendaftar berhasil dihapus');
     }
 }

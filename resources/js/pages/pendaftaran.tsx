@@ -703,7 +703,49 @@ export default function Pendaftaran() {
                                                 onChange={handleInputChange}
                                                 required
                                             />
+                                        </div>
 
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <div>
+                                                <label
+                                                    htmlFor="kota"
+                                                    className="mb-2 block font-medium text-gray-700"
+                                                >
+                                                    Kota{' '}
+                                                    <span className="text-red-500">
+                                                        *
+                                                    </span>
+                                                </label>
+                                                <input
+                                                    id="kota"
+                                                    type="text"
+                                                    placeholder="Contoh: Jakarta"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 transition focus:border-transparent focus:ring-2 focus:ring-red-600 focus:outline-none"
+                                                    value={formData.kota}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label
+                                                    htmlFor="provinsi"
+                                                    className="mb-2 block font-medium text-gray-700"
+                                                >
+                                                    Provinsi{' '}
+                                                    <span className="text-red-500">
+                                                        *
+                                                    </span>
+                                                </label>
+                                                <input
+                                                    id="provinsi"
+                                                    type="text"
+                                                    placeholder="Contoh: DKI Jakarta"
+                                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 transition focus:border-transparent focus:ring-2 focus:ring-red-600 focus:outline-none"
+                                                    value={formData.provinsi}
+                                                    onChange={handleInputChange}
+                                                    required
+                                                />
+                                            </div>
                                             {errors.alamat && (
                                                 <p className="mt-1 text-sm text-red-600">
                                                     {errors.alamat}
@@ -921,7 +963,6 @@ export default function Pendaftaran() {
                                 <button
                                     type="submit"
                                     className="w-full rounded-lg bg-red-600 py-4 text-lg font-bold text-white transition-all hover:bg-red-700 hover:shadow-lg focus:ring-4 focus:ring-red-300 active:scale-[0.98]"
-                                    onClick={() => toast.success("Data berhasil ditambahkan")}
                                 >
                                     Kirim Pendaftaran
                                 </button>

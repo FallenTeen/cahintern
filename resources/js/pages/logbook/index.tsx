@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard, logbookMahasiswa } from '@/routes';
-import { detail as logbookDetail } from '@/routes/logbook';
+import detail from '@/routes/logbook';
 import { show as showLogbookMahasiswa } from '@/routes/logbook/mahasiswa';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -165,7 +165,7 @@ export default function LogbookMahasiswa() {
     };
 
     const handleViewDetail = (logbookId: number) => {
-        router.visit(logbookDetail(logbookId).url);
+        router.visit(detail(logbookId).url);
     };
 
     const toggleSort = (field: 'tanggal' | 'nama' | 'status') => {

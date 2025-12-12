@@ -1,6 +1,3 @@
-import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
-import { dataPendaftaran } from '@/routes';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -19,8 +16,12 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
+import { dataPendaftaran } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
+import { Head, useForm } from '@inertiajs/react';
 import { Calendar, GraduationCap, School, Upload, User } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
@@ -59,9 +60,41 @@ export default function Create() {
         surat_pengantar: null,
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post('/pendaftaran');
+
+        post('/data-pendaftaran/store', {
+            onStart: () => {
+                Swal.fire({
+                    title: 'Mengirim Data...',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    },
+                });
+            },
+            onSuccess: () => {
+                Swal.fire({
+                    title: 'Berhasil!',
+                    html: 'Pendaftaran berhasil!.',
+                    icon: 'success',
+                    confirmButtonColor: '#dc2626',
+                    confirmButtonText: 'OK',
+                });
+            },
+            onError: (errors) => {
+                Swal.close();
+                Swal.fire({
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan. Silakan periksa kembali form Anda.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626',
+                    confirmButtonText: 'OK',
+                });
+            },
+        });
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -81,7 +114,6 @@ export default function Create() {
 
             <div className="min-h-screen p-6">
                 <div className="mx-auto space-y-6">
-
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Card: Jenjang Pendidikan */}
                         <Card>
@@ -103,7 +135,8 @@ export default function Create() {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-2">
-                                    <Label>Jenjang</Label><span className='text-red-600'>*</span>
+                                    <Label>Jenjang</Label>
+                                    <span className="text-red-600">*</span>
                                     <Select
                                         value={data.jenjang}
                                         onValueChange={(v) =>
@@ -152,7 +185,10 @@ export default function Create() {
                                     {data.jenjang === 'universitas' ? (
                                         <>
                                             <div className="space-y-2">
-                                                <Label>NIM</Label><span className='text-red-600'>*</span>
+                                                <Label>NIM</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     placeholder="Masukkan NIM"
@@ -172,7 +208,10 @@ export default function Create() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label>Nama Universitas</Label><span className='text-red-600'>*</span>
+                                                <Label>Nama Universitas</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     placeholder="Contoh: Universitas Indonesia"
@@ -192,7 +231,10 @@ export default function Create() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label>Jurusan</Label><span className='text-red-600'>*</span>
+                                                <Label>Jurusan</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     placeholder="Contoh: Teknik Informatika"
@@ -212,10 +254,16 @@ export default function Create() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label>Semester</Label><span className='text-red-600'>*</span>
+                                                <Label>Semester</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     type="number"
+                                                    max={14}
+                                                    min={1}
+                                                    step={1}
                                                     placeholder="Contoh: 5"
                                                     value={data.semester}
                                                     onChange={(e) =>
@@ -235,7 +283,10 @@ export default function Create() {
                                     ) : (
                                         <>
                                             <div className="space-y-2">
-                                                <Label>NIS</Label><span className='text-red-600'>*</span>
+                                                <Label>NIS</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     placeholder="Masukkan NIS"
@@ -255,7 +306,10 @@ export default function Create() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label>Nama Sekolah</Label><span className='text-red-600'>*</span>
+                                                <Label>Nama Sekolah</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     placeholder="Contoh: SMK Negeri 1 Jakarta"
@@ -275,7 +329,10 @@ export default function Create() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label>Kelas</Label><span className='text-red-600'>*</span>
+                                                <Label>Kelas</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     placeholder="Contoh: XII RPL 1"
@@ -295,7 +352,10 @@ export default function Create() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <Label>Nama Pembimbing</Label><span className='text-red-600'>*</span>
+                                                <Label>Nama Pembimbing</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     placeholder="Nama guru pembimbing"
@@ -315,7 +375,10 @@ export default function Create() {
                                             </div>
 
                                             <div className="space-y-2 md:col-span-2">
-                                                <Label>No HP Pembimbing</Label><span className='text-red-600'>*</span>
+                                                <Label>No HP Pembimbing</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
                                                 <Input
                                                     className="h-12"
                                                     placeholder="08xxxxxxxxxx"
@@ -361,7 +424,8 @@ export default function Create() {
                             <CardContent>
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div className="space-y-2 md:col-span-2">
-                                        <Label>Nama Lengkap</Label><span className='text-red-600'>*</span>
+                                        <Label>Nama Lengkap</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             placeholder="Masukkan nama lengkap sesuai KTP"
@@ -381,7 +445,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Email</Label><span className='text-red-600'>*</span>
+                                        <Label>Email</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             type="email"
@@ -399,7 +464,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Nomor Telepon</Label><span className='text-red-600'>*</span>
+                                        <Label>Nomor Telepon</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             placeholder="08xxxxxxxxxx"
@@ -416,7 +482,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Tempat Lahir</Label><span className='text-red-600'>*</span>
+                                        <Label>Tempat Lahir</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             placeholder="Contoh: Jakarta"
@@ -436,7 +503,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Tanggal Lahir</Label><span className='text-red-600'>*</span>
+                                        <Label>Tanggal Lahir</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             type="date"
@@ -456,7 +524,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Jenis Kelamin</Label><span className='text-red-600'>*</span>
+                                        <Label>Jenis Kelamin</Label>
+                                        <span className="text-red-600">*</span>
                                         <Select
                                             value={data.jenis_kelamin}
                                             onValueChange={(v) =>
@@ -483,7 +552,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2 md:col-span-2">
-                                        <Label>Alamat Lengkap</Label><span className='text-red-600'>*</span>
+                                        <Label>Alamat Lengkap</Label>
+                                        <span className="text-red-600">*</span>
                                         <Textarea
                                             className="min-h-24"
                                             placeholder="Masukkan alamat lengkap sesuai KTP"
@@ -503,7 +573,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Kota</Label><span className='text-red-600'>*</span>
+                                        <Label>Kota</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             placeholder="Contoh: Jakarta"
@@ -520,7 +591,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Provinsi</Label><span className='text-red-600'>*</span>
+                                        <Label>Provinsi</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             placeholder="Contoh: DKI Jakarta"
@@ -561,7 +633,8 @@ export default function Create() {
                             <CardContent>
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label>Tanggal Mulai</Label><span className='text-red-600'>*</span>
+                                        <Label>Tanggal Mulai</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             type="date"
@@ -581,7 +654,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>Tanggal Selesai</Label><span className='text-red-600'>*</span>
+                                        <Label>Tanggal Selesai</Label>
+                                        <span className="text-red-600">*</span>
                                         <Input
                                             className="h-12"
                                             type="date"
@@ -622,7 +696,8 @@ export default function Create() {
                             <CardContent>
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label>Upload CV</Label><span className='text-red-600'>*</span>
+                                        <Label>Upload CV</Label>
+                                        <span className="text-red-600">*</span>
                                         <div className="relative">
                                             <Input
                                                 className="h-12 cursor-pointer"
@@ -647,9 +722,8 @@ export default function Create() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label>
-                                            Surat Pengantar
-                                        </Label><span className='text-red-600'>*</span>
+                                        <Label>Surat Pengantar</Label>
+                                        <span className="text-red-600">*</span>
                                         <div className="relative">
                                             <Input
                                                 className="h-12 cursor-pointer"

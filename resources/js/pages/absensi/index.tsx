@@ -110,12 +110,12 @@ export default function AbsensiMahasiswa() {
                         Absensi Mahasiswa
                     </h1>
                     <div className="flex items-center gap-3">
-                        <Input
+                        {/* <Input
                             className="w-72"
                             placeholder="Cari data..."
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                        />
+                        /> */}
                         <Button
                             variant="destructive"
                             onClick={() => setOpenDialog(true)}

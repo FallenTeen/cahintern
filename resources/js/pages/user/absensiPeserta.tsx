@@ -10,7 +10,9 @@ import {
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage, router } from '@inertiajs/react';
+import { absensi, dashboard } from '@/routes';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     ChevronDown,
     ClockArrowDown,
@@ -21,7 +23,13 @@ import {
     Upload,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-type DatePickerProps = { id: string; label: string; date?: Date; setDate: (d?: Date) => void };
+
+type DatePickerProps = {
+    id: string;
+    label: string;
+    date?: Date;
+    setDate: (d?: Date) => void;
+};
 const DatePicker = ({ id, label, date, setDate }: DatePickerProps) => {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -67,7 +75,13 @@ const DatePicker = ({ id, label, date, setDate }: DatePickerProps) => {
     );
 };
 
-type Props = { schedule?: { jam_buka: string; jam_tutup: string; toleransi_menit: number } | null };
+type Props = {
+    schedule?: {
+        jam_buka: string;
+        jam_tutup: string;
+        toleransi_menit: number;
+    } | null;
+};
 const AbsensiMagang = () => {
     const { schedule } = usePage<Props>().props;
     const [izinStatus, setIzinStatus] = useState<'IZIN' | 'SAKIT' | ''>('');
@@ -137,9 +151,13 @@ const AbsensiMagang = () => {
     const handleCheckOut = () => {
         router.post('/absensi/check-out');
     };
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Dashboard', href: dashboard().url },
+        { title: 'Absensi', href: absensi().url },
+    ];
 
     return (
-        <AppLayout>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Absensi" />
             <div className="space-y-6 px-6 py-6">
                 <div className="mx-auto max-w-7xl space-y-6">
@@ -166,7 +184,10 @@ const AbsensiMagang = () => {
                                 })}
                             </span>
                             {schedule && (
-                                <span className="text-xs text-gray-500">Jadwal: {schedule.jam_buka} - {schedule.jam_tutup}</span>
+                                <span className="text-xs text-gray-500">
+                                    Jadwal: {schedule.jam_buka} -{' '}
+                                    {schedule.jam_tutup}
+                                </span>
                             )}
                         </div>
                     </div>
@@ -183,7 +204,10 @@ const AbsensiMagang = () => {
                                 <p className="mb-4 text-sm text-gray-600">
                                     Catat kehadiran pagi hari
                                 </p>
-                                <Button className="w-full bg-red-500 text-white hover:bg-red-600" onClick={handleCheckIn}>
+                                <Button
+                                    className="w-full bg-red-500 text-white hover:bg-red-600"
+                                    onClick={handleCheckIn}
+                                >
                                     <ClockArrowUp className="mr-2 h-4 w-4" />
                                     Absen Datang
                                 </Button>

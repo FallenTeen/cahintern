@@ -2,17 +2,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import AppLayout from '@/layouts/app-layout';
+import { sertifikat } from '@/routes';
+import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { HardDriveDownload, Info, Mail, Phone } from 'lucide-react';
-import { type BreadcrumbItem } from '@/types';
-import { dashboard, sertifikat } from '@/routes';
 
 export default function Sertifikat() {
     const progress = 80;
 
     const certificateAvailable = false;
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: dashboard().url },
         { title: 'Sertifikat', href: sertifikat().url },
     ];
 

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/popover';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { absensi, dashboard } from '@/routes';
+import { absensi } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
@@ -152,7 +152,6 @@ const AbsensiMagang = () => {
         router.post('/absensi/check-out');
     };
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: dashboard().url },
         { title: 'Absensi', href: absensi().url },
     ];
 

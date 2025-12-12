@@ -14,7 +14,6 @@ export default function Profile() {
 
     const handleEdit = () => setIsEditing(!isEditing);
     const breadcrumbs: BreadcrumbItem[] = [
-  { title: "Dashboard", href: dashboard().url },
   { title: "Profile", href: profile().url},
 ];
 

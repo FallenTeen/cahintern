@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard, formulir } from '@/routes';
+import { formulir } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Download, FileText, Trash2 } from 'lucide-react';
 
@@ -152,7 +152,6 @@ export default function PremiumFormUpload() {
         window.open('formulir/TemplateKesanggupanMahasiswa.doc', '_blank');
     };
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: dashboard().url },
         { title: 'Formulir', href: formulir().url },
     ];
 

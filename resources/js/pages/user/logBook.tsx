@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard, logBook } from '@/routes';
+import { logBook } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
@@ -114,7 +114,6 @@ const LogbookPage = () => {
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: dashboard().url },
         { title: 'Logbook', href: logBook().url },
     ];
 

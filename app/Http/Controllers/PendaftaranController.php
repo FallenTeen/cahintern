@@ -241,7 +241,7 @@ class PendaftaranController extends Controller
         $search = request('search');
         $status = request('status');
 
-        $query = PesertaProfile::with('user');
+        $query = PesertaProfile::with('user')->orderBy('created_at', 'desc');
 
         if ($search) {
             $query->where(function ($q) use ($search) {

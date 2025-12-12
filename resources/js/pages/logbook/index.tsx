@@ -19,7 +19,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard, logbookMahasiswa } from '@/routes';
+import { logbookMahasiswa } from '@/routes';
 import detail from '@/routes/logbook';
 import { show as showLogbookMahasiswa } from '@/routes/logbook/mahasiswa';
 import { type BreadcrumbItem } from '@/types';
@@ -67,7 +67,6 @@ type Props = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard().url },
     { title: 'Logbook Mahasiswa', href: logbookMahasiswa().url },
 ];
 
@@ -380,15 +379,19 @@ export default function LogbookMahasiswa() {
                                         >
                                             Tanggal <SortIcon field="tanggal" />
                                         </TableHead>
-                                        <TableHead className='text-center align-middle'>Durasi</TableHead>
-                                        <TableHead className='text-center align-middle'>Deskripsi Singkat</TableHead>
+                                        <TableHead className="text-center align-middle">
+                                            Durasi
+                                        </TableHead>
+                                        <TableHead className="text-center align-middle">
+                                            Deskripsi Singkat
+                                        </TableHead>
                                         <TableHead
                                             className="className='text-center align-middle' cursor-pointer hover:bg-muted/50"
                                             onClick={() => toggleSort('status')}
                                         >
                                             Status <SortIcon field="status" />
                                         </TableHead>
-                                        <TableHead className='text-center align-middle'>
+                                        <TableHead className="text-center align-middle">
                                             Aksi
                                         </TableHead>
                                     </TableRow>

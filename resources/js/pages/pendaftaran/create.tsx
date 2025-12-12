@@ -104,7 +104,7 @@ export default function Create() {
         },
         {
             title: 'Tambah Pendaftaran',
-            href: dataPendaftaran().url,
+            href: '#',
         },
     ];
 

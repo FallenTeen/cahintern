@@ -19,11 +19,11 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
+import { dataMahasiswaAktif } from '@/routes';
 import { show as dataMahasiswaAktifShow } from '@/routes/dataMahasiswaAktif';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Eye, Plus, Search } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Eye, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type MahasiswaData = {
@@ -67,8 +67,8 @@ interface PaginatedData {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard().url,
+        title: 'Data Mahasiswa Aktif',
+        href: dataMahasiswaAktif().url,
     },
 ];
 

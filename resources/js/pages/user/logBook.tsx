@@ -3,15 +3,19 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
+import { logBook } from '@/routes';
+import { BreadcrumbItem } from '@/types';
 import { Head, usePage, router, Link } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Calendar as CalendarIcon, ChevronDown, Edit, Eye, FileText, Plus, Save, Trash2, X } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronDown, ChevronDownIcon, Edit, Eye, FileText, Plus, Save, Trash2, X } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 interface Logbook {
     id: number;
@@ -65,6 +69,7 @@ const LogbookPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [viewMode, setViewMode] = useState<'list' | 'create' | 'view' | 'edit'>('list');
     const [selectedLogbook, setSelectedLogbook] = useState<Logbook | null>(null);
+    const [open, setOpen] = useState(false);
 
     const [form, setForm] = useState({
         tanggal: new Date().toISOString().split('T')[0],
@@ -378,6 +383,7 @@ const LogbookPage = () => {
                                                     deskripsi: log.deskripsi,
                                                     jam_mulai: log.jam_mulai || '',
                                                     jam_selesai: log.jam_selesai || '',
+                                                    hasil: log.hasil,
                                                     dokumentasi: null,
                                                 });
                                                 setViewMode('edit');
@@ -629,6 +635,7 @@ const LogbookPage = () => {
                                         deskripsi: selectedLogbook.deskripsi,
                                         jam_mulai: selectedLogbook.jam_mulai || '',
                                         jam_selesai: selectedLogbook.jam_selesai || '',
+                                        hasil: selectedLogbook.hasil,
                                         dokumentasi: null,
                                     });
                                     setViewMode('edit');

@@ -32,7 +32,7 @@ import {
     show as showPendaftaran,
 } from '@/routes/dataPendaftaran';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Select } from '@radix-ui/react-select';
 import { Check, Eye, Plus, Search, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
@@ -103,19 +103,23 @@ export default function DataPendaftaran({
             confirmButtonColor: '#38c172',
         }).then((result) => {
             if (result.isConfirmed) {
-                router.post(approvePendaftaran(id).url, {}, {
-                    onSuccess: () => {
-                        Swal.fire({
-                            title: 'Diterima',
-                            text: 'Pendaftar berhasil diterima.',
-                            icon: 'success',
-                            showConfirmButton: false,
-                            timer: 1500,
-                            timerProgressBar: true,
-                        });
-                        router.reload();
+                router.post(
+                    approvePendaftaran(id).url,
+                    {},
+                    {
+                        onSuccess: () => {
+                            Swal.fire({
+                                title: 'Diterima',
+                                text: 'Pendaftar berhasil diterima.',
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 1500,
+                                timerProgressBar: true,
+                            });
+                            router.reload();
+                        },
                     },
-                });
+                );
             }
         });
     };
@@ -498,50 +502,101 @@ export default function DataPendaftaran({
                         ))}
                     </div>
                     <div className="border-t border-gray-200 p-4">
-                        <Pagination>
-                            <PaginationContent className="flex-wrap gap-1">
-                                {dataPendaftar.links.map((link, index) => (
-                                    <PaginationItem key={index}>
-                                        {link.label.includes('Previous') ? (
+                        {dataPendaftar.links.length > 1 && (
+                            <div className="mt-4 flex justify-end">
+                                <Pagination>
+                                    <PaginationContent>
+                                        {/* Sebelumnya */}
+                                        <PaginationItem>
                                             <PaginationPrevious
-                                                href={link.url || '#'}
-                                                className="h-9"
+                                                href={
+                                                    dataPendaftar.links[0]
+                                                        .url ?? '#'
+                                                }
                                                 onClick={(e) => {
-                                                    if (!link.url)
+                                                    if (
+                                                        !dataPendaftar.links[0]
+                                                            .url
+                                                    ) {
                                                         e.preventDefault();
-                                                    else router.get(link.url);
+                                                        return;
+                                                    }
+                                                    e.preventDefault();
+                                                    router.get(
+                                                        dataPendaftar.links[0]
+                                                            .url,
+                                                        { preserveState: true },
+                                                    );
                                                 }}
                                             />
-                                        ) : link.label.includes('Next') ? (
+                                        </PaginationItem>
+
+                                        {/* Nomor halaman */}
+                                        {dataPendaftar.links
+                                            .slice(1, dataPendaftar.links.length - 1)
+                                            .map((link, index) => (
+                                                <PaginationItem key={index}>
+                                                    {link.label === '...' ? (
+                                                        <PaginationEllipsis />
+                                                    ) : (
+                                                        <PaginationLink
+                                                            href={
+                                                                link.url ?? '#'
+                                                            }
+                                                            isActive={
+                                                                link.active
+                                                            }
+                                                            onClick={(e) => {
+                                                                if (!link.url) {
+                                                                    e.preventDefault();
+                                                                    return;
+                                                                }
+                                                                e.preventDefault();
+                                                                router.get(
+                                                                    link.url,
+                                                                    {
+                                                                        preserveState: true,
+                                                                    },
+                                                                );
+                                                            }}
+                                                        >
+                                                            {link.label}
+                                                        </PaginationLink>
+                                                    )}
+                                                </PaginationItem>
+                                            ))}
+
+                                        {/* Berikutnya */}
+                                        <PaginationItem>
                                             <PaginationNext
-                                                href={link.url || '#'}
-                                                className="h-9"
+                                                href={
+                                                    dataPendaftar.links[
+                                                        dataPendaftar.links.length -
+                                                            1
+                                                    ].url ?? '#'
+                                                }
                                                 onClick={(e) => {
-                                                    if (!link.url)
+                                                    const next =
+                                                        dataPendaftar.links[
+                                                            dataPendaftar.links
+                                                                .length - 1
+                                                        ];
+                                                    if (!next.url) {
                                                         e.preventDefault();
-                                                    else router.get(link.url);
+                                                        return;
+                                                    }
+                                                    e.preventDefault();
+                                                    router.get(
+                                                        next.url,
+                                                        { preserveState: true },
+                                                    );
                                                 }}
                                             />
-                                        ) : link.label === '...' ? (
-                                            <PaginationEllipsis />
-                                        ) : (
-                                            <PaginationLink
-                                                href={link.url || '#'}
-                                                isActive={link.active}
-                                                className="h-9"
-                                                onClick={(e) => {
-                                                    if (!link.url)
-                                                        e.preventDefault();
-                                                    else router.get(link.url);
-                                                }}
-                                            >
-                                                {link.label}
-                                            </PaginationLink>
-                                        )}
-                                    </PaginationItem>
-                                ))}
-                            </PaginationContent>
-                        </Pagination>
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

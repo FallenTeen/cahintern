@@ -91,12 +91,19 @@ class LogbookController extends Controller
         ]);
     }
 
-    public function userIndex()
+    public function userIndex(Request $request)
     {
         $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
-        $logbooks = Logbook::where('peserta_profile_id', $profile->id)
+        $logbooks = Logbook::where('peserta_profile_id', $profile->id);
+
+        if ($request->tanggal){
+            $logbooks->whereDate('tanggal', $request->tanggal);
+        }
+
+        $logbooks = $logbooks
             ->orderBy('tanggal', 'desc')
             ->paginate(10)
+            ->withQueryString()
             ->through(function ($logbook) {
                 return [
                     'id' => $logbook->id,
@@ -106,13 +113,15 @@ class LogbookController extends Controller
                     'deskripsi' => $logbook->deskripsi,
                     'jam_mulai' => $logbook->jam_mulai ? $logbook->jam_mulai->format('H:i') : null,
                     'jam_selesai' => $logbook->jam_selesai ? $logbook->jam_selesai->format('H:i') : null,
-                    'file' => $logbook->dokumentasi ? basename($logbook->dokumentasi) : null,
+                    'hasil' => $logbook->hasil,
+                    'dokumentasi' => $logbook->dokumentasi ? basename($logbook->dokumentasi) : null,
                     'status' => $logbook->status_label,
                 ];
             });
 
         return Inertia::render('user/logBook', [
             'logbooks' => $logbooks,
+            'filters' => $request->only(['tanggal']),
         ]);
     }
 

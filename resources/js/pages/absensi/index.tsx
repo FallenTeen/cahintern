@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { absenMahasiswa, dashboard } from '@/routes';
+import { absenMahasiswa } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
@@ -52,7 +52,6 @@ type Props = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard().url },
     { title: 'Absensi Mahasiswa', href: absenMahasiswa().url },
 ];
 
@@ -335,12 +334,22 @@ export default function AbsensiMahasiswa() {
                     <Table className="align-item-center text-center">
                         <TableHeader className="text-center align-middle">
                             <TableRow className="bg-gray-100">
-                                <TableHead className='text-center align-middle'>Nama Mahasiswa</TableHead>
-                                <TableHead className='text-center align-middle'>Tanggal</TableHead>
-                                <TableHead className='text-center align-middle'>Waktu Absen</TableHead>
-                                <TableHead className='text-center align-middle'>Status</TableHead>
-                                <TableHead className='text-center align-middle'>Keterangan</TableHead>
-                                <TableHead className='text-center align-middle'>
+                                <TableHead className="text-center align-middle">
+                                    Nama Mahasiswa
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Tanggal
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Waktu Absen
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Status
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
+                                    Keterangan
+                                </TableHead>
+                                <TableHead className="text-center align-middle">
                                     Aksi
                                 </TableHead>
                             </TableRow>

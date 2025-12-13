@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
+import { pengumumanKonten } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
@@ -47,8 +47,8 @@ type Props = {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard().url,
+        title: 'Pengumuman & Konten',
+        href: pengumumanKonten().url,
     },
 ];
 
@@ -57,7 +57,7 @@ export default function PengumumanKonten() {
     const [tab, setTab] = useState('pengumuman');
     const [filter, setFilter] = useState('Semua');
 
-    const pengumumanList = pengumumanData.data.map(item => ({
+    const pengumumanList = pengumumanData.data.map((item) => ({
         title: item.judul,
         content: item.isi,
         status: item.status === 'published' ? 'Tayang' : 'Draft',
@@ -69,7 +69,7 @@ export default function PengumumanKonten() {
             ? pengumumanList
             : pengumumanList.filter((item) => item.status === filter);
 
-    const kontenList = kontenData.data.map(item => ({
+    const kontenList = kontenData.data.map((item) => ({
         title: item.judul,
         description: item.deskripsi,
     }));

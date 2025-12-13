@@ -25,6 +25,7 @@ import {
     University,
 } from 'lucide-react';
 import { useState } from 'react';
+import Swal from 'sweetalert2';
 import FooterSection from './LandingPage/FooterSection';
 import Header from './LandingPage/Header';
 
@@ -190,14 +191,12 @@ export default function Pendaftaran() {
                 formData.tanggal_lahir.toISOString().split('T')[0],
             );
         }
-
         if (formData.tanggal_mulai) {
             data.append(
                 'tanggal_mulai',
                 formData.tanggal_mulai.toISOString().split('T')[0],
             );
         }
-
         if (formData.tanggal_selesai) {
             data.append(
                 'tanggal_selesai',
@@ -205,17 +204,27 @@ export default function Pendaftaran() {
             );
         }
 
-        if (formData.cv) {
-            data.append('cv', formData.cv);
-        }
-
-        if (formData.surat_pengantar) {
+        if (formData.cv) data.append('cv', formData.cv);
+        if (formData.surat_pengantar)
             data.append('surat_pengantar', formData.surat_pengantar);
-        }
 
         router.post(guestDaftar().url, data, {
+            onSuccess: () => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Pendaftaran Berhasil!',
+                    text: 'Data berhasil dikirim.',
+                    confirmButtonColor: '#d33',
+                });
+            },
             onError: (errs) => {
-                setErrors(errs as FormErrors);
+                setErrors(errs);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Mengirim!',
+                    text: 'Periksa kembali data yang Anda isi.',
+                    confirmButtonColor: '#d33',
+                });
             },
         });
     };
@@ -228,15 +237,16 @@ export default function Pendaftaran() {
                 <div className="relative mx-auto mt-8 w-full px-4 pb-16">
                     <div className="relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-lg">
                         <div className="mx-auto w-full rounded-2xl bg-white sm:px-8 sm:py-6 lg:px-32 lg:py-10">
-                            <h1 className="mb-2 text-center text-3xl font-bold text-gray-900">
+                            <h1 className="mb-2 pt-5 text-center text-xl font-bold text-gray-900 sm:text-3xl">
                                 Formulir Pendaftaran Magang
                             </h1>
-                            <p className="mb-8 text-center text-gray-600">
+
+                            <p className="mb-8 text-center text-sm text-gray-600 sm:text-base">
                                 Silakan lengkapi data berikut untuk mendaftar
                                 program magang
                             </p>
 
-                            <div className="mb-8 flex overflow-hidden rounded-lg border shadow-sm">
+                            <div className="mx-4 mb-8 flex max-w-xs overflow-hidden rounded-lg border shadow-sm sm:mx-0 sm:max-w-none">
                                 <button
                                     type="button"
                                     onClick={() => setJenjang('universitas')}
@@ -507,7 +517,7 @@ export default function Pendaftaran() {
                                             <input
                                                 id="nama_lengkap"
                                                 type="text"
-                                                placeholder="Masukkan nama lengkap sesuai KTP"
+                                                placeholder="Masukkan nama lengkap"
                                                 className={`w-full rounded-lg border px-4 py-2.5 focus:ring-2 focus:ring-red-600 focus:outline-none ${errors.nama_lengkap ? 'border-red-500' : 'border-gray-300'}`}
                                                 value={formData.nama_lengkap}
                                                 onChange={handleInputChange}
@@ -579,8 +589,8 @@ export default function Pendaftaran() {
                                             </div>
                                         </div>
 
-                                        <div className="grid gap-4 md:grid-cols-3">
-                                            <div>
+                                        <div className="grid gap-6 md:grid-cols-3 md:gap-4">
+                                            <div className="flex flex-col md:min-h-[110px]">
                                                 <label
                                                     htmlFor="tempat_lahir"
                                                     className="mb-2 block font-medium text-gray-700"
@@ -610,31 +620,36 @@ export default function Pendaftaran() {
                                                 )}
                                             </div>
 
-                                            <DatePicker
-                                                id="tanggal_lahir"
-                                                label={
-                                                    <>
-                                                        Tanggal Lahir{' '}
-                                                        <span className="text-red-500">
-                                                            *
-                                                        </span>
-                                                    </>
-                                                }
-                                                date={formData.tanggal_lahir}
-                                                setDate={(date) =>
-                                                    setFormData((prev) => ({
-                                                        ...prev,
-                                                        tanggal_lahir: date,
-                                                    }))
-                                                }
-                                            />
-                                            {errors.tanggal_lahir && (
-                                                <p className="mt-1 text-sm text-red-600">
-                                                    {errors.tanggal_lahir}
-                                                </p>
-                                            )}
+                                            <div className="flex flex-col md:min-h-[110px]">
+                                                <DatePicker
+                                                    id="tanggal_lahir"
+                                                    label={
+                                                        <>
+                                                            Tanggal Lahir{' '}
+                                                            <span className="text-red-500">
+                                                                *
+                                                            </span>
+                                                        </>
+                                                    }
+                                                    date={
+                                                        formData.tanggal_lahir
+                                                    }
+                                                    setDate={(date) =>
+                                                        setFormData((prev) => ({
+                                                            ...prev,
+                                                            tanggal_lahir: date,
+                                                        }))
+                                                    }
+                                                />
 
-                                            <div className="mt-3 flex flex-col gap-1">
+                                                {errors.tanggal_lahir && (
+                                                    <p className="mt-1 text-sm text-red-600">
+                                                        {errors.tanggal_lahir}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-col md:min-h-[110px]">
                                                 <label
                                                     htmlFor="jenis_kelamin"
                                                     className="mb-2 block font-medium text-gray-700"
@@ -959,15 +974,14 @@ export default function Pendaftaran() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <button
                                     type="submit"
-                                    className="w-full rounded-lg bg-red-600 py-4 text-lg font-bold text-white transition-all hover:bg-red-700 hover:shadow-lg focus:ring-4 focus:ring-red-300 active:scale-[0.98]"
+                                    className="/* mobile */ /* desktop */ mx-auto block w-auto rounded-lg bg-red-600 px-10 py-4 text-lg font-bold text-white transition-all hover:bg-red-700 hover:shadow-lg focus:ring-4 focus:ring-red-300 active:scale-[0.98] sm:mx-0 sm:w-full sm:px-0"
                                 >
                                     Kirim Pendaftaran
                                 </button>
 
-                                <p className="mt-4 text-center text-sm text-gray-500">
+                                <p className="mt-4 hidden text-center text-sm text-gray-500 sm:block">
                                     <span className="text-red-500">*</span>{' '}
                                     Wajib diisi
                                 </p>

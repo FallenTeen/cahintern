@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard, dataPendaftaran } from '@/routes';
+import { dataPendaftaran } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -17,7 +17,7 @@ import {
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Data Pendaftaran',
-        href: dashboard().url,
+        href: dataPendaftaran().url,
     },
     {
         title: 'Detail Pendaftar',
@@ -75,7 +75,7 @@ export default function ShowPendaftaran({
             <Head title="Detail Pendaftar" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
-                <div className="flex items-center gap-4 justify-between">
+                <div className="flex items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold">
                             Detail Pendaftar
@@ -262,7 +262,6 @@ export default function ShowPendaftaran({
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">
                                         Durasi Magang

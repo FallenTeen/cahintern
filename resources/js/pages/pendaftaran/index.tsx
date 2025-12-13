@@ -24,7 +24,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard, dataPendaftaran } from '@/routes';
+import { dataPendaftaran } from '@/routes';
 import {
     approve as approvePendaftaran,
     destroy as destroyPendaftaran,
@@ -41,7 +41,7 @@ import Swal from 'sweetalert2';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Data Pendaftaran',
-        href: dashboard().url,
+        href: dataPendaftaran().url,
     },
 ];
 

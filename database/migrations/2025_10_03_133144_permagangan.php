@@ -18,10 +18,7 @@ return new class extends Migration {
             $table->enum('status', ['hadir', 'izin', 'sakit', 'alpha', 'terlambat'])->default('hadir');
             $table->text('keterangan')->nullable();
 
-            $table->string('foto_masuk')->nullable();
-            $table->string('foto_keluar')->nullable();
-            $table->string('lokasi_masuk')->nullable();
-            $table->string('lokasi_keluar')->nullable();
+            $table->string('surat')->nullable();
             $table->foreignId('disetujui_oleh')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('disetujui_pada')->nullable();
 

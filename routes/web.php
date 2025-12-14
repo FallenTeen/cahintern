@@ -77,7 +77,7 @@ Route::middleware(['auth', 'role:admin,pic'])->group(function () {
 
     // ABSEN MAHASISWA
     Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
-    Route::post('/absen-jadwal', [AbsensiController::class, 'updateSchedule'])->name('absenJadwal.update');
+    Route::post('/absen-jadwal', [AbsensiController::class, 'storeSchedule'])->name('absenJadwal.update');
 
     // LOGBOOK (ADMIN+PIC)
     Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');

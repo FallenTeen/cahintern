@@ -8,10 +8,12 @@ use App\Models\JadwalAbsensi;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AbsensiController extends Controller
 {
-    public function index(){
+    public function index()
+    {
         $search = request('search');
         $status = request('status');
         $tanggal = request('tanggal');
@@ -61,112 +63,237 @@ class AbsensiController extends Controller
         ]);
     }
 
-    public function absensiPeserta (){
+    public function absensiPeserta()
+    {
+        // Ambil absensi peserta dengan pagination (misal 10 per halaman)
+        $absensiData = Absensi::orderBy('tanggal', 'desc')->paginate(5);
+
+        // Ambil jadwal hari ini
         $schedule = JadwalAbsensi::activeForDate(Carbon::today());
+
+        // Format data absensi (opsional)
+        $formattedAbsensi = $absensiData->through(function ($log) {
+            return [
+                'id' => $log->id,
+                'tanggal' => $log->tanggal->format('Y-m-d'),
+                'jam_masuk' => !empty($log->jam_masuk) ? Carbon::parse($log->jam_masuk)->format('H:i') : null,
+                'jam_keluar' => !empty($log->jam_keluar) ? Carbon::parse($log->jam_keluar)->format('H:i') : null,
+                'keterangan' => $log->keterangan,
+                'status' => $log->status,
+            ];
+        });
+
         return Inertia::render('user/absensiPeserta', [
             'schedule' => $schedule ? [
                 'jam_buka' => Carbon::parse($schedule->jam_buka)->format('H:i'),
                 'jam_tutup' => Carbon::parse($schedule->jam_tutup)->format('H:i'),
                 'toleransi_menit' => $schedule->toleransi_menit,
             ] : null,
+            'absensiData' => $formattedAbsensi,
         ]);
     }
 
-    public function updateSchedule(Request $request)
+
+    public function storeSchedule(Request $request)
     {
         $validated = $request->validate([
             'jam_buka' => 'required|date_format:H:i',
             'jam_tutup' => 'required|date_format:H:i|after:jam_buka',
             'toleransi_menit' => 'nullable|integer|min:0',
-            'effective_start_date' => 'required|date',
-            'effective_end_date' => 'nullable|date|after_or_equal:effective_start_date',
         ]);
 
-        $schedule = JadwalAbsensi::create([
-            'jam_buka' => $validated['jam_buka'] . ':00',
-            'jam_tutup' => $validated['jam_tutup'] . ':00',
-            'toleransi_menit' => $validated['toleransi_menit'] ?? 0,
-            'effective_start_date' => $validated['effective_start_date'],
-            'effective_end_date' => $validated['effective_end_date'] ?? null,
-        ]);
+        $schedule = JadwalAbsensi::first();
 
-        return redirect()->route('absenMahasiswa')->with('success', 'Jadwal absensi diperbarui');
+        if (!$schedule) {
+            JadwalAbsensi::create([
+                'jam_buka' => $validated['jam_buka'],
+                'jam_tutup' => $validated['jam_tutup'],
+                'toleransi_menit' => $validated['toleransi_menit'] ?? 0,
+                'effective_start_date' => Carbon::now()->toDateString(),
+                'effective_end_date' => Carbon::now()->toDateString(),
+            ]);
+        } else {
+            $schedule->update([
+                'jam_buka' => $validated['jam_buka'],
+                'jam_tutup' => $validated['jam_tutup'],
+                'toleransi_menit' => $validated['toleransi_menit'] ?? 0,
+                'effective_start_date' => Carbon::now()->toDateString(),
+                'effective_end_date' => Carbon::now()->toDateString(),
+            ]);
+        }
+
+        return back()->with('success', 'Jadwal absensi berhasil diperbarui');
     }
+
 
     public function checkIn(Request $request)
     {
         $user = $request->user();
         $profile = PesertaProfile::where('user_id', $user->id)->firstOrFail();
+
         $now = Carbon::now();
         $tanggal = $now->toDateString();
+
         $schedule = JadwalAbsensi::activeForDate($tanggal);
-        $open = $schedule ? Carbon::parse($tanggal . ' ' . $schedule->jam_buka) : Carbon::parse($tanggal . ' 08:00:00');
-        $tolerance = $schedule ? (int) $schedule->toleransi_menit : 0;
-        $status = $now->gt($open->copy()->addMinutes($tolerance)) ? 'terlambat' : 'hadir';
+
+        // Tidak ada jadwal atau jam buka / tutup kosong
+        if (!$schedule || empty($schedule->jam_buka) || empty($schedule->jam_tutup)) {
+            return back()->with('error', 'Absensi belum dibuka. Jadwal belum tersedia.');
+        }
+
+        // Tidak bisa absen tanggal lampau
+        if ($tanggal < Carbon::now()->toDateString()) {
+            return back()->with('error', 'Tidak bisa absen untuk tanggal lampau.');
+        }
+
+        $open = Carbon::parse($tanggal . ' ' . $schedule->jam_buka);
+        $tolerance = (int) ($schedule->toleransi_menit ?? 0);
+        $statusMasuk = $now->gt($open->copy()->addMinutes($tolerance)) ? 'terlambat' : 'hadir';
 
         $absensi = Absensi::firstOrNew([
             'peserta_profile_id' => $profile->id,
             'tanggal' => $tanggal,
         ]);
 
+        // izin / sakit tidak boleh check-in
+        if (in_array($absensi->status, ['izin', 'sakit'])) {
+            return back()->with(
+                'error',
+                'Anda berstatus ' . strtoupper($absensi->status) . ', tidak bisa absen datang.'
+            );
+        }
+
+        // Sudah check-in
         if ($absensi->jam_masuk) {
-            return response()->json(['message' => 'Sudah absen datang'], 400);
+            return back()->with('error', 'Sudah absen datang.');
         }
 
         $absensi->jam_masuk = $now;
-        if (!$absensi->status) {
-            $absensi->status = $status;
-        }
+        $absensi->status = $statusMasuk;
         $absensi->save();
 
-        return response()->json(['message' => 'Absen datang tercatat', 'status' => $absensi->status]);
+        return back()->with('success', 'Absen datang tercatat. Status ' . $absensi->status);
     }
+
+
 
     public function checkOut(Request $request)
     {
         $user = $request->user();
         $profile = PesertaProfile::where('user_id', $user->id)->firstOrFail();
+
         $now = Carbon::now();
         $tanggal = $now->toDateString();
 
-        $absensi = Absensi::where('peserta_profile_id', $profile->id)
-            ->whereDate('tanggal', $tanggal)
-            ->first();
+        $schedule = JadwalAbsensi::activeForDate($tanggal);
 
-        if (!$absensi) {
-            return response()->json(['message' => 'Belum absen datang'], 400);
+        // Tidak ada jadwal atau jam buka / tutup kosong
+        if (!$schedule || empty($schedule->jam_buka) || empty($schedule->jam_tutup)) {
+            return back()->with('error', 'Absensi belum dibuka. Jadwal belum tersedia.');
         }
 
+        // Tidak bisa absen tanggal lampau
+        if ($tanggal < Carbon::now()->toDateString()) {
+            return back()->with(
+                'error',
+                'Tidak bisa absen untuk tanggal lampau.'
+            );
+        }
+
+        $absensi = Absensi::where('peserta_profile_id', $profile->id)
+            ->where('tanggal', $tanggal)
+            ->first();
+
+        // Belum ada absensi
+        if (!$absensi) {
+            return back()->with('error', 'Belum absen datang.');
+        }
+
+        // izin / sakit tidak boleh check-out
+        if (in_array($absensi->status, ['izin', 'sakit'])) {
+            return back()->with(
+                'error',
+                'Anda berstatus ' . strtoupper($absensi->status) . ', tidak bisa absen pulang.'
+            );
+        }
+
+        // Belum check-in
+        if (!$absensi->jam_masuk) {
+            return back()->with('error', 'Anda belum melakukan absen datang.');
+        }
+
+        // Sudah check-out
         if ($absensi->jam_keluar) {
-            return response()->json(['message' => 'Sudah absen pulang'], 400);
+            return back()->with('error', 'Sudah absen pulang.');
         }
 
         $absensi->jam_keluar = $now;
         $absensi->save();
 
-        return response()->json(['message' => 'Absen pulang tercatat']);
+        return back()->with('success', 'Absen pulang tercatat.');
     }
+
+
 
     public function requestIzin(Request $request)
     {
+        // Validasi awal
         $validated = $request->validate([
             'tanggal' => 'required|date',
             'tipe' => 'required|in:izin,sakit',
-            'keterangan' => 'nullable|string',
+            'keterangan' => 'required|string',
         ]);
 
         $user = $request->user();
         $profile = PesertaProfile::where('user_id', $user->id)->firstOrFail();
 
-        $absensi = Absensi::firstOrNew([
-            'peserta_profile_id' => $profile->id,
-            'tanggal' => $validated['tanggal'],
+        // Cek absensi existing
+        $absensi = Absensi::where('peserta_profile_id', $profile->id)
+            ->whereDate('tanggal', $validated['tanggal'])
+            ->first();
+
+        // Sudah hadir → tidak boleh izin/sakit
+        if ($absensi && in_array($absensi->status, ['hadir', 'terlambat'])) {
+            return back()->with('error','Anda sudah absen hadir pada tanggal ini, tidak bisa mengajukan izin atau sakit.');
+        }
+
+        // Sudah izin/sakit → tidak boleh submit lagi
+        if ($absensi && in_array($absensi->status, ['izin', 'sakit'])) {
+            return back()->with('error','Anda sudah mengajukan ' . strtoupper($absensi->status) . ' pada tanggal ini.');
+        }
+
+        // Validasi file conditional (HARUS SEBELUM SIMPAN)
+        $rules = [];
+        if ($request->tipe === 'sakit') {
+            $rules['surat'] = 'required|file|mimes:pdf,jpg,jpeg,png|max:2048';
+        } else {
+            $rules['surat'] = 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048';
+        }
+
+        $validated = $request->validate($rules, [
+            'surat.required' => 'Surat dokter wajib dilampirkan untuk sakit',
+            'surat.file' => 'File harus berupa dokumen',
+            'surat.mimes' => 'File harus berformat PDF, JPG, JPEG, atau PNG',
+            'surat.max' => 'Ukuran file maksimal 2MB',
         ]);
 
-        $absensi->status = $validated['tipe'];
-        $absensi->keterangan = $validated['keterangan'] ?? null;
-        $absensi->save();
+        // Upload file jika ada
+        $suratPath = null;
+        if ($request->hasFile('surat')) {
+            $suratPath = $request->file('surat')->store('surat-keterangan', 'public');
+        }
 
-        return back()->with('success', 'Pengajuan ' . strtoupper($validated['tipe']) . ' dikirim');
+        // Simpan izin/sakit (CREATE baru, bukan update)
+        Absensi::create([
+            'peserta_profile_id' => $profile->id,
+            'tanggal' => $request->tanggal,
+            'status' => $request->tipe,
+            'keterangan' => $request->keterangan,
+            'surat' => $suratPath,
+            'jam_masuk' => null,
+            'jam_keluar' => null,
+        ]);
+
+        return back()->with('success', 'Pengajuan ' . strtoupper($request->tipe) . ' berhasil dikirim!');
     }
 }

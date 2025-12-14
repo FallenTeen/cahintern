@@ -67,7 +67,7 @@ export default function AbsensiMahasiswa() {
         jam_tutup: schedule?.jam_tutup ?? '17:00',
         toleransi_menit: schedule?.toleransi_menit ?? 0,
         effective_start_date: new Date().toISOString().slice(0, 10),
-        effective_end_date: '' as string | null,
+        effective_end_date: new Date().toISOString().slice(0, 10),
     });
 
     const filtered = useMemo(() => {
@@ -109,12 +109,6 @@ export default function AbsensiMahasiswa() {
                         Absensi Mahasiswa
                     </h1>
                     <div className="flex items-center gap-3">
-                        {/* <Input
-                            className="w-72"
-                            placeholder="Cari data..."
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                        /> */}
                         <Button
                             variant="destructive"
                             onClick={() => setOpenDialog(true)}
@@ -132,7 +126,7 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            {schedule?.jam_buka ?? '08:00'}
+                            {schedule?.jam_buka ?? '-'}
                         </CardContent>
                     </Card>
                     <Card>
@@ -142,20 +136,43 @@ export default function AbsensiMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="text-xl font-semibold">
-                            {schedule?.jam_tutup ?? '17:00'}
+                            {schedule?.jam_tutup ?? '-'}
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-sm text-muted-foreground">
-                                Tanggal Aktif
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="text-xl font-semibold">
-                            {schedule?.effective_start_date ??
-                                new Date().toLocaleDateString('id-ID')}
-                        </CardContent>
-                    </Card>
+<Card>
+    <CardContent className="grid grid-cols-3 gap-6 items-center">
+        {/* Tanggal Aktif */}
+        <div>
+            <p className="text-sm text-muted-foreground">
+                 Aktif
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+                {schedule?.effective_start_date ?? '-'}
+            </p>
+        </div>
+
+        {/* Toleransi */}
+        <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+                Toleransi
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+                {schedule?.toleransi_menit ?? 0} menit
+            </p>
+        </div>
+
+        {/* Tanggal Berakhir */}
+        <div className="text-right">
+            <p className="text-sm text-muted-foreground">
+                 Berakhir
+            </p>
+            <p className="mt-1 text-sm font-semibold">
+                {schedule?.effective_end_date ?? '-'}
+            </p>
+        </div>
+    </CardContent>
+</Card>
+
                 </div>
 
                 {openDialog && (
@@ -235,7 +252,7 @@ export default function AbsensiMahasiswa() {
                                             setForm({
                                                 ...form,
                                                 effective_end_date:
-                                                    e.target.value || null,
+                                                    e.target.value,
                                             })
                                         }
                                     />

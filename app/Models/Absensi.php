@@ -19,10 +19,7 @@ class Absensi extends Model
         'jam_keluar',
         'status',
         'keterangan',
-        'foto_masuk',
-        'foto_keluar',
-        'lokasi_masuk',
-        'lokasi_keluar',
+        'surat',
         'disetujui_oleh',
         'disetujui_pada',
     ];

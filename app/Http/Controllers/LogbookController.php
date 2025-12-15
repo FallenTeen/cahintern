@@ -6,10 +6,10 @@ use App\Models\Logbook;
 use App\Models\PesertaProfile;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Models\LogbookHistory;
 use App\Models\Notifikasi;
+use Illuminate\Support\Facades\Log;
 
 class LogbookController extends Controller
 {
@@ -96,7 +96,7 @@ class LogbookController extends Controller
         $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
         $logbooks = Logbook::where('peserta_profile_id', $profile->id);
 
-        if ($request->tanggal){
+        if ($request->tanggal) {
             $logbooks->whereDate('tanggal', $request->tanggal);
         }
 
@@ -165,48 +165,55 @@ class LogbookController extends Controller
         return back()->with('success', 'Logbook berhasil dikirim');
     }
 
-    public function updateUser(Request $request, Logbook $logbook)
-    {
-        $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
-        if ($logbook->peserta_profile_id !== $profile->id) {
-            return back()->with('error', 'Tidak diizinkan');
-        }
-        if (!in_array($logbook->status, ['pending', 'revision'])) {
-            return back()->with('error', 'Tidak dapat mengubah logbook yang sudah diproses');
-        }
-        $validated = $request->validate([
-            'tanggal' => 'required|date',
-            'kegiatan' => 'required|string|max:255',
-            'deskripsi' => 'required|string|min:50',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
-            'hasil' => 'required|string|min:3',
-            'dokumentasi' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-        ]);
+public function updateUser(Request $request, Logbook $logbook)
+{
+    $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
 
-        if ($request->file('dokumentasi')) {
-            $path = $request->file('dokumentasi')->store('logbook', 'public');
-            $logbook->dokumentasi = $path;
-        }
-
-        $logbook->update([
-            'tanggal' => $validated['tanggal'],
-            'kegiatan' => $validated['kegiatan'],
-            'deskripsi' => $validated['deskripsi'],
-            'jam_mulai' => $validated['jam_mulai'] . ':00',
-            'jam_selesai' => $validated['jam_selesai'] . ':00',
-            'hasil' => $validated['hasil'],
-        ]);
-
-        LogbookHistory::create([
-            'logbook_id' => $logbook->id,
-            'user_id' => Auth::id(),
-            'action' => 'update',
-            'note' => null,
-        ]);
-
-        return back()->with('success', 'Logbook diperbarui');
+    if ($logbook->peserta_profile_id !== $profile->id) {
+        return back()->with('error', 'Tidak diizinkan');
     }
+
+    // HANYA revision & ditolak yang boleh edit
+    if (!in_array($logbook->status, ['revision', 'ditolak'])) {
+        return back()->with('error', 'Logbook tidak dapat diedit');
+    }
+
+    $validated = $request->validate([
+        'tanggal' => 'required|date',
+        'kegiatan' => 'required|string|max:255',
+        'deskripsi' => 'required|string|min:50',
+        'jam_mulai' => 'required|date_format:H:i',
+        'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+        'hasil' => 'required|string|min:3',
+        'dokumentasi' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+    ]);
+
+    if ($request->hasFile('dokumentasi')) {
+        $logbook->dokumentasi = $request
+            ->file('dokumentasi')
+            ->store('logbook', 'public');
+    }
+
+    $logbook->update([
+        'tanggal' => $validated['tanggal'],
+        'kegiatan' => $validated['kegiatan'],
+        'deskripsi' => $validated['deskripsi'],
+        'jam_mulai' => $validated['jam_mulai'] . ':00',
+        'jam_selesai' => $validated['jam_selesai'] . ':00',
+        'hasil' => $validated['hasil'],
+        'status' => 'pending',
+    ]);
+
+    LogbookHistory::create([
+        'logbook_id' => $logbook->id,
+        'user_id' => Auth::id(),
+        'action' => 'update',
+        'note' => null,
+    ]);
+
+    return back()->with('success', 'Logbook berhasil direvisi dan menunggu persetujuan');
+}
+
 
     public function destroyUser(Logbook $logbook)
     {
@@ -256,8 +263,8 @@ class LogbookController extends Controller
                 $r->jam_mulai ? $r->jam_mulai->format('H:i') : '',
                 $r->jam_selesai ? $r->jam_selesai->format('H:i') : '',
                 $r->formatted_duration,
-                str_replace(["\n",","], [' ', ' '], $r->kegiatan),
-                str_replace(["\n",","], [' ', ' '], $r->deskripsi),
+                str_replace(["\n", ","], [' ', ' '], $r->kegiatan),
+                str_replace(["\n", ","], [' ', ' '], $r->deskripsi),
                 $r->status_label
             );
         }
@@ -271,8 +278,12 @@ class LogbookController extends Controller
     {
         $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
         $query = Logbook::where('peserta_profile_id', $profile->id);
-        if ($request->filled('start')) { $query->whereDate('tanggal', '>=', $request->start); }
-        if ($request->filled('end')) { $query->whereDate('tanggal', '<=', $request->end); }
+        if ($request->filled('start')) {
+            $query->whereDate('tanggal', '>=', $request->start);
+        }
+        if ($request->filled('end')) {
+            $query->whereDate('tanggal', '<=', $request->end);
+        }
         $rows = $query->orderBy('tanggal', 'desc')->get();
         $csv = "Tanggal,Jam Mulai,Jam Selesai,Durasi,Judul,Deskripsi,Status\n";
         foreach ($rows as $r) {
@@ -282,8 +293,8 @@ class LogbookController extends Controller
                 $r->jam_mulai ? $r->jam_mulai->format('H:i') : '',
                 $r->jam_selesai ? $r->jam_selesai->format('H:i') : '',
                 $r->formatted_duration,
-                str_replace(["\n",","], [' ', ' '], $r->kegiatan),
-                str_replace(["\n",","], [' ', ' '], $r->deskripsi),
+                str_replace(["\n", ","], [' ', ' '], $r->kegiatan),
+                str_replace(["\n", ","], [' ', ' '], $r->deskripsi),
                 $r->status_label
             );
         }
@@ -316,9 +327,9 @@ class LogbookController extends Controller
             ->with('approvedBy');
 
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('kegiatan', 'like', '%' . $search . '%')
-                  ->orWhere('deskripsi', 'like', '%' . $search . '%');
+                    ->orWhere('deskripsi', 'like', '%' . $search . '%');
             });
         }
 
@@ -341,9 +352,9 @@ class LogbookController extends Controller
         $statisticsQuery = Logbook::where('peserta_profile_id', $pesertaProfileId);
 
         if ($search) {
-            $statisticsQuery->where(function($q) use ($search) {
+            $statisticsQuery->where(function ($q) use ($search) {
                 $q->where('kegiatan', 'like', '%' . $search . '%')
-                  ->orWhere('deskripsi', 'like', '%' . $search . '%');
+                    ->orWhere('deskripsi', 'like', '%' . $search . '%');
             });
         }
 

@@ -39,7 +39,15 @@ import { BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Calendar1, ChevronDownIcon, Edit, Eye, Plus, Trash2, Undo2 } from 'lucide-react';
+import {
+    Calendar1,
+    ChevronDownIcon,
+    Edit,
+    Eye,
+    Plus,
+    Trash2,
+    Undo2,
+} from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import { statusVariant } from '../statusVariant';
@@ -157,7 +165,6 @@ const LogbookPage = () => {
     }, [viewMode, form.tanggal]);
 
     const handleEditLogbook = (logbook: Logbook) => {
-
         setSelectedLogbook(logbook);
         setForm({
             tanggal: logbook.tanggal.split('T')[0],
@@ -183,6 +190,14 @@ const LogbookPage = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        Swal.fire({
+            title: 'Menyimpan logbook...',
+            text: 'Mohon tunggu',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
         setIsSubmitting(true);
 
         const formData = new FormData();
@@ -192,28 +207,56 @@ const LogbookPage = () => {
         formData.append('jam_mulai', form.jam_mulai);
         formData.append('jam_selesai', form.jam_selesai);
         formData.append('hasil', form.hasil);
+
         if (form.dokumentasi) {
             formData.append('dokumentasi', form.dokumentasi);
         }
 
-        const url =
-            selectedLogbook && viewMode === 'edit'
-                ? `/logBook/${selectedLogbook.id}`
-                : '/logBook';
-        const method = selectedLogbook && viewMode === 'edit' ? 'put' : 'post';
+        let url = '/logBook';
 
-        router[method](url, formData, {
-            onSuccess: () => {
+        // 🔥 MODE EDIT → UPDATE
+        if (selectedLogbook && viewMode === 'edit') {
+            url = `/logBook/${selectedLogbook.id}`;
+            formData.append('_method', 'PUT');
+        }
+
+        router.post(url, formData, {
+            forceFormData: true,
+
+            onSuccess: (page) => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text:
+                        page.props.flash?.success ??
+                        (viewMode === 'edit'
+                            ? 'Logbook berhasil direvisi dan menunggu persetujuan'
+                            : 'Logbook berhasil ditambahkan'),
+                });
+
                 setViewMode('list');
                 resetForm();
             },
+
             onError: (errors) => {
+                let message = 'Periksa kembali data yang kamu input';
+
+                if (errors && Object.keys(errors).length > 0) {
+                    message = Object.values(errors).join('\n');
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal menyimpan',
+                    text: message,
+                });
+
                 setErrors(errors);
             },
+
             onFinish: () => {
                 setIsSubmitting(false);
             },
-            forceFormData: true,
         });
     };
 
@@ -303,13 +346,14 @@ const LogbookPage = () => {
                     </p>
                 </div>
                 <Button
-                className='bg-red-600 hover:bg-red-700'
+                    className="bg-red-600 hover:bg-red-700"
                     onClick={() => {
                         resetForm();
                         setViewMode('create');
                     }}
                 >
-                    <Plus />Tambah Logbook
+                    <Plus />
+                    Tambah Logbook
                 </Button>
             </div>
 
@@ -429,6 +473,7 @@ const LogbookPage = () => {
                                             {statusVariant(log.status)}
                                         </TableCell>
                                         <TableCell className="space-x-1 text-right">
+                                            {/* VIEW — selalu ada */}
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
@@ -442,56 +487,61 @@ const LogbookPage = () => {
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </Button>
-                                            {log.status !== 'Disetujui' && (
-                                                <>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        title="Edit"
-                                                        onClick={() => {
-                                                            setSelectedLogbook(
-                                                                log as any,
-                                                            );
-                                                            setForm({
-                                                                tanggal:
-                                                                    (log as any)
-                                                                        .tanggal_raw ||
-                                                                    '',
-                                                                kegiatan:
-                                                                    log.kegiatan,
-                                                                deskripsi:
-                                                                    log.deskripsi,
-                                                                jam_mulai:
-                                                                    log.jam_mulai ||
-                                                                    '',
-                                                                jam_selesai:
-                                                                    log.jam_selesai ||
-                                                                    '',
-                                                                hasil: log.hasil,
-                                                                dokumentasi:
-                                                                    null,
-                                                            });
-                                                            setViewMode('edit');
-                                                        }}
-                                                    >
-                                                        <Edit className="h-4 w-4" />
-                                                    </Button>
-                                                    {log.status !==
-                                                        'Ditolak' && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            title="Hapus"
-                                                            onClick={() =>
-                                                                handleDelete(
-                                                                    log.id,
-                                                                )
-                                                            }
-                                                        >
-                                                            <Trash2 className="h-4 w-4 text-red-500" />
-                                                        </Button>
-                                                    )}
-                                                </>
+
+                                            {/* EDIT — HANYA Ditolak & Perlu Revisi */}
+                                            {[
+                                                'Ditolak',
+                                                'Perlu Revisi',
+                                            ].includes(log.status) && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    title="Edit"
+                                                    onClick={() => {
+                                                        setSelectedLogbook(
+                                                            log as any,
+                                                        );
+                                                        setForm({
+                                                            tanggal:
+                                                                (log as any)
+                                                                    .tanggal_raw ||
+                                                                '',
+                                                            kegiatan:
+                                                                log.kegiatan,
+                                                            deskripsi:
+                                                                log.deskripsi,
+                                                            jam_mulai:
+                                                                log.jam_mulai ||
+                                                                '',
+                                                            jam_selesai:
+                                                                log.jam_selesai ||
+                                                                '',
+                                                            hasil: log.hasil,
+                                                            dokumentasi: null,
+                                                        });
+                                                        setViewMode('edit');
+                                                    }}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Button>
+                                            )}
+
+                                            {/* DELETE — Menunggu Persetujuan, Ditolak, Perlu Revisi */}
+                                            {[
+                                                'Menunggu Persetujuan',
+                                                'Ditolak',
+                                                'Perlu Revisi',
+                                            ].includes(log.status) && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    title="Hapus"
+                                                    onClick={() =>
+                                                        handleDelete(log.id)
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                                </Button>
                                             )}
                                         </TableCell>
                                     </TableRow>
@@ -614,13 +664,14 @@ const LogbookPage = () => {
                     </p>
                 </div>
                 <Button
-                className='bg-red-600 hover:bg-red-700'
+                    className="bg-red-600 hover:bg-red-700"
                     onClick={() => {
                         setViewMode('list');
                         setSelectedLogbook(null);
                     }}
                 >
-                    <Undo2 />Kembali ke Daftar
+                    <Undo2 />
+                    Kembali ke Daftar
                 </Button>
             </div>
 
@@ -629,41 +680,51 @@ const LogbookPage = () => {
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div className="space-y-4">
-<div>
-    <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-            <Button
-                variant="outline"
-                className="w-52 justify-between font-normal"
-            >
-                {date
-                    ? format(date, 'dd MMM yyyy', { locale: id })
-                    : 'Tanggal Logbook'}
-                <ChevronDownIcon className="h-4 w-4 opacity-50" />
-            </Button>
-        </PopoverTrigger>
+                                <div>
+                                    <Popover open={open} onOpenChange={setOpen}>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                className="w-52 justify-between font-normal"
+                                            >
+                                                {date
+                                                    ? format(
+                                                          date,
+                                                          'dd MMM yyyy',
+                                                          { locale: id },
+                                                      )
+                                                    : 'Tanggal Logbook'}
+                                                <ChevronDownIcon className="h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
 
-        <PopoverContent align="start" className="w-auto p-0">
-            <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(selectedDate) => {
-                    setDate(selectedDate)
+                                        <PopoverContent
+                                            align="start"
+                                            className="w-auto p-0"
+                                        >
+                                            <Calendar
+                                                mode="single"
+                                                selected={date}
+                                                onSelect={(selectedDate) => {
+                                                    setDate(selectedDate);
 
-                    setForm((prev) => ({
-                        ...prev,
-                        tanggal: selectedDate
-                            ? format(selectedDate, 'yyyy-MM-dd')
-                            : '',
-                    }))
+                                                    setForm((prev) => ({
+                                                        ...prev,
+                                                        tanggal: selectedDate
+                                                            ? format(
+                                                                  selectedDate,
+                                                                  'yyyy-MM-dd',
+                                                              )
+                                                            : '',
+                                                    }));
 
-                    setOpen(false)
-                }}
-                initialFocus
-            />
-        </PopoverContent>
-    </Popover>
-</div>
+                                                    setOpen(false);
+                                                }}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
 
                                 <div>
                                     <Label htmlFor="kegiatan">
@@ -755,7 +816,11 @@ const LogbookPage = () => {
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-end py-4">
-                        <Button className='bg-red-600 hover:bg-red-700' type="submit" disabled={isSubmitting}>
+                        <Button
+                            className="bg-red-600 hover:bg-red-700"
+                            type="submit"
+                            disabled={isSubmitting}
+                        >
                             {isSubmitting ? 'Menyimpan...' : 'Simpan Logbook'}
                         </Button>
                     </CardFooter>
@@ -778,13 +843,14 @@ const LogbookPage = () => {
                         </p>
                     </div>
                     <Button
-                    className='bg-red-600 hover:bg-red-700'
+                        className="bg-red-600 hover:bg-red-700"
                         onClick={() => {
                             setViewMode('list');
                             setSelectedLogbook(null);
                         }}
                     >
-                        <Undo2 className="mr-2 h-4 w-4" />Kembali ke Daftar
+                        <Undo2 className="mr-2 h-4 w-4" />
+                        Kembali ke Daftar
                     </Button>
                 </div>
 
@@ -801,30 +867,36 @@ const LogbookPage = () => {
                             </div>
                             <div className="flex items-center space-x-2">
                                 {statusVariant(selectedLogbook.status)}
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        setForm({
-                                            tanggal:
-                                                (selectedLogbook as any)
-                                                    .tanggal_raw || '',
-                                            kegiatan: selectedLogbook.kegiatan,
-                                            deskripsi:
-                                                selectedLogbook.deskripsi,
-                                            jam_mulai:
-                                                selectedLogbook.jam_mulai || '',
-                                            jam_selesai:
-                                                selectedLogbook.jam_selesai ||
-                                                '',
-                                            hasil: selectedLogbook.hasil,
-                                            dokumentasi: null,
-                                        });
-                                        setViewMode('edit');
-                                    }}
-                                >
-                                    Edit
-                                </Button>
+                                {['Ditolak', 'Perlu Revisi'].includes(
+                                    selectedLogbook.status,
+                                ) && (
+                                    <Button
+                                    className='bg-red-600 hover:bg-red-700'
+                                        size="sm"
+                                        onClick={() => {
+                                            setForm({
+                                                tanggal:
+                                                    (selectedLogbook as any)
+                                                        .tanggal_raw || '',
+                                                kegiatan:
+                                                    selectedLogbook.kegiatan,
+                                                deskripsi:
+                                                    selectedLogbook.deskripsi,
+                                                jam_mulai:
+                                                    selectedLogbook.jam_mulai ||
+                                                    '',
+                                                jam_selesai:
+                                                    selectedLogbook.jam_selesai ||
+                                                    '',
+                                                hasil: selectedLogbook.hasil,
+                                                dokumentasi: null,
+                                            });
+                                            setViewMode('edit');
+                                        }}
+                                    >
+                                        Edit
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </CardHeader>

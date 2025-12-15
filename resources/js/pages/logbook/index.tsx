@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { logbookMahasiswa } from '@/routes';
-import detail from '@/routes/logbook';
 import { show as showLogbookMahasiswa } from '@/routes/logbook/mahasiswa';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -151,7 +150,12 @@ export default function LogbookMahasiswa() {
     };
 
     const handleViewDetail = (logbookId: number) => {
-        router.visit(detail(logbookId).url);
+        if (!logbookId) {
+            Swal.fire('Error', 'ID logbook tidak valid', 'error');
+            return;
+        }
+
+            router.visit(`/logbook/${logbookId}`);
     };
 
     const toggleSort = (field: 'tanggal' | 'nama' | 'status') => {

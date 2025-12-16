@@ -18,6 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { logbookMahasiswa } from '@/routes';
 import { show as showLogbookMahasiswa } from '@/routes/logbook/mahasiswa';
@@ -155,7 +156,7 @@ export default function LogbookMahasiswa() {
             return;
         }
 
-            router.visit(`/logbook/${logbookId}`);
+        router.visit(`/logbook/${logbookId}`);
     };
 
     const toggleSort = (field: 'tanggal' | 'nama' | 'status') => {
@@ -417,38 +418,31 @@ export default function LogbookMahasiswa() {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                            {[
-                                'Semua',
-                                'pending',
-                                'disetujui',
-                                'revision',
-                                'ditolak',
-                            ].map((status) => (
-                                <Button
-                                    key={status}
-                                    variant={
-                                        statusFilter === status
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    size="sm"
-                                    onClick={() =>
-                                        setStatusFilter(
-                                            status as Status | 'Semua',
-                                        )
-                                    }
-                                >
-                                    {status === 'pending'
-                                        ? 'Menunggu'
-                                        : status === 'disetujui'
-                                          ? 'Valid'
-                                          : status === 'revision'
-                                            ? 'Revisi'
-                                            : status === 'ditolak'
-                                              ? 'Ditolak'
-                                              : status}
-                                </Button>
-                            ))}
+                            <Tabs
+                                value={statusFilter}
+                                onValueChange={(value) =>
+                                    setStatusFilter(value as Status | 'Semua')
+                                }
+                            >
+                                <TabsList>
+                                    <TabsTrigger value="Semua">
+                                        Semua
+                                    </TabsTrigger>
+                                    <TabsTrigger value="pending">
+                                        Menunggu
+                                    </TabsTrigger>
+                                    <TabsTrigger value="disetujui">
+                                        Valid
+                                    </TabsTrigger>
+                                    <TabsTrigger value="revision">
+                                        Revisi
+                                    </TabsTrigger>
+                                    <TabsTrigger value="ditolak">
+                                        Ditolak
+                                    </TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+
                             <Input
                                 type="date"
                                 value={start}
@@ -559,46 +553,102 @@ export default function LogbookMahasiswa() {
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 <div className="flex items-center justify-center gap-2">
+                                                    {/* Detail selalu ada */}
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
                                                         onClick={() =>
-                                                            handleViewDetail(
-                                                                d.id,
+                                                            router.visit(
+                                                                `/logbook/mahasiswa/${d.peserta_profile_id}`,
                                                             )
                                                         }
                                                     >
                                                         <Eye className="h-5 w-5 text-blue-500" />
                                                     </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() =>
-                                                            handleVerifikasi(
-                                                                d.id,
-                                                            )
-                                                        }
-                                                    >
-                                                        Verifikasi
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() =>
-                                                            handleTolak(d.id)
-                                                        }
-                                                    >
-                                                        Tolak
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() =>
-                                                            handleRevisi(d.id)
-                                                        }
-                                                    >
-                                                        Revisi
-                                                    </Button>
+                                                    {/* MENUNGGU PERSETUJUAN */}
+                                                    {d.status_label ===
+                                                        'Menunggu Persetujuan' && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    handleVerifikasi(
+                                                                        d.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Verifikasi
+                                                            </Button>
+
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    handleTolak(
+                                                                        d.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Tolak
+                                                            </Button>
+
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    handleRevisi(
+                                                                        d.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Revisi
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    {/* DISETUJUI */}
+                                                    {d.status_label ===
+                                                        'Disetujui' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled
+                                                            onClick={() =>
+                                                                handleVerifikasi(
+                                                                    d.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            Verifikasi
+                                                        </Button>
+                                                    )}
+                                                    {/* DITOLAK */}
+                                                    {d.status_label ===
+                                                        'Ditolak' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled
+                                                        >
+                                                            Ditolak
+                                                        </Button>
+                                                    )}
+                                                    {/* PERLU REVISI */}
+                                                    {d.status_label ===
+                                                        'Perlu Revisi' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled
+                                                            onClick={() =>
+                                                                handleRevisi(
+                                                                    d.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            Revisi
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>

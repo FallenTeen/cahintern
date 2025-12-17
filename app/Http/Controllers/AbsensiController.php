@@ -8,6 +8,7 @@ use App\Models\JadwalAbsensi;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class AbsensiController extends Controller
@@ -63,35 +64,43 @@ class AbsensiController extends Controller
         ]);
     }
 
-    public function absensiPeserta()
-    {
-        // Ambil absensi peserta dengan pagination (misal 10 per halaman)
-        $absensiData = Absensi::orderBy('tanggal', 'desc')->paginate(5);
+public function absensiPeserta()
+{
+    $user = Auth::user();
 
-        // Ambil jadwal hari ini
-        $schedule = JadwalAbsensi::activeForDate(Carbon::today());
+    $profileId = $user->pesertaProfile->id;
 
-        // Format data absensi (opsional)
-        $formattedAbsensi = $absensiData->through(function ($log) {
-            return [
-                'id' => $log->id,
-                'tanggal' => $log->tanggal->format('Y-m-d'),
-                'jam_masuk' => !empty($log->jam_masuk) ? Carbon::parse($log->jam_masuk)->format('H:i') : null,
-                'jam_keluar' => !empty($log->jam_keluar) ? Carbon::parse($log->jam_keluar)->format('H:i') : null,
-                'keterangan' => $log->keterangan,
-                'status' => $log->status,
-            ];
-        });
+    $absensiData = Absensi::where('peserta_profile_id', $profileId)
+        ->orderBy('tanggal', 'desc')
+        ->paginate(5);
 
-        return Inertia::render('user/absensiPeserta', [
-            'schedule' => $schedule ? [
-                'jam_buka' => Carbon::parse($schedule->jam_buka)->format('H:i'),
-                'jam_tutup' => Carbon::parse($schedule->jam_tutup)->format('H:i'),
-                'toleransi_menit' => $schedule->toleransi_menit,
-            ] : null,
-            'absensiData' => $formattedAbsensi,
-        ]);
-    }
+    $schedule = JadwalAbsensi::activeForDate(Carbon::today());
+
+    $formattedAbsensi = $absensiData->through(function ($log) {
+        return [
+            'id' => $log->id,
+            'tanggal' => $log->tanggal->format('Y-m-d'),
+            'jam_masuk' => $log->jam_masuk
+                ? Carbon::parse($log->jam_masuk)->format('H:i')
+                : null,
+            'jam_keluar' => $log->jam_keluar
+                ? Carbon::parse($log->jam_keluar)->format('H:i')
+                : null,
+            'keterangan' => $log->keterangan,
+            'status' => $log->status,
+        ];
+    });
+
+    return Inertia::render('user/absensiPeserta', [
+        'schedule' => $schedule ? [
+            'jam_buka' => Carbon::parse($schedule->jam_buka)->format('H:i'),
+            'jam_tutup' => Carbon::parse($schedule->jam_tutup)->format('H:i'),
+            'toleransi_menit' => $schedule->toleransi_menit,
+        ] : null,
+        'absensiData' => $formattedAbsensi,
+    ]);
+}
+
 
 
     public function storeSchedule(Request $request)
@@ -254,12 +263,12 @@ class AbsensiController extends Controller
 
         // Sudah hadir → tidak boleh izin/sakit
         if ($absensi && in_array($absensi->status, ['hadir', 'terlambat'])) {
-            return back()->with('error','Anda sudah absen hadir pada tanggal ini, tidak bisa mengajukan izin atau sakit.');
+            return back()->with('error', 'Anda sudah absen hadir pada tanggal ini, tidak bisa mengajukan izin atau sakit.');
         }
 
         // Sudah izin/sakit → tidak boleh submit lagi
         if ($absensi && in_array($absensi->status, ['izin', 'sakit'])) {
-            return back()->with('error','Anda sudah mengajukan ' . strtoupper($absensi->status) . ' pada tanggal ini.');
+            return back()->with('error', 'Anda sudah mengajukan ' . strtoupper($absensi->status) . ' pada tanggal ini.');
         }
 
         // Validasi file conditional (HARUS SEBELUM SIMPAN)

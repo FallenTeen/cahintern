@@ -451,9 +451,13 @@ class PendaftaranController extends Controller
             return response()->json(['message' => 'Pendaftar sudah diproses'], 400);
         }
 
-        $user->update(['status' => 'diterima']);
+        $user->update([
+            'status' => 'diterima',
+            'role' => 'peserta'
+    ]);
 
-        $password = 'Magang' . rand(1000, 9999);
+        // $password = 'Magang' . rand(1000, 9999);
+        $password = '123456';
         $user->update(['password' => Hash::make($password)]);
 
         return back()->with('success', 'Pendaftar berhasil diterima');

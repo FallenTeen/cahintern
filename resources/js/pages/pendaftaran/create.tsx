@@ -28,17 +28,17 @@ export default function Create() {
         jenjang: 'universitas',
 
         // Mahasiswa
-        nim: '',
-        nama_univ: '',
-        jurusan: '',
-        semester: '',
+        nim: null,
+        nama_univ: null,
+        jurusan: null,
+        semester: null,
 
-        // SMK
-        nis: '',
-        nama_sekolah: '',
-        kelas: '',
-        nama_pembimbing: '',
-        no_hp_pembimbing: '',
+        // ===== SMK =====
+        nis: null,
+        nama_sekolah: null,
+        kelas: null,
+        nama_pembimbing: null,
+        no_hp_pembimbing: null,
 
         // Umum
         nama_lengkap: '',
@@ -78,10 +78,14 @@ export default function Create() {
             onSuccess: () => {
                 Swal.fire({
                     title: 'Berhasil!',
-                    html: 'Pendaftaran berhasil!.',
+                    html: 'Pendaftaran berhasil!',
                     icon: 'success',
                     confirmButtonColor: '#dc2626',
                     confirmButtonText: 'OK',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '/data-pendaftaran';
+                    }
                 });
             },
             onError: (errors) => {
@@ -336,6 +340,7 @@ export default function Create() {
                                                 <Input
                                                     className="h-12"
                                                     placeholder="Contoh: XII RPL 1"
+                                                    maxLength={10}
                                                     value={data.kelas}
                                                     onChange={(e) =>
                                                         setData(
@@ -382,6 +387,7 @@ export default function Create() {
                                                 <Input
                                                     className="h-12"
                                                     placeholder="08xxxxxxxxxx"
+                                                    type="number"
                                                     value={
                                                         data.no_hp_pembimbing
                                                     }
@@ -469,6 +475,7 @@ export default function Create() {
                                         <Input
                                             className="h-12"
                                             placeholder="08xxxxxxxxxx"
+                                            type="number"
                                             value={data.phone}
                                             onChange={(e) =>
                                                 setData('phone', e.target.value)

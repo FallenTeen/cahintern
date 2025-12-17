@@ -52,6 +52,7 @@ return new class extends Migration {
             $table->text('alamat')->nullable();
             $table->string('kota')->nullable();
             $table->string('provinsi')->nullable();
+            $table->string('tempat_lahir')->nullable();
             $table->date('tanggal_lahir')->nullable();
             $table->enum('jenis_kelamin', ['L', 'P'])->nullable();
             $table->string('nama_pembimbing_sekolah')->nullable();
@@ -68,6 +69,7 @@ return new class extends Migration {
 
             $table->string('cv')->nullable();
             $table->string('surat_pengantar')->nullable();
+            $table->string('form_kesanggupan')->nullable();
             $table->json('sertifikat_pendukung')->nullable();
             $table->json('temp_data_magang')->nullable();
             $table->timestamps();

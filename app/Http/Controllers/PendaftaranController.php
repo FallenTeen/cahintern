@@ -17,10 +17,141 @@ use Illuminate\Support\Facades\Log;
 
 class PendaftaranController extends Controller
 {
+    // admin
     public function create()
     {
         return Inertia::render('pendaftaran/create');
     }
+    public function store(Request $request)
+    {
+        $request->merge(array_map(function ($value) {
+            return $value === '' ? null : $value;
+        }, $request->all()));
+
+        $validator = Validator::make($request->all(), [
+
+            'jenjang' => 'required|in:universitas,smk',
+
+            // UNIVERSITAS
+            'nim' => 'exclude_if:jenjang,smk|required|string|max:50',
+            'nama_univ' => 'exclude_if:jenjang,smk|required|string|max:255',
+            'jurusan' => 'exclude_if:jenjang,smk|required|string|max:255',
+            'semester' => 'exclude_if:jenjang,smk|required|integer|min:1|max:14',
+
+            // SMK
+            'nis' => 'exclude_if:jenjang,universitas|required|string|max:50',
+            'nama_sekolah' => 'exclude_if:jenjang,universitas|required|string|max:255',
+            'kelas' => 'exclude_if:jenjang,universitas|required|string|max:10',
+            'nama_pembimbing' => 'exclude_if:jenjang,universitas|required|string|max:255',
+            'no_hp_pembimbing' => 'exclude_if:jenjang,universitas|required|string|max:20',
+
+            // UMUM
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'required|string|max:20',
+            'tempat_lahir' => 'required|string|max:100',
+            'tanggal_lahir' => 'required|date|before:today',
+            'jenis_kelamin' => 'required|in:L,P',
+            'alamat' => 'required|string|max:500',
+            'kota' => 'required|string|max:100',
+            'provinsi' => 'required|string|max:100',
+
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
+            'tanggal_selesai' => 'required|date|after:tanggal_mulai',
+
+            'cv' => 'required|file|mimes:pdf|max:2048',
+            'surat_pengantar' => 'nullable|file|mimes:pdf|max:2048',
+
+        ], [
+            'required_if' => ':attribute wajib diisi',
+            'email.unique' => 'Email sudah terdaftar',
+            'cv.mimes' => 'CV harus PDF',
+        ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        DB::beginTransaction();
+
+        try {
+            /* ================= FILE UPLOAD ================= */
+
+            $cvPath = $request->file('cv')->storeAs(
+                'pendaftaran/cv',
+                'cv_' . Str::slug($request->nama_lengkap) . '_' . time() . '.pdf',
+                'public'
+            );
+
+            $suratPath = null;
+            if ($request->hasFile('surat_pengantar')) {
+                $suratPath = $request->file('surat_pengantar')->storeAs(
+                    'pendaftaran/surat',
+                    'surat_' . Str::slug($request->nama_lengkap) . '_' . time() . '.pdf',
+                    'public'
+                );
+            }
+
+            /* ================= USER ================= */
+
+            $user = User::create([
+                'name' => $request->nama_lengkap,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'role' => 'guest',
+                'status' => 'pending',
+                'password' => null
+            ]);
+
+            /* ================= PROFILE ================= */
+
+            $semesterKelas = $request->jenjang === 'universitas'
+                ? 'Semester ' . $request->semester
+                : 'Kelas ' . $request->kelas;
+
+            PesertaProfile::create([
+                'user_id' => $user->id,
+                'jenis_peserta' => $request->jenjang === 'universitas' ? 'mahasiswa' : 'siswa',
+                'nim_nisn' => $request->jenjang === 'universitas' ? $request->nim : $request->nis,
+                'asal_instansi' => $request->jenjang === 'universitas'
+                    ? $request->nama_univ
+                    : $request->nama_sekolah,
+                'jurusan' => $request->jurusan,
+                'semester_kelas' => $semesterKelas,
+                'alamat' => $request->alamat,
+                'kota' => $request->kota,
+                'provinsi' => $request->provinsi,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'nama_pembimbing_sekolah' => $request->nama_pembimbing,
+                'no_hp_pembimbing_sekolah' => $request->no_hp_pembimbing,
+                'tanggal_mulai' => $request->tanggal_mulai,
+                'tanggal_selesai' => $request->tanggal_selesai,
+                'cv' => $cvPath,
+                'surat_pengantar' => $suratPath,
+            ]);
+            DB::commit();
+
+            return back()->with('success', 'Pendaftar berhasil ditambahkan');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Gagal simpan pendaftaran', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return back()
+                ->with('error', 'Terjadi kesalahan sistem. Silakan coba lagi.')
+                ->withInput();
+        }
+    }
+
+    // guest
     public function halPendaftaranGuest()
     {
         return Inertia::render('pendaftaran');
@@ -187,7 +318,7 @@ class PendaftaranController extends Controller
 
     public function waitingRoom()
     {
-        return Inertia::render('tungguAkun', [
+        return Inertia::render('tungguakun', [
             'message' => 'Pendaftaran Anda sedang dalam proses verifikasi. Kami akan mengirimkan kredensial login ke email Anda setelah pendaftaran disetujui.'
         ]);
     }
@@ -241,7 +372,7 @@ class PendaftaranController extends Controller
         $search = request('search');
         $status = request('status');
 
-        $query = PesertaProfile::with('user');
+        $query = PesertaProfile::with('user')->orderBy('created_at', 'desc');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -291,12 +422,17 @@ class PendaftaranController extends Controller
             return response()->json(['message' => 'Pendaftar sudah diproses'], 400);
         }
 
-        $user->update(['status' => 'diterima']);
+        $user->update([
+            'status' => 'diterima',
+            'role' => 'peserta',
+            'email_verified_at' => now(),
+        ]);
 
-        $password = 'Magang' . rand(1000, 9999);
+        // $password = 'Magang' . rand(1000, 9999);
+        $password = '123456';
         $user->update(['password' => Hash::make($password)]);
 
-        return response()->json(['message' => 'Pendaftar berhasil diterima']);
+        return back()->with('success', 'Pendaftar berhasil diterima');
     }
 
     public function reject(Request $request, $id)
@@ -319,9 +455,7 @@ class PendaftaranController extends Controller
         $user->alasan_tolak = $request->alasan_tolak;
         $user->save();
 
-        return response()->json([
-            'message' => 'Pendaftar berhasil ditolak'
-        ]);
+        return back()->with('success', 'Pendaftar berhasil ditolak');
     }
 
 
@@ -384,6 +518,6 @@ class PendaftaranController extends Controller
         $peserta->delete();
         $user->delete();
 
-        return response()->json(['message' => 'Data pendaftar berhasil dihapus']);
+        return back()->with('success', 'Pendaftar berhasil dihapus');
     }
 }

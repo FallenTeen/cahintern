@@ -61,7 +61,7 @@ Route::middleware(['auth', 'role:admin,pic'])->group(function () {
     Route::get('/data-pendaftaran', [PendaftaranController::class, 'index'])->name('dataPendaftaran');
     
     Route::get('/data-pendaftaran/create', [PendaftaranController::class, 'create'])->name('dataPendaftaran.create');
-    Route::post('/data-pendaftaran/store', [PendaftaranController::class, 'halPendaftaranGuest'])->name('dataPendaftaran.halPendaftaranGuest');
+    Route::post('/data-pendaftaran/store', [PendaftaranController::class, 'store'])->name('dataPendaftaran.store');
 
     Route::post('/data-pendaftaran/{id}/approve', [PendaftaranController::class, 'approve'])->name('dataPendaftaran.approve');
     Route::post('/data-pendaftaran/{id}/reject', [PendaftaranController::class, 'reject'])->name('dataPendaftaran.reject');
@@ -77,7 +77,7 @@ Route::middleware(['auth', 'role:admin,pic'])->group(function () {
 
     // ABSEN MAHASISWA
     Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
-    Route::post('/absen-jadwal', [AbsensiController::class, 'updateSchedule'])->name('absenJadwal.update');
+    Route::post('/absen-jadwal', [AbsensiController::class, 'storeSchedule'])->name('absenJadwal.update');
 
     // LOGBOOK (ADMIN+PIC)
     Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');

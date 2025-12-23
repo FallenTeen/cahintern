@@ -23,7 +23,6 @@ class DashboardController extends Controller
             $profile = PesertaProfile::with('user')->where('user_id', $dataPengguna->id)->first();
 
             $absensi30 = Absensi::where('peserta_profile_id', optional($profile)->id)
-                ->whereBetween('tanggal', [Carbon::now()->subDays(30), Carbon::now()])
                 ->selectRaw("
                     SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir,
                     SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin,
@@ -31,6 +30,7 @@ class DashboardController extends Controller
                     SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat
                 ")
                 ->first();
+
 
             $recentAbsensi = Absensi::where('peserta_profile_id', optional($profile)->id)
                 ->orderBy('tanggal', 'desc')
@@ -145,28 +145,28 @@ class DashboardController extends Controller
             Carbon::now()->startOfWeek(),
             Carbon::now()->endOfWeek()
         ])
-        ->selectRaw("
+            ->selectRaw("
             TO_CHAR(tanggal, 'Dy') as day,
             SUM(CASE WHEN status = 'hadir' THEN 1 ELSE 0 END) as hadir,
             SUM(CASE WHEN status = 'izin' THEN 1 ELSE 0 END) as izin,
             SUM(CASE WHEN status = 'sakit' THEN 1 ELSE 0 END) as sakit,
             SUM(CASE WHEN status = 'terlambat' THEN 1 ELSE 0 END) as terlambat
         ")
-        ->groupBy('day')
-        ->get();
+            ->groupBy('day')
+            ->get();
 
         $logbookMingguan = Logbook::whereBetween('tanggal', [
             Carbon::now()->subWeeks(3),
             Carbon::now()
         ])
-        ->selectRaw("
+            ->selectRaw("
             'W' || EXTRACT(WEEK FROM tanggal) as week,
             SUM(CASE WHEN status IN ('pending', 'disetujui', 'ditolak', 'revision') THEN 1 ELSE 0 END) as submitted,
             SUM(CASE WHEN status = 'disetujui' THEN 1 ELSE 0 END) as validated,
             SUM(CASE WHEN status = 'revision' THEN 1 ELSE 0 END) as revision
         ")
-        ->groupByRaw("EXTRACT(WEEK FROM tanggal)")
-        ->get();
+            ->groupByRaw("EXTRACT(WEEK FROM tanggal)")
+            ->get();
 
         $absensiHariIni = Absensi::whereDate('tanggal', Carbon::today())
             ->selectRaw("

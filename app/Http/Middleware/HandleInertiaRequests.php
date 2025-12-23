@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use GrahamCampbell\ResultType\Success;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -42,6 +43,10 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
+            'flash' => [
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+            ],
             'auth' => [
                 'user' => $request->user(),
                 'role' => $request->user()?->role,

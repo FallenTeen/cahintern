@@ -21,6 +21,7 @@ class PesertaProfile extends Model
         'alamat',
         'kota',
         'provinsi',
+        'tempat_lahir',
         'tanggal_lahir',
         'jenis_kelamin',
         'nama_pembimbing_sekolah',
@@ -37,6 +38,7 @@ class PesertaProfile extends Model
 
         'cv',
         'surat_pengantar',
+        'form_kesanggupan',
         'sertifikat_pendukung',
     ];
 

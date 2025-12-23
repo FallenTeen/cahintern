@@ -1,16 +1,34 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
-import { Head, usePage, router } from '@inertiajs/react';
+import { absensi } from '@/routes';
+import { type BreadcrumbItem } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     ChevronDown,
     ClockArrowDown,
@@ -21,7 +39,15 @@ import {
     Upload,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-type DatePickerProps = { id: string; label: string; date?: Date; setDate: (d?: Date) => void };
+import Swal from 'sweetalert2';
+import { statusAbsensi } from '../statusAbsensi';
+
+type DatePickerProps = {
+    id: string;
+    label: string;
+    date?: Date;
+    setDate: (d?: Date) => void;
+};
 const DatePicker = ({ id, label, date, setDate }: DatePickerProps) => {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -55,8 +81,8 @@ const DatePicker = ({ id, label, date, setDate }: DatePickerProps) => {
                         mode="single"
                         selected={date}
                         captionLayout="dropdown"
-                        onSelect={(newDate) => {
-                            setDate(newDate);
+                        onSelect={(newDate: Date | undefined) => {
+                            if (newDate) setDate(newDate);
                             setIsPopoverOpen(false);
                         }}
                         initialFocus
@@ -67,41 +93,34 @@ const DatePicker = ({ id, label, date, setDate }: DatePickerProps) => {
     );
 };
 
-type Props = { schedule?: { jam_buka: string; jam_tutup: string; toleransi_menit: number } | null };
+type Props = {
+    schedule?: {
+        jam_buka: string;
+        jam_tutup: string;
+        toleransi_menit: number;
+    } | null;
+};
+
+type absensiData = {
+    id: number;
+    tanggal: string;
+    kegiatan: string;
+    jam: string;
+    durasi: string;
+    status: string;
+};
+
 const AbsensiMagang = () => {
     const { schedule } = usePage<Props>().props;
     const [izinStatus, setIzinStatus] = useState<'IZIN' | 'SAKIT' | ''>('');
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(
+        undefined,
+    );
     const [alasan, setAlasan] = useState('');
-
-    const [riwayat] = useState([
-        {
-            tanggal: '20 Nov 2025',
-            jamDatang: '08:00',
-            jamPulang: '16:00',
-            status: 'Hadir',
-        },
-        {
-            tanggal: '19 Nov 2025',
-            jamDatang: '-',
-            jamPulang: '-',
-            status: 'Terlambat',
-        },
-        {
-            tanggal: '18 Nov 2025',
-            jamDatang: '-',
-            jamPulang: '-',
-            status: 'Izin',
-        },
-        {
-            tanggal: '17 Nov 2025',
-            jamDatang: '-',
-            jamPulang: '-',
-            status: 'Sakit',
-        },
-    ]);
-
+    const [file, setFile] = useState<File | null>(null);
+    const isSakit = izinStatus === 'SAKIT';
     const [currentTime, setCurrentTime] = useState(new Date());
+    const { absensiData } = usePage<{ absensiData: absensiData[] }>().props;
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -111,35 +130,173 @@ const AbsensiMagang = () => {
         return () => clearInterval(timer);
     }, []);
 
+    const formatTanggal = (tanggal: string | Date): string => {
+        const date = new Date(tanggal);
+        return date.toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    };
+
+    const formatJam = (jam: string | null | undefined): string => {
+        if (!jam) return '-';
+        const [hours, minutes] = jam.split(':');
+        if (!hours || !minutes) return '-';
+        return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    };
+
     const handleKirimPengajuan = () => {
         if (!izinStatus || !selectedDate || !alasan) {
-            alert('Harap lengkapi semua data!');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data tidak lengkap',
+                text: 'Harap lengkapi semua data sebelum mengirim!',
+                confirmButtonText: 'OK',
+            });
             return;
         }
-        const formData = {
-            tanggal: selectedDate?.toISOString().slice(0, 10) as string,
-            tipe: izinStatus.toLowerCase(),
-            keterangan: alasan,
+
+        // Validasi file untuk sakit
+        if (izinStatus === 'SAKIT' && !file) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'File Wajib',
+                text: 'Surat dokter wajib dilampirkan untuk pengajuan sakit!',
+                confirmButtonText: 'OK',
+            });
+            return;
+        }
+
+        // Format tanggal dengan benar (YYYY-MM-DD) tanpa timezone issue
+        const formatDate = (date: Date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         };
+
+        const formData = new FormData();
+        formData.append('tanggal', formatDate(selectedDate));
+        formData.append('tipe', izinStatus.toLowerCase());
+        formData.append('keterangan', alasan);
+
+        if (file) {
+            formData.append('surat', file);
+        }
+
         router.post('/absensi/izin', formData, {
-            onSuccess: () => {
+            forceFormData: true,
+            onSuccess: (page) => {
                 setIzinStatus('');
                 setSelectedDate(undefined);
                 setAlasan('');
+                setFile(null);
+
+                if (page.props.flash?.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: page.props.flash.success,
+                        confirmButtonText: 'OK',
+                    });
+                }
+
+                if (page.props.flash?.error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: page.props.flash.error,
+                        confirmButtonText: 'OK',
+                    });
+                }
             },
         });
     };
 
     const handleCheckIn = () => {
-        router.post('/absensi/check-in');
+        router.post(
+            '/absensi/check-in',
+            {},
+            {
+                onSuccess: (page) => {
+                    const flash = page.props.flash;
+
+                    if (flash?.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: flash.success,
+                            confirmButtonText: 'OK',
+                        });
+                    }
+
+                    if (flash?.error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: flash.error,
+                            confirmButtonText: 'OK',
+                        });
+                    }
+                },
+                onError: () => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan saat melakukan check-in.',
+                        confirmButtonText: 'OK',
+                    });
+                },
+            },
+        );
     };
 
     const handleCheckOut = () => {
-        router.post('/absensi/check-out');
+        router.post(
+            '/absensi/check-out',
+            {},
+            {
+                onSuccess: (page) => {
+                    const flash = page.props.flash;
+
+                    if (flash?.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: flash.success,
+                            confirmButtonText: 'OK',
+                        });
+                    }
+
+                    if (flash?.error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: flash.error,
+                            confirmButtonText: 'OK',
+                        });
+                    }
+                },
+                onError: () => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan saat melakukan check-out.',
+                        confirmButtonText: 'OK',
+                    });
+                },
+            },
+        );
     };
 
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Absensi', href: absensi().url },
+    ];
+
     return (
-        <AppLayout>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Absensi" />
             <div className="space-y-6 px-6 py-6">
                 <div className="mx-auto max-w-7xl space-y-6">
@@ -165,9 +322,6 @@ const AbsensiMagang = () => {
                                     year: 'numeric',
                                 })}
                             </span>
-                            {schedule && (
-                                <span className="text-xs text-gray-500">Jadwal: {schedule.jam_buka} - {schedule.jam_tutup}</span>
-                            )}
                         </div>
                     </div>
 
@@ -180,10 +334,24 @@ const AbsensiMagang = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
+                                {schedule ? (
+                                    <p className="mb-4 text-sm text-red-600">
+                                        Jam masuk: {schedule.jam_buka}{' '}
+                                        (Toleransi {schedule.toleransi_menit}{' '}
+                                        menit)
+                                    </p>
+                                ) : (
+                                    <p className="mb-4 text-sm text-gray-600">
+                                        Tidak ada jadwal absensi hari ini.
+                                    </p>
+                                )}
                                 <p className="mb-4 text-sm text-gray-600">
                                     Catat kehadiran pagi hari
                                 </p>
-                                <Button className="w-full bg-red-500 text-white hover:bg-red-600" onClick={handleCheckIn}>
+                                <Button
+                                    className="w-full bg-red-500 text-white hover:bg-red-600"
+                                    onClick={handleCheckIn}
+                                >
                                     <ClockArrowUp className="mr-2 h-4 w-4" />
                                     Absen Datang
                                 </Button>
@@ -198,6 +366,15 @@ const AbsensiMagang = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
+                                {schedule ? (
+                                    <p className="mb-4 text-sm text-red-600">
+                                        Jam pulang: {schedule.jam_tutup}
+                                    </p>
+                                ) : (
+                                    <p className="mb-4 text-sm text-gray-600">
+                                        Tidak ada jadwal absensi hari ini.
+                                    </p>
+                                )}
                                 <p className="mb-4 text-sm text-gray-600">
                                     Catat kehadiran sore hari
                                 </p>
@@ -290,18 +467,62 @@ const AbsensiMagang = () => {
                                     htmlFor="pendukung"
                                     className="text-sm font-medium"
                                 >
-                                    File Pendukung (Opsional)
+                                    File Pendukung
+                                    {isSakit && (
+                                        <span className="ml-1 text-red-500">
+                                            *
+                                        </span>
+                                    )}
                                 </Label>
+
+                                {isSakit && (
+                                    <p className="text-xs text-red-500">
+                                        Wajib melampirkan surat dokter jika
+                                        sakit
+                                    </p>
+                                )}
                             </div>
-                            <div className="flex cursor-pointer flex-col items-center rounded-md border-2 border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 transition-colors hover:border-gray-400">
+                            <label
+                                htmlFor="pendukung"
+                                className={`flex cursor-pointer flex-col items-center rounded-md border-2 border-dashed p-6 text-center text-sm transition-colors ${
+                                    isSakit
+                                        ? 'border-red-400 text-red-500 hover:border-red-500'
+                                        : 'border-gray-300 text-gray-500 hover:border-gray-400'
+                                } `}
+                            >
                                 <Upload className="mb-2 h-6 w-6" />
                                 <p className="font-medium">
-                                    Klik untuk upload file
+                                    {file
+                                        ? file.name
+                                        : isSakit
+                                          ? 'Upload Surat Dokter'
+                                          : 'Klik untuk upload file'}
                                 </p>
-                                <p className="mt-1 text-xs text-gray-400">
-                                    (Opsional - PDF, JPG, PNG)
+                                <p className="mt-1 text-xs">
+                                    (PDF, JPG, PNG - Max 2MB)
                                 </p>
-                            </div>
+
+                                <input
+                                    id="pendukung"
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    className="hidden"
+                                    onChange={(e) =>
+                                        setFile(e.target.files?.[0] ?? null)
+                                    }
+                                />
+                            </label>
+
+                            {file && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setFile(null)}
+                                    className="w-full"
+                                >
+                                    Hapus File
+                                </Button>
+                            )}
 
                             <Button
                                 className="w-full bg-red-500 text-white hover:bg-red-600"
@@ -320,64 +541,202 @@ const AbsensiMagang = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="overflow-x-auto">
-                            <table className="w-full border-collapse text-sm">
-                                <thead className="bg-gray-50 text-gray-700">
-                                    <tr>
-                                        <th className="border-b px-4 py-2 text-left">
+                            <Table className="text-center align-middle">
+                                <TableHeader>
+                                    <TableRow className="bg-gray-100">
+                                        <TableHead className="text-center align-middle">
                                             Tanggal
-                                        </th>
-                                        <th className="border-b px-4 py-2 text-left">
-                                            Jam Datang
-                                        </th>
-                                        <th className="border-b px-4 py-2 text-left">
-                                            Jam Pulang
-                                        </th>
-                                        <th className="border-b px-4 py-2 text-left">
+                                        </TableHead>
+                                        <TableHead className="text-center align-middle">
+                                            Jam Masuk
+                                        </TableHead>
+                                        <TableHead className="text-center align-middle">
+                                            Jam Keluar
+                                        </TableHead>
+                                        <TableHead className="text-center align-middle">
+                                            Keterangan
+                                        </TableHead>
+                                        <TableHead className="text-center align-middle">
                                             Status
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {riwayat.map((r, i) => (
-                                        <tr
-                                            key={i}
-                                            className="border-b text-gray-700"
-                                        >
-                                            <td className="px-4 py-2">
-                                                {r.tanggal}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {r.jamDatang}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {r.jamPulang}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {r.status === 'Hadir' && (
-                                                    <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                                                        Hadir
-                                                    </Badge>
-                                                )}
-                                                {r.status === 'Terlambat' && (
-                                                    <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">
-                                                        Terlambat
-                                                    </Badge>
-                                                )}
-                                                {r.status === 'Izin' && (
-                                                    <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">
-                                                        Izin
-                                                    </Badge>
-                                                )}
-                                                {r.status === 'Sakit' && (
-                                                    <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
-                                                        Sakit
-                                                    </Badge>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                        </TableHead>
+                                        <TableHead className="text-center align-middle">
+                                            Aksi
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+
+                                <TableBody>
+                                    {absensiData.data.length > 0 ? (
+                                        absensiData.data.map((log) => (
+                                            <TableRow key={log.id}>
+                                                <TableCell>
+                                                    {formatTanggal(log.tanggal)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {formatJam(
+                                                        log.jam_masuk ?? '-',
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {formatJam(
+                                                        log.jam_keluar ?? '-',
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {log.keterangan}
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    {statusAbsensi(log.status)}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <button>Detail</button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell
+                                                colSpan={6}
+                                                className="h-24 text-center"
+                                            >
+                                                Tidak ada data Absensi
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                            {absensiData.links &&
+                                absensiData.links.length > 1 && (
+                                    <div className="mt-4 flex justify-end border-t pt-4">
+                                        <Pagination>
+                                            <PaginationContent>
+                                                {/* Previous */}
+                                                <PaginationItem>
+                                                    <PaginationPrevious
+                                                        href={
+                                                            absensiData.links[0]
+                                                                .url ?? '#'
+                                                        }
+                                                        className={
+                                                            !absensiData
+                                                                .links[0].url
+                                                                ? 'pointer-events-none opacity-50'
+                                                                : ''
+                                                        }
+                                                        onClick={(e) => {
+                                                            if (
+                                                                !absensiData
+                                                                    .links[0]
+                                                                    .url
+                                                            ) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            e.preventDefault();
+                                                            router.get(
+                                                                absensiData
+                                                                    .links[0]
+                                                                    .url,
+                                                                {
+                                                                    preserveState: true,
+                                                                    preserveScroll: true,
+                                                                },
+                                                            );
+                                                        }}
+                                                    />
+                                                </PaginationItem>
+
+                                                {/* Page Numbers */}
+                                                {absensiData.links
+                                                    .slice(1, -1)
+                                                    .map((link, index) => (
+                                                        <PaginationItem
+                                                            key={index}
+                                                        >
+                                                            {link.label ===
+                                                            '...' ? (
+                                                                <PaginationEllipsis />
+                                                            ) : (
+                                                                <PaginationLink
+                                                                    href={
+                                                                        link.url ??
+                                                                        '#'
+                                                                    }
+                                                                    isActive={
+                                                                        link.active
+                                                                    }
+                                                                    onClick={(
+                                                                        e,
+                                                                    ) => {
+                                                                        if (
+                                                                            !link.url
+                                                                        ) {
+                                                                            e.preventDefault();
+                                                                            return;
+                                                                        }
+                                                                        e.preventDefault();
+                                                                        router.get(
+                                                                            link.url,
+                                                                            {
+                                                                                preserveState: true,
+                                                                                preserveScroll: true,
+                                                                            },
+                                                                        );
+                                                                    }}
+                                                                >
+                                                                    {link.label}
+                                                                </PaginationLink>
+                                                            )}
+                                                        </PaginationItem>
+                                                    ))}
+
+                                                {/* Next */}
+                                                <PaginationItem>
+                                                    <PaginationNext
+                                                        href={
+                                                            absensiData.links[
+                                                                absensiData
+                                                                    .links
+                                                                    .length - 1
+                                                            ].url ?? '#'
+                                                        }
+                                                        className={
+                                                            !absensiData.links[
+                                                                absensiData
+                                                                    .links
+                                                                    .length - 1
+                                                            ].url
+                                                                ? 'pointer-events-none opacity-50'
+                                                                : ''
+                                                        }
+                                                        onClick={(e) => {
+                                                            const nextLink =
+                                                                absensiData
+                                                                    .links[
+                                                                    absensiData
+                                                                        .links
+                                                                        .length -
+                                                                        1
+                                                                ];
+                                                            if (!nextLink.url) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+                                                            e.preventDefault();
+                                                            router.get(
+                                                                nextLink.url,
+                                                                {
+                                                                    preserveState: true,
+                                                                    preserveScroll: true,
+                                                                },
+                                                            );
+                                                        }}
+                                                    />
+                                                </PaginationItem>
+                                            </PaginationContent>
+                                        </Pagination>
+                                    </div>
+                                )}
                         </CardContent>
                     </Card>
                 </div>

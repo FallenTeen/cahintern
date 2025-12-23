@@ -18,6 +18,9 @@ import {
     Medal,
 } from 'lucide-react';
 import { useState } from 'react';
+import { statusAbsensi } from './statusAbsensi';
+import { randomFill } from 'node:crypto';
+import { statusVariant } from './statusVariant';
 
 type User = {
     name: string;
@@ -517,7 +520,7 @@ export default function Dashboard() {
                                         <p className="text-sm font-medium text-gray-900">{l.judul}</p>
                                         <p className="text-xs text-gray-600">{l.tanggal}</p>
                                     </div>
-                                    <span className="text-xs font-medium text-gray-700">{l.status}</span>
+                                    {statusVariant(l.status)}
                                 </div>
                             ))}
                             {(props.recentLogbooks ?? []).length === 0 && <p className="text-sm text-gray-600">Belum ada aktivitas</p>}
@@ -525,12 +528,12 @@ export default function Dashboard() {
                     </Card>
 
                     <Card className="border-0 p-6 shadow-sm">
-                        <h2 className="mb-4 text-lg font-semibold text-gray-900">Statistik Absensi (30 Hari)</h2>
+                        <h2 className="mb-4 text-lg font-semibold text-gray-900">Jumlah Absensi</h2>
                         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                            <div className="rounded-lg bg-green-50 p-4 text-center"><p className="text-2xl font-bold text-green-600">{props.absensiStats?.hadir ?? 0}</p><p className="mt-1 text-sm text-gray-600">Hadir</p></div>
-                            <div className="rounded-lg bg-blue-50 p-4 text-center"><p className="text-2xl font-bold text-blue-600">{props.absensiStats?.izin ?? 0}</p><p className="mt-1 text-sm text-gray-600">Izin</p></div>
-                            <div className="rounded-lg bg-yellow-50 p-4 text-center"><p className="text-2xl font-bold text-yellow-600">{props.absensiStats?.sakit ?? 0}</p><p className="mt-1 text-sm text-gray-600">Sakit</p></div>
-                            <div className="rounded-lg bg-red-50 p-4 text-center"><p className="text-2xl font-bold text-red-600">{props.absensiStats?.terlambat ?? 0}</p><p className="mt-1 text-sm text-gray-600">Terlambat</p></div>
+                            <div className="rounded-lg bg-green-300 p-4 text-center"><p className="text-2xl font-bold text-white">{props.absensiStats?.hadir ?? 0}</p><p className="mt-1 text-sm font-bold text-gray-900">Hadir</p></div>
+                            <div className="rounded-lg bg-blue-300 p-4 text-center"><p className="text-2xl font-bold text-white">{props.absensiStats?.izin ?? 0}</p><p className="mt-1 text-sm font-bold text-gray-900">Izin</p></div>
+                            <div className="rounded-lg bg-yellow-300 p-4 text-center"><p className="text-2xl font-bold text-white">{props.absensiStats?.sakit ?? 0}</p><p className="mt-1 text-sm font-bold text-gray-900">Sakit</p></div>
+                            <div className="rounded-lg bg-red-300 p-4 text-center"><p className="text-2xl font-bold text-white">{props.absensiStats?.terlambat ?? 0}</p><p className="mt-1 text-sm font-bold text-gray-900">Terlambat</p></div>
                         </div>
                         <div className="mt-6 overflow-x-auto">
                             <table className="min-w-full text-sm">
@@ -548,7 +551,7 @@ export default function Dashboard() {
                                             <td className="py-2 pr-4">{r.tanggal}</td>
                                             <td className="py-2 pr-4">{r.jam_masuk}</td>
                                             <td className="py-2 pr-4">{r.jam_keluar}</td>
-                                            <td className="py-2 pr-4">{r.status}</td>
+                                            {statusAbsensi(r.status)}
                                         </tr>
                                     ))}
                                 </tbody>

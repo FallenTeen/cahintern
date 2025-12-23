@@ -19,11 +19,11 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
+import { dataMahasiswaAktif } from '@/routes';
 import { show as dataMahasiswaAktifShow } from '@/routes/dataMahasiswaAktif';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Eye, Plus, Search } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Eye, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type MahasiswaData = {
@@ -67,8 +67,8 @@ interface PaginatedData {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard().url,
+        title: 'Data Mahasiswa Aktif',
+        href: dataMahasiswaAktif().url,
     },
 ];
 
@@ -122,9 +122,9 @@ export default function DataMahasiswaAktif({
                             />
                         </div>
                     </div>
-                    <Button className="bg-red-600 text-white hover:bg-red-700">
+                    {/* <Button className="bg-red-600 text-white hover:bg-red-700">
                         <Plus className="mr-2 h-4 w-4" /> Tambah Mahasiswa
-                    </Button>
+                    </Button> */}
                 </div>
 
                 {/* <p className="text-sm text-gray-500">

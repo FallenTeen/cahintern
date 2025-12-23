@@ -18,14 +18,16 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
-import { dashboard, logbookMahasiswa } from '@/routes';
-import { detail as logbookDetail } from '@/routes/logbook';
+import { logbookMahasiswa } from '@/routes';
 import { show as showLogbookMahasiswa } from '@/routes/logbook/mahasiswa';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { ChevronDown, ChevronUp, Eye, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import Swal from 'sweetalert2';
+import { statusVariant } from '../statusVariant';
 
 type Status = 'pending' | 'disetujui' | 'ditolak' | 'revision';
 
@@ -67,7 +69,6 @@ type Props = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard().url },
     { title: 'Logbook Mahasiswa', href: logbookMahasiswa().url },
 ];
 
@@ -145,27 +146,17 @@ export default function LogbookMahasiswa() {
         return Object.values(groups);
     }, [sorted]);
 
-    const badgeColor = (status: Status) => {
-        switch (status) {
-            case 'disetujui':
-                return 'bg-green-500 text-white hover:bg-green-600';
-            case 'pending':
-                return 'bg-yellow-500 text-white hover:bg-yellow-600';
-            case 'revision':
-                return 'bg-orange-500 text-white hover:bg-orange-600';
-            case 'ditolak':
-                return 'bg-red-500 text-white hover:bg-red-600';
-            default:
-                return 'bg-gray-300 text-black';
-        }
-    };
-
     const handleViewLogbook = (pesertaProfileId: number) => {
         router.visit(showLogbookMahasiswa(pesertaProfileId).url);
     };
 
     const handleViewDetail = (logbookId: number) => {
-        router.visit(logbookDetail(logbookId).url);
+        if (!logbookId) {
+            Swal.fire('Error', 'ID logbook tidak valid', 'error');
+            return;
+        }
+
+        router.visit(`/logbook/${logbookId}`);
     };
 
     const toggleSort = (field: 'tanggal' | 'nama' | 'status') => {
@@ -184,6 +175,156 @@ export default function LogbookMahasiswa() {
         ) : (
             <ChevronDown className="ml-1 inline h-4 w-4" />
         );
+    };
+
+    const handleVerifikasi = (logbookId: number) => {
+        Swal.fire({
+            title: 'Setujui Logbook?',
+            input: 'textarea',
+            inputPlaceholder: 'Catatan (opsional)',
+            showCancelButton: true,
+            confirmButtonText: 'Setujui',
+            cancelButtonText: 'Batal',
+            showLoaderOnConfirm: true,
+            preConfirm: (note) => {
+                return new Promise((resolve, reject) => {
+                    router.post(
+                        `/logbook/${logbookId}/approve`,
+                        { catatan_pembimbing: note || '' },
+                        {
+                            preserveScroll: true,
+                            onSuccess: (page) => {
+                                const flash = page.props.flash;
+
+                                if (flash?.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: flash.success,
+                                    });
+                                }
+
+                                if (flash?.error) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        text: flash.error,
+                                    });
+                                }
+
+                                resolve(true);
+                            },
+                            onError: () => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Terjadi kesalahan sistem',
+                                });
+                                reject();
+                            },
+                        },
+                    );
+                });
+            },
+        });
+    };
+
+    const handleTolak = (logbookId: number) => {
+        Swal.fire({
+            title: 'Tolak Logbook?',
+            input: 'textarea',
+            inputPlaceholder: 'Alasan penolakan (min 10 karakter)',
+            showCancelButton: true,
+            confirmButtonText: 'Tolak',
+            showLoaderOnConfirm: true,
+            preConfirm: (note) => {
+                if (!note || note.trim().length < 10) {
+                    Swal.showValidationMessage('Minimal 10 karakter');
+                    return false;
+                }
+
+                return new Promise((resolve, reject) => {
+                    router.post(
+                        `/logbook/${logbookId}/reject`,
+                        { catatan_pembimbing: note },
+                        {
+                            onSuccess: (page) => {
+                                const flash = page.props.flash;
+                                Swal.fire(
+                                    flash?.error ? 'Ditolak' : 'Berhasil',
+                                    flash?.error || flash?.success,
+                                    flash?.error ? 'error' : 'success',
+                                );
+                                resolve(true);
+                            },
+                            onError: reject,
+                        },
+                    );
+                });
+            },
+        });
+    };
+
+    const handleRevisi = (logbookId: number) => {
+        Swal.fire({
+            title: 'Minta Revisi Logbook?',
+            input: 'textarea',
+            inputPlaceholder: 'Catatan revisi (min 10 karakter)',
+            showCancelButton: true,
+            confirmButtonText: 'Kirim Revisi',
+            cancelButtonText: 'Batal',
+            showLoaderOnConfirm: true,
+
+            preConfirm: (note) => {
+                if (!note || note.trim().length < 10) {
+                    Swal.showValidationMessage(
+                        'Catatan revisi minimal 10 karakter',
+                    );
+                    return false;
+                }
+
+                return new Promise((resolve, reject) => {
+                    router.post(
+                        `/logbook/${logbookId}/revision`,
+                        { catatan_pembimbing: note },
+                        {
+                            preserveScroll: true,
+
+                            onSuccess: (page) => {
+                                const flash = page.props.flash;
+
+                                if (flash?.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Berhasil',
+                                        text: flash.success,
+                                    });
+                                }
+
+                                if (flash?.error) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Gagal',
+                                        text: flash.error,
+                                    });
+                                }
+
+                                resolve(true);
+                            },
+
+                            onError: () => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: 'Terjadi kesalahan sistem',
+                                });
+                                reject();
+                            },
+                        },
+                    );
+                });
+            },
+        });
     };
 
     return (
@@ -277,38 +418,31 @@ export default function LogbookMahasiswa() {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                            {[
-                                'Semua',
-                                'pending',
-                                'disetujui',
-                                'revision',
-                                'ditolak',
-                            ].map((status) => (
-                                <Button
-                                    key={status}
-                                    variant={
-                                        statusFilter === status
-                                            ? 'default'
-                                            : 'outline'
-                                    }
-                                    size="sm"
-                                    onClick={() =>
-                                        setStatusFilter(
-                                            status as Status | 'Semua',
-                                        )
-                                    }
-                                >
-                                    {status === 'pending'
-                                        ? 'Menunggu'
-                                        : status === 'disetujui'
-                                          ? 'Valid'
-                                          : status === 'revision'
-                                            ? 'Revisi'
-                                            : status === 'ditolak'
-                                              ? 'Ditolak'
-                                              : status}
-                                </Button>
-                            ))}
+                            <Tabs
+                                value={statusFilter}
+                                onValueChange={(value) =>
+                                    setStatusFilter(value as Status | 'Semua')
+                                }
+                            >
+                                <TabsList>
+                                    <TabsTrigger value="Semua">
+                                        Semua
+                                    </TabsTrigger>
+                                    <TabsTrigger value="pending">
+                                        Menunggu
+                                    </TabsTrigger>
+                                    <TabsTrigger value="disetujui">
+                                        Valid
+                                    </TabsTrigger>
+                                    <TabsTrigger value="revision">
+                                        Revisi
+                                    </TabsTrigger>
+                                    <TabsTrigger value="ditolak">
+                                        Ditolak
+                                    </TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+
                             <Input
                                 type="date"
                                 value={start}
@@ -380,15 +514,19 @@ export default function LogbookMahasiswa() {
                                         >
                                             Tanggal <SortIcon field="tanggal" />
                                         </TableHead>
-                                        <TableHead className='text-center align-middle'>Durasi</TableHead>
-                                        <TableHead className='text-center align-middle'>Deskripsi Singkat</TableHead>
+                                        <TableHead className="text-center align-middle">
+                                            Durasi
+                                        </TableHead>
+                                        <TableHead className="text-center align-middle">
+                                            Deskripsi Singkat
+                                        </TableHead>
                                         <TableHead
                                             className="className='text-center align-middle' cursor-pointer hover:bg-muted/50"
                                             onClick={() => toggleSort('status')}
                                         >
                                             Status <SortIcon field="status" />
                                         </TableHead>
-                                        <TableHead className='text-center align-middle'>
+                                        <TableHead className="text-center align-middle">
                                             Aksi
                                         </TableHead>
                                     </TableRow>
@@ -411,102 +549,106 @@ export default function LogbookMahasiswa() {
                                                     : '-'}
                                             </TableCell>
                                             <TableCell>
-                                                <Badge
-                                                    className={badgeColor(
-                                                        d.status,
-                                                    )}
-                                                >
-                                                    {d.status_label}
-                                                </Badge>
+                                                {statusVariant(d.status_label)}
                                             </TableCell>
                                             <TableCell className="text-center">
                                                 <div className="flex items-center justify-center gap-2">
+                                                    {/* Detail selalu ada */}
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
                                                         onClick={() =>
-                                                            handleViewDetail(
-                                                                d.id,
+                                                            router.visit(
+                                                                `/logbook/mahasiswa/${d.peserta_profile_id}`,
                                                             )
                                                         }
                                                     >
                                                         <Eye className="h-5 w-5 text-blue-500" />
                                                     </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => {
-                                                            const note =
-                                                                window.prompt(
-                                                                    'Catatan/verifikasi (opsional)',
-                                                                ) || '';
-                                                            router.post(
-                                                                `/logbook/${d.id}/approve`,
-                                                                {
-                                                                    catatan_pembimbing:
-                                                                        note,
-                                                                },
-                                                            );
-                                                        }}
-                                                    >
-                                                        Verifikasi
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => {
-                                                            const note =
-                                                                window.prompt(
-                                                                    'Alasan penolakan (min 10 karakter)',
-                                                                ) || '';
-                                                            if (
-                                                                note.trim()
-                                                                    .length < 10
-                                                            ) {
-                                                                window.alert(
-                                                                    'Alasan terlalu singkat',
-                                                                );
-                                                                return;
+                                                    {/* MENUNGGU PERSETUJUAN */}
+                                                    {d.status_label ===
+                                                        'Menunggu Persetujuan' && (
+                                                        <>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    handleVerifikasi(
+                                                                        d.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Verifikasi
+                                                            </Button>
+
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    handleTolak(
+                                                                        d.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Tolak
+                                                            </Button>
+
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() =>
+                                                                    handleRevisi(
+                                                                        d.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Revisi
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                    {/* DISETUJUI */}
+                                                    {d.status_label ===
+                                                        'Disetujui' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled
+                                                            onClick={() =>
+                                                                handleVerifikasi(
+                                                                    d.id,
+                                                                )
                                                             }
-                                                            router.post(
-                                                                `/logbook/${d.id}/reject`,
-                                                                {
-                                                                    catatan_pembimbing:
-                                                                        note,
-                                                                },
-                                                            );
-                                                        }}
-                                                    >
-                                                        Tolak
-                                                    </Button>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={() => {
-                                                            const note =
-                                                                window.prompt(
-                                                                    'Catatan revisi (min 10 karakter)',
-                                                                ) || '';
-                                                            if (
-                                                                note.trim()
-                                                                    .length < 10
-                                                            ) {
-                                                                window.alert(
-                                                                    'Catatan terlalu singkat',
-                                                                );
-                                                                return;
+                                                        >
+                                                            Verifikasi
+                                                        </Button>
+                                                    )}
+                                                    {/* DITOLAK */}
+                                                    {d.status_label ===
+                                                        'Ditolak' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled
+                                                        >
+                                                            Ditolak
+                                                        </Button>
+                                                    )}
+                                                    {/* PERLU REVISI */}
+                                                    {d.status_label ===
+                                                        'Perlu Revisi' && (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            disabled
+                                                            onClick={() =>
+                                                                handleRevisi(
+                                                                    d.id,
+                                                                )
                                                             }
-                                                            router.post(
-                                                                `/logbook/${d.id}/revision`,
-                                                                {
-                                                                    catatan_pembimbing:
-                                                                        note,
-                                                                },
-                                                            );
-                                                        }}
-                                                    >
-                                                        Revisi
-                                                    </Button>
+                                                        >
+                                                            Revisi
+                                                        </Button>
+                                                    )}
                                                 </div>
                                             </TableCell>
                                         </TableRow>

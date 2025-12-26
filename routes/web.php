@@ -10,6 +10,7 @@ use App\Http\Controllers\IzinController;
 use App\Http\Controllers\PICUserController;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KesanggupanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SertifikatController;
 use Illuminate\Support\Facades\Route;
@@ -132,7 +133,8 @@ Route::middleware(['auth', 'role:peserta'])->group(function () {
     Route::delete('/logBook/{logbook}', [LogbookController::class, 'destroyUser'])->name('logBook.destroy');
 
     // FORMULIR
-    Route::get('/formulir', fn () => Inertia::render('user/formulir'))->name('formulir');
+    Route::get('/formulir',[KesanggupanController::class,'index'])->name('formulir');
+    Route::post('/formulir',[KesanggupanController::class,'store'])->name('formulir.store');
 
     // SERTIFIKAT
     Route::get('/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat');

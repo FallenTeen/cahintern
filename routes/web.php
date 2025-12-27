@@ -138,17 +138,11 @@ Route::middleware(['auth', 'role:peserta'])->group(function () {
 
     // SERTIFIKAT
     Route::get('/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat');
-});
-
-/*
-|--------------------------------------------------------------------------
-| PROFILE (AUTH)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
+    
+    // PROFILE
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('PesertaProfile.update');
 });
-
 /*
 |--------------------------------------------------------------------------
 | ADMIN PANEL

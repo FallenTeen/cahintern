@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
@@ -98,7 +99,13 @@ export default function Profile({ profile }: ProfileProps) {
                 if (fileRef.current) {
                     fileRef.current.value = '';
                 }
-                Swal.fire('Terhapus!', 'Foto profil telah dihapus.', 'success');
+                Swal.fire({
+                    title: 'Terhapus!',
+                    text: 'Foto profil telah dihapus.',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1500,
+                });
             }
         });
     };
@@ -113,9 +120,21 @@ export default function Profile({ profile }: ProfileProps) {
                 setIsEditing(false);
                 setPreviewUrl(null);
                 setIsAvatarDeleted(false);
+                Swal.fire({
+                    showConfirmButton: false,
+                    timer: 1500,
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Profil berhasil diperbarui!',
+                });
             },
             onError: (errors) => {
                 console.error('Upload error:', errors);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: 'Terjadi kesalahan saat memperbarui profil.',
+                });
             },
         });
     };
@@ -273,19 +292,31 @@ export default function Profile({ profile }: ProfileProps) {
                             editable={isEditing}
                             error={errors.phone}
                         />
-                        <Field
-                            label="Jenis Kelamin"
-                            value={
-                                data.jenis_kelamin === 'L'
-                                    ? 'Laki-laki'
-                                    : 'Perempuan'
-                            }
-                            onChange={(e) =>
-                                setData('jenis_kelamin', e.target.value)
-                            }
-                            editable={isEditing}
-                            error={errors.jenis_kelamin}
-                        />
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-sm font-medium text-gray-600">Jenis Kelamin</label>
+                            {isEditing ? (
+                                <Select
+                                    value={data.jenis_kelamin}
+                                    onValueChange={(val) => setData('jenis_kelamin', val)}
+                                >
+                                    <SelectTrigger className={errors.jenis_kelamin ? 'border-red-500 focus-visible:ring-red-500' : ''}>
+                                        <SelectValue placeholder="Pilih Jenis Kelamin" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="L">Laki-laki</SelectItem>
+                                        <SelectItem value="P">Perempuan</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <Input
+                                    disabled
+                                    value={data.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}
+                                />
+                            )}
+                            {errors.jenis_kelamin && (
+                                <p className="text-xs font-medium text-red-500">{errors.jenis_kelamin}</p>
+                            )}
+                        </div>
                         <Field
                             label="Temapat Lahir"
                             value={data.tempat_lahir}

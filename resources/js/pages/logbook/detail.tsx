@@ -1,6 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
 import { dashboard, logbookMahasiswa } from '@/routes';
-import { detail as logbookDetail, approve as logbookApprove, reject as logbookReject, revision as logbookRevision } from '@/routes/logbook';
 import { show as showLogbookMahasiswa } from '@/routes/logbook/mahasiswa';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage, router, useForm } from '@inertiajs/react';
@@ -33,8 +32,6 @@ import {
   AlertCircle,
   CheckCircle,
   ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
   Mail,
   Timer,
   MessageSquare,
@@ -149,7 +146,7 @@ export default function DetailLogbook() {
   };
 
   const handleNavigate = (logbookId: number) => {
-    router.visit(logbookDetail(logbookId).url);
+    router.visit(LogbookDetail(logbookId).url);
   };
 
   const handleBack = () => {
@@ -197,7 +194,7 @@ export default function DetailLogbook() {
             Kembali ke Daftar Logbook
           </Button>
 
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             {navigation.previous && (
               <Button
                 variant="outline"
@@ -218,7 +215,7 @@ export default function DetailLogbook() {
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             )}
-          </div>
+          </div> */}
         </div>
 
         {logbook.is_overdue && logbook.status === 'pending' && (

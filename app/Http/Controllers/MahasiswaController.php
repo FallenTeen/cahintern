@@ -13,7 +13,7 @@ class MahasiswaController extends Controller
     public function index(){
         $search = request('search');
         $status = request('status');
-        $query = PesertaProfile::with('user', 'penilaianAkhir', 'sertifikat');
+        $query = PesertaProfile::with('user', 'penilaianAkhir', 'sertifikat')->orderBy('created_at', 'desc');
 
         if ($search) {
             $query->whereHas('user', function ($q) use ($search) {

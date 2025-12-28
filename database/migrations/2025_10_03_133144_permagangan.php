@@ -19,8 +19,7 @@ return new class extends Migration {
             $table->text('keterangan')->nullable();
 
             $table->string('surat')->nullable();
-            $table->foreignId('disetujui_oleh')->nullable()->constrained('users')->onDelete('set null');
-            $table->timestamp('disetujui_pada')->nullable();
+            $table->enum('status_approval', ['pending','disetujui','ditolak'])->default('pending');
 
             $table->timestamps();
 

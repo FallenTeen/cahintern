@@ -202,7 +202,7 @@ export default function AbsensiMahasiswa() {
                     </h1>
                     <div className="flex items-center gap-3">
                         <Button
-                            variant="destructive"
+                            variant="default"
                             onClick={() => resetSchedule()}
                         >
                             Reset Jadwal Absensi

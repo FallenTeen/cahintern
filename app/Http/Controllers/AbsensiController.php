@@ -195,6 +195,16 @@ class AbsensiController extends Controller
         return back()->with('success', 'Jadwal absensi berhasil diperbarui');
     }
 
+    public function resetSchedule()
+    {
+        $schedule = JadwalAbsensi::first();
+
+        if ($schedule) {
+            $schedule->delete();
+        }
+
+        return back()->with('success', 'Jadwal absensi berhasil direset');
+    }
 
     public function checkIn(Request $request)
     {

@@ -92,7 +92,7 @@ export default function AbsensiMahasiswa() {
 
     const Show = (id: number) => {
         router.get(`/absen-mahasiswa/${id}`);
-    }
+    };
     const Approve = (id: number, nama: string) => {
         Swal.fire({
             title: `Approve absen ${nama}?`,
@@ -145,6 +145,29 @@ export default function AbsensiMahasiswa() {
         });
     };
 
+    const resetSchedule = () => {
+        Swal.fire({
+            title: 'Reset jadwal absensi?',
+            text: 'Ini akan menghapus jadwal absensi yang ada.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Reset',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete('/absen-jadwal/reset', {
+                    onSuccess: () => {
+                        Swal.fire(
+                            'Berhasil!',
+                            'Jadwal absensi berhasil direset.',
+                            'success',
+                        );
+                    },
+                });
+            }
+        });
+    };
+
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
         return students.filter((s) => {
@@ -178,6 +201,12 @@ export default function AbsensiMahasiswa() {
                         Absensi Mahasiswa
                     </h1>
                     <div className="flex items-center gap-3">
+                        <Button
+                            variant="destructive"
+                            onClick={() => resetSchedule()}
+                        >
+                            Reset Jadwal Absensi
+                        </Button>
                         <Button
                             variant="destructive"
                             onClick={() => setOpenDialog(true)}
@@ -493,7 +522,7 @@ export default function AbsensiMahasiswa() {
                                                         size="icon"
                                                         className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                                                         onClick={() =>
-                                                            Show(s.id,)
+                                                            Show(s.id)
                                                         }
                                                     >
                                                         <Eye className="h-4 w-4" />

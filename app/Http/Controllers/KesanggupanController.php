@@ -14,6 +14,10 @@ class KesanggupanController extends Controller
     {
         $profile = PesertaProfile::where('user_id', Auth::id())->first();
 
+        if (!$profile) {
+            abort(403, 'Profil peserta belum dibuat');
+        }
+
         return Inertia::render('user/formulir', [
             'surat_pengantar' => $profile?->surat_pengantar,
             'cv'              => $profile?->cv,

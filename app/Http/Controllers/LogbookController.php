@@ -165,54 +165,54 @@ class LogbookController extends Controller
         return back()->with('success', 'Logbook berhasil dikirim');
     }
 
-public function updateUser(Request $request, Logbook $logbook)
-{
-    $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
+    public function updateUser(Request $request, Logbook $logbook)
+    {
+        $profile = PesertaProfile::where('user_id', Auth::id())->firstOrFail();
 
-    if ($logbook->peserta_profile_id !== $profile->id) {
-        return back()->with('error', 'Tidak diizinkan');
+        if ($logbook->peserta_profile_id !== $profile->id) {
+            return back()->with('error', 'Tidak diizinkan');
+        }
+
+        // HANYA revision & ditolak yang boleh edit
+        if (!in_array($logbook->status, ['revision', 'ditolak'])) {
+            return back()->with('error', 'Logbook tidak dapat diedit');
+        }
+
+        $validated = $request->validate([
+            'tanggal' => 'required|date',
+            'kegiatan' => 'required|string|max:255',
+            'deskripsi' => 'required|string|min:50',
+            'jam_mulai' => 'required|date_format:H:i',
+            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'hasil' => 'required|string|min:3',
+            'dokumentasi' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        if ($request->hasFile('dokumentasi')) {
+            $logbook->dokumentasi = $request
+                ->file('dokumentasi')
+                ->store('logbook', 'public');
+        }
+
+        $logbook->update([
+            'tanggal' => $validated['tanggal'],
+            'kegiatan' => $validated['kegiatan'],
+            'deskripsi' => $validated['deskripsi'],
+            'jam_mulai' => $validated['jam_mulai'] . ':00',
+            'jam_selesai' => $validated['jam_selesai'] . ':00',
+            'hasil' => $validated['hasil'],
+            'status' => 'pending',
+        ]);
+
+        LogbookHistory::create([
+            'logbook_id' => $logbook->id,
+            'user_id' => Auth::id(),
+            'action' => 'update',
+            'note' => null,
+        ]);
+
+        return back()->with('success', 'Logbook berhasil direvisi dan menunggu persetujuan');
     }
-
-    // HANYA revision & ditolak yang boleh edit
-    if (!in_array($logbook->status, ['revision', 'ditolak'])) {
-        return back()->with('error', 'Logbook tidak dapat diedit');
-    }
-
-    $validated = $request->validate([
-        'tanggal' => 'required|date',
-        'kegiatan' => 'required|string|max:255',
-        'deskripsi' => 'required|string|min:50',
-        'jam_mulai' => 'required|date_format:H:i',
-        'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
-        'hasil' => 'required|string|min:3',
-        'dokumentasi' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-    ]);
-
-    if ($request->hasFile('dokumentasi')) {
-        $logbook->dokumentasi = $request
-            ->file('dokumentasi')
-            ->store('logbook', 'public');
-    }
-
-    $logbook->update([
-        'tanggal' => $validated['tanggal'],
-        'kegiatan' => $validated['kegiatan'],
-        'deskripsi' => $validated['deskripsi'],
-        'jam_mulai' => $validated['jam_mulai'] . ':00',
-        'jam_selesai' => $validated['jam_selesai'] . ':00',
-        'hasil' => $validated['hasil'],
-        'status' => 'pending',
-    ]);
-
-    LogbookHistory::create([
-        'logbook_id' => $logbook->id,
-        'user_id' => Auth::id(),
-        'action' => 'update',
-        'note' => null,
-    ]);
-
-    return back()->with('success', 'Logbook berhasil direvisi dan menunggu persetujuan');
-}
 
 
     public function destroyUser(Logbook $logbook)

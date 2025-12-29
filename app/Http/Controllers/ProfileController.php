@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PesertaProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -11,12 +12,17 @@ class ProfileController extends Controller
 {
     public function index()
     {
-        $profile = PesertaProfile::where('user_id', auth()->id())->first();
-        $nama = $profile->user->name;
+        $profile = PesertaProfile::with('user')
+            ->where('user_id', Auth::id())
+            ->first();
 
-        return inertia::render('user/profile', [
+        if (!$profile) {
+            abort(403, 'Profil peserta belum dibuat');
+        }
+
+        return Inertia::render('user/profile', [
             'profile' => $profile,
-            'nama' => $nama,
+            'nama' => $profile->user->name,
         ]);
     }
 

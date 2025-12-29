@@ -89,6 +89,10 @@ class AbsensiController extends Controller
     {
         $user = Auth::user();
 
+        if (!$user->pesertaProfile) {
+            abort(403, 'Profil peserta belum dibuat');
+        }
+
         $profileId = $user->pesertaProfile->id;
 
         $absensiData = Absensi::where('peserta_profile_id', $profileId)

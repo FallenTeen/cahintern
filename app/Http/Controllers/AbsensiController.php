@@ -126,6 +126,27 @@ class AbsensiController extends Controller
         ]);
     }
 
+    public function detailAbsesnPeserta($id)
+    {
+        $user = Auth::user();
+        $absensi = Absensi::with('pesertaProfile.user')->findOrFail($id);
+
+        return Inertia::render('user/showAbsensi', [
+            'absensi' => [
+                'peserta_profile_id' => $absensi->pesertaProfile->id,
+                'name' => $absensi->pesertaProfile->user->name,
+                'avatar' => $user->avatar,
+                'tanggal' => $absensi->tanggal->format('d F Y'),
+                'jam_masuk' => $absensi->jam_masuk ? $absensi->jam_masuk->format('H:i') : null,
+                'jam_keluar' => $absensi->jam_keluar ? $absensi->jam_keluar->format('H:i') : null,
+                'status' => $absensi->status,
+                'keterangan' => $absensi->keterangan,
+                'surat' => $absensi->surat,
+                'status_approval' => $absensi->status_approval,
+            ],
+        ]);
+    }
+
     public function approve($id)
     {
         $absensi = Absensi::findOrFail($id);

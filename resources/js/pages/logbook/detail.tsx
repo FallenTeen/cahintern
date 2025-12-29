@@ -76,6 +76,7 @@ type LogbookDetail = {
   catatan_pembimbing: string | null;
   masalah: string | null;
   solusi: string | null;
+  hasil: string | null;
   dokumentasi: string | null;
   is_editable: boolean;
   needs_approval: boolean;
@@ -127,7 +128,7 @@ export default function DetailLogbook() {
     { title: "Dashboard", href: dashboard().url },
     { title: "Logbook Mahasiswa", href: logbookMahasiswa().url },
     { title: logbook.peserta.nama, href: showLogbookMahasiswa(logbook.peserta.id).url },
-    { title: "Detail Logbook" },
+    { title: "Detail Logbook", href: "#" },
   ];
 
   const badgeColor = (status: Status) => {
@@ -145,16 +146,16 @@ export default function DetailLogbook() {
     }
   };
 
-  const handleNavigate = (logbookId: number) => {
-    router.visit(LogbookDetail(logbookId).url);
-  };
+  // const handleNavigate = (logbookId: number) => {
+  //   router.visit(LogbookDetail(logbookId).url);
+  // };
 
   const handleBack = () => {
     router.visit(showLogbookMahasiswa(logbook.peserta.id).url);
   };
 
   const handleApprove = () => {
-    approveForm.post(logbookApprove(logbook.id).url, {
+    approveForm.post(`/logbook/${logbook.id}/approve`, {
       preserveScroll: true,
       onSuccess: () => {
         setApproveDialog(false);
@@ -164,7 +165,7 @@ export default function DetailLogbook() {
   };
 
   const handleReject = () => {
-    rejectForm.post(logbookReject(logbook.id).url, {
+    rejectForm.post(`/logbook/${logbook.id}/reject`, {
       preserveScroll: true,
       onSuccess: () => {
         setRejectDialog(false);
@@ -174,7 +175,7 @@ export default function DetailLogbook() {
   };
 
   const handleRequestRevision = () => {
-    revisionForm.post(logbookRevision(logbook.id).url, {
+    revisionForm.post(`/logbook/${logbook.id}/revision`, {
       preserveScroll: true,
       onSuccess: () => {
         setRevisionDialog(false);
@@ -275,7 +276,25 @@ export default function DetailLogbook() {
                   </div>
                 </div>
 
-                {logbook.masalah && (
+                      
+                {logbook.hasil && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                        <Lightbulb className="w-4 h-4 text-green-500" />
+                        HASIL YANG DICAPAI
+                      </h3>
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {logbook.hasil}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )} 
+
+                {/* {logbook.masalah && (
                   <>
                     <Separator />
                     <div>
@@ -307,7 +326,7 @@ export default function DetailLogbook() {
                       </div>
                     </div>
                   </>
-                )}
+                )} */}
 
                 {logbook.dokumentasi && (
                   <>

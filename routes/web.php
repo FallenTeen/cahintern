@@ -125,6 +125,7 @@ Route::middleware(['auth', 'role:peserta'])->group(function () {
 
     // ABSENSI
     Route::get('/absensi', [AbsensiController::class, 'absensiPeserta'])->name('absensi');
+    Route::get('/absensi/{id}', [AbsensiController::class, 'detailAbsesnPeserta'])->name('absensi.show');
     Route::post('/absensi/check-in', [AbsensiController::class, 'checkIn'])->name('absensi.checkIn');
     Route::post('/absensi/check-out', [AbsensiController::class, 'checkOut'])->name('absensi.checkOut');
     Route::post('/absensi/izin', [AbsensiController::class, 'requestIzin'])->name('absensi.izin');

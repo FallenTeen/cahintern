@@ -253,8 +253,6 @@ export default function DataMahasiswaAktif({
                 ))}
             </div>
 
-            {/* --- LOGIC 2: PAGINATION --- */}
-            {/* Hanya tampil jika total data lebih dari 10 */}
             {mahasiswaData.total > 10 && (
                 <div className="border-t border-gray-200 bg-gray-50/50 p-4">
                     <Pagination>

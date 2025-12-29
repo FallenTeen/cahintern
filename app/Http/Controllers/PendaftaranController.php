@@ -491,6 +491,7 @@ class PendaftaranController extends Controller
             'waktu' => $weeks . ' Minggu',
             'cv' => $peserta->cv ? asset('storage/' . $peserta->cv) : null,
             'surat_pengantar' => $peserta->surat_pengantar ? asset('storage/' . $peserta->surat_pengantar) : null,
+            'form_kesanggupan' => $peserta->form_kesanggupan ? asset('storage/' . $peserta->form_kesanggupan) : null,
             'nama_pembimbing' => $peserta->nama_pembimbing_sekolah,
             'no_hp_pembimbing' => $peserta->no_hp_pembimbing_sekolah,
             'status' => $statusLabels[$peserta->user->status] ?? 'Tidak Diketahui',

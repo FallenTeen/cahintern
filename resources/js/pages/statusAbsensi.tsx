@@ -5,8 +5,8 @@ type StatusAbsensi = 'hadir' | 'izin' | 'sakit' | 'terlambat' | string;
 export function statusAbsensi(status: StatusAbsensi) {
     const styleMap: Record<string, string> = {
         hadir: 'bg-green-500 text-white',
-        izin: 'bg-blue-500 text-white',
-        sakit: 'bg-yellow-400 text-black',
+        izin: 'bg-yellow-400 text-white',
+        sakit: 'bg-blue-500 text-white',
         terlambat: 'bg-red-500 text-white',
     };
 

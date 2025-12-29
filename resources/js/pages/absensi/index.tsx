@@ -536,8 +536,6 @@ export default function AbsensiMahasiswa() {
                                 </Table>
                             </div>
 
-                            {/* --- TAMPILAN MOBILE (Card List) --- */}
-                            {/* Muncul di mobile, hidden di layar LG ke atas */}
                             <div className="flex flex-col divide-y divide-gray-100 lg:hidden">
                                 {filtered.map((s, index) => (
                                     <div
@@ -603,8 +601,6 @@ export default function AbsensiMahasiswa() {
                                 ))}
                             </div>
 
-                            {/* --- LOGIC 2: PAGINATION --- */}
-                            {/* Asumsi: variable 'absensiData' adalah object pagination dari Laravel */}
                             {absensiData.total > 10 && (
                                 <div className="border-t border-gray-200 bg-gray-50/50 p-4">
                                     <Pagination>

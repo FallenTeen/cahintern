@@ -708,7 +708,7 @@ export default function Create() {
                         </Card>
 
                         {/* Card: Upload Berkas */}
-                        <Card>
+                        {/* <Card>
                             <CardHeader>
                                 <div className="flex items-center gap-3">
                                     <div className="rounded-lg bg-pink-100 p-2">
@@ -778,7 +778,7 @@ export default function Create() {
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Submit Button */}
                         <div className="flex justify-end gap-4 pt-4">

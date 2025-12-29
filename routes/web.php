@@ -10,6 +10,7 @@ use App\Http\Controllers\IzinController;
 use App\Http\Controllers\PICUserController;
 use App\Http\Controllers\PendaftaranController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KesanggupanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SertifikatController;
 use Illuminate\Support\Facades\Route;
@@ -20,8 +21,9 @@ use Inertia\Inertia;
 | PUBLIC (STATIC)
 |--------------------------------------------------------------------------
 */
-Route::get('/', fn () => Inertia::render('welcome'))->name('home');
-Route::get('/persyaratan', fn () => Inertia::render('persyaratan'))->name('persyaratan');
+
+Route::get('/', fn() => Inertia::render('welcome'))->name('home');
+Route::get('/persyaratan', fn() => Inertia::render('persyaratan'))->name('persyaratan');
 
 /*
 |--------------------------------------------------------------------------
@@ -36,7 +38,7 @@ Route::prefix('pendaftaran')->name('pendaftaran.')->group(function () {
     Route::post('/cek-status', [PendaftaranController::class, 'checkStatus'])->name('cek-status');
 });
 
-Route::get('/waitingroom-pendaftaran', fn () => redirect()->route('pendaftaran.tunggu'))
+Route::get('/waitingroom-pendaftaran', fn() => redirect()->route('pendaftaran.tunggu'))
     ->name('tungguakun');
 
 /*
@@ -59,7 +61,7 @@ Route::middleware(['auth', 'role:admin,pic'])->group(function () {
 
     // DATA PENDAFTARAN
     Route::get('/data-pendaftaran', [PendaftaranController::class, 'index'])->name('dataPendaftaran');
-    
+
     Route::get('/data-pendaftaran/create', [PendaftaranController::class, 'create'])->name('dataPendaftaran.create');
     Route::post('/data-pendaftaran/store', [PendaftaranController::class, 'store'])->name('dataPendaftaran.store');
 
@@ -77,6 +79,9 @@ Route::middleware(['auth', 'role:admin,pic'])->group(function () {
 
     // ABSEN MAHASISWA
     Route::get('/absen-mahasiswa', [AbsensiController::class, 'index'])->name('absenMahasiswa');
+    Route::get('/absen-mahasiswa/{id}', [AbsensiController::class, 'show'])->name('absenMahasiswa.show');
+    Route::post('/absen-mahasiswa/{id}/approve', [AbsensiController::class, 'approve'])->name('absenMahasiswa.approve');
+    Route::post('/absen-mahasiswa/{id}/reject', [AbsensiController::class, 'reject'])->name('absenMahasiswa.reject');
     Route::post('/absen-jadwal', [AbsensiController::class, 'storeSchedule'])->name('absenJadwal.update');
 
     // LOGBOOK (ADMIN+PIC)
@@ -120,6 +125,7 @@ Route::middleware(['auth', 'role:peserta'])->group(function () {
 
     // ABSENSI
     Route::get('/absensi', [AbsensiController::class, 'absensiPeserta'])->name('absensi');
+    Route::get('/absensi/{id}', [AbsensiController::class, 'detailAbsesnPeserta'])->name('absensi.show');
     Route::post('/absensi/check-in', [AbsensiController::class, 'checkIn'])->name('absensi.checkIn');
     Route::post('/absensi/check-out', [AbsensiController::class, 'checkOut'])->name('absensi.checkOut');
     Route::post('/absensi/izin', [AbsensiController::class, 'requestIzin'])->name('absensi.izin');
@@ -128,25 +134,20 @@ Route::middleware(['auth', 'role:peserta'])->group(function () {
     Route::get('/logBook', [LogbookController::class, 'userIndex'])->name('logBook');
     Route::post('/logBook', [LogbookController::class, 'storeUser'])->name('logBook.store');
     Route::get('/logBook/export', [LogbookController::class, 'exportUserCsv'])->name('logBook.export');
-    Route::match(['put','patch'], '/logBook/{logbook}', [LogbookController::class, 'updateUser'])->name('logBook.update');
+    Route::match(['put', 'patch'], '/logBook/{logbook}', [LogbookController::class, 'updateUser'])->name('logBook.update');
     Route::delete('/logBook/{logbook}', [LogbookController::class, 'destroyUser'])->name('logBook.destroy');
 
     // FORMULIR
-    Route::get('/formulir', fn () => Inertia::render('user/formulir'))->name('formulir');
+    Route::get('/formulir', [KesanggupanController::class, 'index'])->name('formulir');
+    Route::post('/formulir', [KesanggupanController::class, 'store'])->name('formulir.store');
 
     // SERTIFIKAT
     Route::get('/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat');
-});
 
-/*
-|--------------------------------------------------------------------------
-| PROFILE (AUTH)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
+    // PROFILE
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('PesertaProfile.update');
 });
-
 /*
 |--------------------------------------------------------------------------
 | ADMIN PANEL

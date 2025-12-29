@@ -33,6 +33,7 @@ import {
     ChevronDown,
     ClockArrowDown,
     ClockArrowUp,
+    Eye,
     Moon,
     Send,
     Sun,
@@ -583,13 +584,24 @@ const AbsensiMagang = () => {
                                                     )}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {log.keterangan}
+                                                    {log.keterangan ?? '-'}
                                                 </TableCell>
                                                 <TableCell className="text-center">
                                                     {statusAbsensi(log.status)}
                                                 </TableCell>
                                                 <TableCell>
-                                                    <button>Detail</button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="text-blue-600 border-transparent"
+                                                        onClick={() =>
+                                                            router.get(
+                                                                `/absensi/${log.id}`,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Eye />
+                                                    </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -605,7 +617,7 @@ const AbsensiMagang = () => {
                                     )}
                                 </TableBody>
                             </Table>
-                            {absensiData.links &&
+                            {absensiData.links.length > 10 &&
                                 absensiData.links.length > 1 && (
                                     <div className="mt-4 flex justify-end border-t pt-4">
                                         <Pagination>

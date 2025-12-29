@@ -46,6 +46,7 @@ interface PendaftarData {
     waktu: string;
     cv: string | null;
     surat_pengantar: string | null;
+    form_kesanggupan: string | null;
     nama_pembimbing: string | null;
     no_hp_pembimbing: string | null;
     status: string;
@@ -364,6 +365,37 @@ export default function ShowPendaftaran({
                                             </Button>
                                         </div>
                                     )}
+                                    {
+                                        pendaftar.form_kesanggupan && (
+                                            <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+                                                <div className="flex items-center gap-3">
+                                                    <FileText className="h-5 w-5 text-gray-500" />
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-900">
+                                                            Form Kesanggupan
+                                                        </p>
+                                                        <p className="text-xs text-gray-500">
+                                                            PDF Document
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        window.open(
+                                                            pendaftar.form_kesanggupan!,
+                                                            '_blank',
+                                                        )
+                                                    }
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <Download className="h-4 w-4" />
+                                                    Lihat
+                                                </Button>
+                                            </div>
+                                        )
+                                    }
                                 </div>
                             </Card>
                         )}

@@ -3,7 +3,6 @@ import { Input } from '@/components/ui/input';
 import {
     Pagination,
     PaginationContent,
-    PaginationEllipsis,
     PaginationItem,
     PaginationLink,
     PaginationNext,
@@ -32,9 +31,18 @@ import {
     show as showPendaftaran,
 } from '@/routes/dataPendaftaran';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Select } from '@radix-ui/react-select';
-import { Check, Eye, Plus, Search, Trash2, X } from 'lucide-react';
+import {
+    Check,
+    Eye,
+    Inbox,
+    MapPin,
+    Plus,
+    Search,
+    Trash2,
+    X,
+} from 'lucide-react';
 import { useState } from 'react';
 import Swal from 'sweetalert2';
 
@@ -257,288 +265,318 @@ export default function DataPendaftaran({
                     </Link>
                 </div>
 
-                <div className="flex-1 rounded-xl border border-gray-200 bg-white shadow-sm">
-                    <div className="hidden overflow-x-auto lg:block">
-                        <Table className="align-item-center text-center">
-                            <TableHeader className="text-center align-middle">
-                                <TableRow className="bg-gray-100">
-                                    <TableHead className="min-w-[180px] text-center align-middle">
-                                        Nama Lengkap
-                                    </TableHead>
-                                    <TableHead className="min-w-[200px] text-center align-middle">
-                                        Asal Instansi
-                                    </TableHead>
-                                    <TableHead className="min-w-[140px] text-center align-middle">
-                                        Jurusan
-                                    </TableHead>
+                {/* Container Utama */}
+                <div className="flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md">
+                    {/* --- LOGIC 1: JIKA DATA KOSONG --- */}
+                    {dataPendaftar.data.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="mb-4 rounded-full bg-gray-50 p-6">
+                                <Inbox className="h-10 w-10 text-gray-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Belum ada data pendaftaran
+                            </h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Data pendaftar akan muncul di sini.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* --- TAMPILAN DESKTOP (Table) --- */}
+                            <div className="hidden overflow-x-auto lg:block">
+                                <Table className="w-full text-left text-sm text-gray-600">
+                                    <TableHeader className="bg-gray-50/50">
+                                        <TableRow className="hover:bg-transparent">
+                                            <TableHead className="py-4 font-semibold text-gray-900">
+                                                Nama Lengkap
+                                            </TableHead>
+                                            <TableHead className="font-semibold text-gray-900">
+                                                Asal Instansi
+                                            </TableHead>
+                                            <TableHead className="font-semibold text-gray-900">
+                                                Jurusan
+                                            </TableHead>
+                                            <TableHead className="font-semibold text-gray-900">
+                                                Waktu
+                                            </TableHead>
+                                            <TableHead className="font-semibold text-gray-900">
+                                                Mulai
+                                            </TableHead>
+                                            <TableHead className="text-center font-semibold text-gray-900">
+                                                Status
+                                            </TableHead>
+                                            <TableHead className="text-right font-semibold text-gray-900">
+                                                Aksi
+                                            </TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {dataPendaftar.data.map((pendaftar) => (
+                                            <TableRow
+                                                key={pendaftar.id}
+                                                className="group transition-colors hover:bg-gray-50"
+                                            >
+                                                <TableCell className="font-medium text-gray-900">
+                                                    {pendaftar.nama_lengkap}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {pendaftar.asal_instansi}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {pendaftar.jurusan}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {pendaftar.waktu}
+                                                </TableCell>
+                                                <TableCell className="whitespace-nowrap">
+                                                    {pendaftar.tanggal_mulai}
+                                                </TableCell>
+                                                <TableCell className="text-center">
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(pendaftar.status)}`}
+                                                    >
+                                                        {pendaftar.status}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex items-center justify-end gap-1 opacity-100 transition-opacity group-hover:opacity-100">
+                                                        {/* Tombol Aksi Desktop */}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                                            title="Lihat Detail"
+                                                            onClick={() =>
+                                                                router.visit(
+                                                                    showPendaftaran(
+                                                                        pendaftar.id,
+                                                                    ).url,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
 
-                                    <TableHead className="min-w-[100px] text-center align-middle">
-                                        Waktu
-                                    </TableHead>
-                                    <TableHead className="min-w-[140px] text-center align-middle">
-                                        Tanggal Mulai
-                                    </TableHead>
-                                    <TableHead className="min-w-[100px] text-center align-middle">
-                                        Status
-                                    </TableHead>
-                                    <TableHead className="w-[100px] text-center align-middle">
-                                        Aksi
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {dataPendaftar.data.map((pendaftar) => (
-                                    <TableRow
+                                                        {pendaftar.status ===
+                                                            'Proses' && (
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
+                                                                    title="Terima"
+                                                                    onClick={() =>
+                                                                        handleApprove(
+                                                                            pendaftar.id,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <Check className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="h-8 w-8 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+                                                                    title="Tolak"
+                                                                    onClick={() =>
+                                                                        handleReject(
+                                                                            pendaftar.id,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <X className="h-4 w-4" />
+                                                                </Button>
+                                                            </>
+                                                        )}
+
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                            title="Hapus"
+                                                            onClick={() =>
+                                                                handleDelete(
+                                                                    pendaftar.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            {/* --- TAMPILAN MOBILE (Cards) --- */}
+                            <div className="flex flex-col divide-y divide-gray-100 lg:hidden">
+                                {dataPendaftar.data.map((pendaftar, index) => (
+                                    <div
                                         key={pendaftar.id}
-                                        className="hover:bg-gray-50"
+                                        className="p-5 transition-colors active:bg-gray-50"
                                     >
-                                        <TableCell className="font-medium">
-                                            {pendaftar.nama_lengkap}
-                                        </TableCell>
-                                        <TableCell className="text-gray-600">
-                                            {pendaftar.asal_instansi}
-                                        </TableCell>
-                                        <TableCell className="text-gray-600">
-                                            {pendaftar.jurusan}
-                                        </TableCell>
-
-                                        <TableCell className="text-gray-600">
-                                            {pendaftar.waktu}
-                                        </TableCell>
-                                        <TableCell className="text-gray-600">
-                                            {pendaftar.tanggal_mulai}
-                                        </TableCell>
-                                        <TableCell>
+                                        {/* Header Card: Nama & Status */}
+                                        <div className="mb-3 flex items-start justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-bold text-gray-500">
+                                                    {index +
+                                                        1 +
+                                                        (dataPendaftar.current_page -
+                                                            1) *
+                                                            dataPendaftar.per_page}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-gray-900">
+                                                        {pendaftar.nama_lengkap}
+                                                    </h3>
+                                                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                        <MapPin className="h-3 w-3" />
+                                                        {
+                                                            pendaftar.asal_instansi
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <span
-                                                className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(pendaftar.status)}`}
+                                                className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase ${getStatusColor(pendaftar.status)}`}
                                             >
                                                 {pendaftar.status}
                                             </span>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 hover:bg-blue-100"
-                                                    title="Lihat Data"
-                                                    onClick={() =>
-                                                        router.visit(
-                                                            showPendaftaran(
-                                                                pendaftar.id,
-                                                            ).url,
-                                                        )
-                                                    }
-                                                >
-                                                    <Eye className="h-4 w-4 text-blue-500" />
-                                                </Button>
+                                        </div>
 
-                                                {pendaftar.status ===
-                                                    'Proses' && (
-                                                    <>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 hover:bg-green-100"
-                                                            title="Terima"
-                                                            onClick={() =>
-                                                                handleApprove(
-                                                                    pendaftar.id,
-                                                                )
-                                                            }
-                                                        >
-                                                            <Check className="h-4 w-4 text-green-500" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8 hover:bg-orange-100"
-                                                            title="Tolak"
-                                                            onClick={() =>
-                                                                handleReject(
-                                                                    pendaftar.id,
-                                                                )
-                                                            }
-                                                        >
-                                                            <X className="h-4 w-4 text-orange-500" />
-                                                        </Button>
-                                                    </>
-                                                )}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 hover:bg-red-100"
-                                                    title="Hapus"
-                                                    onClick={() =>
-                                                        handleDelete(
-                                                            pendaftar.id,
-                                                        )
-                                                    }
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                                </Button>
+                                        {/* Body Card: Detail */}
+                                        <div className="ml-14 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600">
+                                            <div className="col-span-2 sm:col-span-1">
+                                                <p className="text-xs text-gray-400">
+                                                    Jurusan
+                                                </p>
+                                                <p className="font-medium">
+                                                    {pendaftar.jurusan}
+                                                </p>
                                             </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-                    <div className="divide-y divide-gray-200 lg:hidden">
-                        {dataPendaftar.data.map((pendaftar, index) => (
-                            <div
-                                key={pendaftar.id}
-                                className="p-4 transition-colors hover:bg-gray-50"
-                            >
-                                <div className="space-y-3">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="flex-1">
-                                            <div className="mb-1 flex items-center gap-2">
-                                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600">
-                                                    {index + 1}
-                                                </span>
-                                                <h3 className="font-semibold text-gray-900">
-                                                    {pendaftar.nama_lengkap}
-                                                </h3>
+                                            <div>
+                                                <p className="text-xs text-gray-400">
+                                                    Durasi
+                                                </p>
+                                                <p className="font-medium">
+                                                    {pendaftar.waktu}
+                                                </p>
                                             </div>
-                                            <p className="text-sm text-gray-600">
-                                                {pendaftar.asal_instansi}
-                                            </p>
-                                        </div>
-                                        <span
-                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${getStatusColor(pendaftar.status)}`}
-                                        >
-                                            {pendaftar.status}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                        <div>
-                                            <p className="text-xs text-gray-500">
-                                                Jurusan
-                                            </p>
-                                            <p className="font-medium text-gray-900">
-                                                {pendaftar.jurusan}
-                                            </p>
+                                            <div>
+                                                <p className="text-xs text-gray-400">
+                                                    Mulai
+                                                </p>
+                                                <p className="font-medium">
+                                                    {pendaftar.tanggal_mulai}
+                                                </p>
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <p className="text-xs text-gray-500">
-                                                Durasi
-                                            </p>
-                                            <p className="font-medium text-gray-900">
-                                                {pendaftar.waktu}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-gray-500">
-                                                Mulai
-                                            </p>
-                                            <p className="font-medium text-gray-900">
-                                                {pendaftar.tanggal_mulai}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-end gap-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 hover:bg-gray-100"
-                                            title="Lihat Data"
-                                            onClick={() =>
-                                                router.visit(
-                                                    showPendaftaran(
-                                                        pendaftar.id,
-                                                    ).url,
-                                                )
-                                            }
-                                        >
-                                            <Eye className="h-4 w-4 text-blue-500" />
-                                        </Button>
-
-                                        {pendaftar.status === 'Proses' && (
-                                            <>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 hover:bg-green-100"
-                                                    title="Terima"
-                                                    onClick={() =>
-                                                        handleApprove(
+                                        {/* Footer Card: Actions */}
+                                        <div className="mt-4 flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-9 border-gray-200 text-blue-600 hover:border-blue-200 hover:bg-blue-50"
+                                                onClick={() =>
+                                                    router.visit(
+                                                        showPendaftaran(
                                                             pendaftar.id,
-                                                        )
-                                                    }
-                                                >
-                                                    <Check className="h-4 w-4 text-green-500" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 hover:bg-orange-100"
-                                                    title="Tolak"
-                                                    onClick={() =>
-                                                        handleReject(
-                                                            pendaftar.id,
-                                                        )
-                                                    }
-                                                >
-                                                    <X className="h-4 w-4 text-orange-500" />
-                                                </Button>
-                                            </>
-                                        )}
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 hover:bg-red-100"
-                                            title="Hapus"
-                                            onClick={() =>
-                                                handleDelete(pendaftar.id)
-                                            }
-                                        >
-                                            <X className="h-4 w-4 text-red-500" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="border-t border-gray-200 p-4">
-                        {dataPendaftar.links.length > 1 && (
-                            <div className="mt-4 flex justify-end">
-                                <Pagination>
-                                    <PaginationContent>
-                                        {/* Sebelumnya */}
-                                        <PaginationItem>
-                                            <PaginationPrevious
-                                                href={
-                                                    dataPendaftar.links[0]
-                                                        .url ?? '#'
+                                                        ).url,
+                                                    )
                                                 }
-                                                onClick={(e) => {
-                                                    if (
-                                                        !dataPendaftar.links[0]
-                                                            .url
-                                                    ) {
-                                                        e.preventDefault();
-                                                        return;
-                                                    }
-                                                    e.preventDefault();
-                                                    router.get(
-                                                        dataPendaftar.links[0]
-                                                            .url,
-                                                        { preserveState: true },
-                                                    );
-                                                }}
-                                            />
-                                        </PaginationItem>
+                                            >
+                                                <Eye className="mr-2 h-3.5 w-3.5" />{' '}
+                                                Detail
+                                            </Button>
 
-                                        {/* Nomor halaman */}
-                                        {dataPendaftar.links
-                                            .slice(1, dataPendaftar.links.length - 1)
-                                            .map((link, index) => (
-                                                <PaginationItem key={index}>
-                                                    {link.label === '...' ? (
-                                                        <PaginationEllipsis />
-                                                    ) : (
+                                            {pendaftar.status === 'Proses' && (
+                                                <>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-9 border-gray-200 text-green-600 hover:border-green-200 hover:bg-green-50"
+                                                        onClick={() =>
+                                                            handleApprove(
+                                                                pendaftar.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <Check className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="h-9 border-gray-200 text-orange-600 hover:border-orange-200 hover:bg-orange-50"
+                                                        onClick={() =>
+                                                            handleReject(
+                                                                pendaftar.id,
+                                                            )
+                                                        }
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </>
+                                            )}
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-9 text-red-500 hover:bg-red-50 hover:text-red-700"
+                                                onClick={() =>
+                                                    handleDelete(pendaftar.id)
+                                                }
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* --- LOGIC 2: PAGINATION (Hanya jika data > 10) --- */}
+                            {dataPendaftar.total > 10 && (
+                                <div className="border-t border-gray-200 bg-gray-50/50 p-4">
+                                    <Pagination>
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <PaginationPrevious
+                                                    href={
+                                                        dataPendaftar.prev_page_url ??
+                                                        '#'
+                                                    }
+                                                    onClick={(e) => {
+                                                        if (
+                                                            !dataPendaftar.prev_page_url
+                                                        )
+                                                            e.preventDefault();
+                                                        else {
+                                                            e.preventDefault();
+                                                            router.get(
+                                                                dataPendaftar.prev_page_url,
+                                                                {},
+                                                                {
+                                                                    preserveState: true,
+                                                                },
+                                                            );
+                                                        }
+                                                    }}
+                                                    className={
+                                                        !dataPendaftar.prev_page_url
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : ''
+                                                    }
+                                                />
+                                            </PaginationItem>
+
+                                            {dataPendaftar.links
+                                                .slice(1, -1)
+                                                .map((link, i) => (
+                                                    <PaginationItem
+                                                        key={i}
+                                                        className="hidden sm:block"
+                                                    >
                                                         <PaginationLink
                                                             href={
                                                                 link.url ?? '#'
@@ -547,57 +585,66 @@ export default function DataPendaftaran({
                                                                 link.active
                                                             }
                                                             onClick={(e) => {
-                                                                if (!link.url) {
+                                                                if (!link.url)
                                                                     e.preventDefault();
-                                                                    return;
+                                                                else {
+                                                                    e.preventDefault();
+                                                                    router.get(
+                                                                        link.url,
+                                                                        {},
+                                                                        {
+                                                                            preserveState: true,
+                                                                        },
+                                                                    );
                                                                 }
-                                                                e.preventDefault();
-                                                                router.get(
-                                                                    link.url,
-                                                                    {
-                                                                        preserveState: true,
-                                                                    },
-                                                                );
                                                             }}
                                                         >
                                                             {link.label}
                                                         </PaginationLink>
-                                                    )}
-                                                </PaginationItem>
-                                            ))}
+                                                    </PaginationItem>
+                                                ))}
 
-                                        {/* Berikutnya */}
-                                        <PaginationItem>
-                                            <PaginationNext
-                                                href={
-                                                    dataPendaftar.links[
-                                                        dataPendaftar.links.length -
-                                                            1
-                                                    ].url ?? '#'
-                                                }
-                                                onClick={(e) => {
-                                                    const next =
-                                                        dataPendaftar.links[
-                                                            dataPendaftar.links
-                                                                .length - 1
-                                                        ];
-                                                    if (!next.url) {
-                                                        e.preventDefault();
-                                                        return;
+                                            {/* Mobile Pagination Info (Optional) */}
+                                            <span className="text-xs text-gray-500 sm:hidden">
+                                                Halaman{' '}
+                                                {dataPendaftar.current_page}
+                                            </span>
+
+                                            <PaginationItem>
+                                                <PaginationNext
+                                                    href={
+                                                        dataPendaftar.next_page_url ??
+                                                        '#'
                                                     }
-                                                    e.preventDefault();
-                                                    router.get(
-                                                        next.url,
-                                                        { preserveState: true },
-                                                    );
-                                                }}
-                                            />
-                                        </PaginationItem>
-                                    </PaginationContent>
-                                </Pagination>
-                            </div>
-                        )}
-                    </div>
+                                                    onClick={(e) => {
+                                                        if (
+                                                            !dataPendaftar.next_page_url
+                                                        )
+                                                            e.preventDefault();
+                                                        else {
+                                                            e.preventDefault();
+                                                            router.get(
+                                                                dataPendaftar.next_page_url,
+                                                                {},
+                                                                {
+                                                                    preserveState: true,
+                                                                },
+                                                            );
+                                                        }
+                                                    }}
+                                                    className={
+                                                        !dataPendaftar.next_page_url
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : ''
+                                                    }
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
         </AppLayout>

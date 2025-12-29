@@ -24,28 +24,23 @@ class PendaftaranController extends Controller
     }
     public function store(Request $request)
     {
-        $request->merge(array_map(function ($value) {
-            return $value === '' ? null : $value;
-        }, $request->all()));
-
         $validator = Validator::make($request->all(), [
-
             'jenjang' => 'required|in:universitas,smk',
 
-            // UNIVERSITAS
-            'nim' => 'exclude_if:jenjang,smk|required|string|max:50',
-            'nama_univ' => 'exclude_if:jenjang,smk|required|string|max:255',
-            'jurusan' => 'exclude_if:jenjang,smk|required|string|max:255',
-            'semester' => 'exclude_if:jenjang,smk|required|integer|min:1|max:14',
+            // Validasi Mahasiswa
+            'nim' => 'required_if:jenjang,universitas|nullable|string|max:50',
+            'nama_univ' => 'required_if:jenjang,universitas|nullable|string|max:255',
+            'jurusan' => 'required_if:jenjang,universitas|nullable|string|max:255',
+            'semester' => 'required_if:jenjang,universitas|nullable|integer|min:1|max:14',
 
-            // SMK
-            'nis' => 'exclude_if:jenjang,universitas|required|string|max:50',
-            'nama_sekolah' => 'exclude_if:jenjang,universitas|required|string|max:255',
-            'kelas' => 'exclude_if:jenjang,universitas|required|string|max:10',
-            'nama_pembimbing' => 'exclude_if:jenjang,universitas|required|string|max:255',
-            'no_hp_pembimbing' => 'exclude_if:jenjang,universitas|required|string|max:20',
+            // Validasi SMK
+            'nis' => 'required_if:jenjang,smk|nullable|string|max:50',
+            'nama_sekolah' => 'required_if:jenjang,smk|nullable|string|max:255',
+            'kelas' => 'required_if:jenjang,smk|nullable|string|max:10',
+            'nama_pembimbing' => 'required_if:jenjang,smk|nullable|string|max:255',
+            'no_hp_pembimbing' => 'required_if:jenjang,smk|nullable|string|max:20',
 
-            // UMUM
+            // Data Diri
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
             'phone' => 'required|string|max:20',
@@ -56,68 +51,237 @@ class PendaftaranController extends Controller
             'kota' => 'required|string|max:100',
             'provinsi' => 'required|string|max:100',
 
+            // Waktu Magang
             'tanggal_mulai' => 'required|date|after_or_equal:today',
             'tanggal_selesai' => 'required|date|after:tanggal_mulai',
-
-            'cv' => 'required|file|mimes:pdf|max:2048',
-            'surat_pengantar' => 'nullable|file|mimes:pdf|max:2048',
-
         ], [
-            'required_if' => ':attribute wajib diisi',
-            'email.unique' => 'Email sudah terdaftar',
-            'cv.mimes' => 'CV harus PDF',
-        ]);
 
+            // Global
+            'required' => 'Kolom ini wajib diisi.',
+            'string' => 'Isian harus berupa teks.',
+            'max' => 'Isian terlalu panjang (maksimal :max karakter).',
+
+            // Jenjang
+            'jenjang.required' => 'Mohon pilih jenjang pendidikan (Universitas atau SMK).',
+            'jenjang.in' => 'Pilihan jenjang tidak valid.',
+
+            // Mahasiswa
+            'nim.required_if' => 'NIM wajib diisi untuk kategori Mahasiswa.',
+            'nama_univ.required_if' => 'Nama Universitas wajib diisi.',
+            'jurusan.required_if' => 'Jurusan/Prodi wajib diisi.',
+            'semester.required_if' => 'Semester wajib diisi.',
+            'semester.min' => 'Semester tidak valid (minimal 1).',
+            'semester.max' => 'Semester tidak valid (maksimal 14).',
+
+            // SMK
+            'nis.required_if' => 'NIS wajib diisi untuk kategori Siswa SMK.',
+            'nama_sekolah.required_if' => 'Nama Sekolah wajib diisi.',
+            'kelas.required_if' => 'Kelas wajib diisi.',
+            'nama_pembimbing.required_if' => 'Nama Guru Pembimbing wajib diisi.',
+            'no_hp_pembimbing.required_if' => 'No. HP Guru Pembimbing wajib diisi.',
+
+            // Data Diri
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi sesuai identitas.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format email tidak valid (contoh: nama@email.com).',
+            'email.unique' => 'Email ini sudah terdaftar. Silakan gunakan email lain atau login.',
+            'phone.required' => 'Nomor WhatsApp/HP wajib diisi.',
+            'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
+            'tanggal_lahir.before' => 'Tanggal lahir tidak valid (harus sebelum hari ini).',
+            'jenis_kelamin.required' => 'Silakan pilih jenis kelamin.',
+            'jenis_kelamin.in' => 'Pilihan jenis kelamin tidak valid.',
+            'alamat.required' => 'Alamat domisili lengkap wajib diisi.',
+            'kota.required' => 'Kota wajib diisi.',
+            'provinsi.required' => 'Provinsi wajib diisi.',
+
+            // Validasi Tanggal (Penting)
+            'tanggal_mulai.required' => 'Tentukan tanggal mulai magang.',
+            'tanggal_mulai.date' => 'Format tanggal mulai tidak valid.',
+            'tanggal_mulai.after_or_equal' => 'Tanggal mulai magang minimal hari ini (tidak boleh tanggal lampau).',
+
+            'tanggal_selesai.required' => 'Tentukan tanggal selesai magang.',
+            'tanggal_selesai.date' => 'Format tanggal selesai tidak valid.',
+            'tanggal_selesai.after' => 'Tanggal selesai harus sesudah tanggal mulai.',
+        ]);
         if ($validator->fails()) {
-            return back()
-                ->withErrors($validator)
-                ->withInput();
+            return back()->withErrors($validator)->withInput();
         }
 
-        DB::beginTransaction();
+        DB::beginTransaction(); 
 
         try {
-            /* ================= FILE UPLOAD ================= */
-
-            $cvPath = $request->file('cv')->storeAs(
-                'pendaftaran/cv',
-                'cv_' . Str::slug($request->nama_lengkap) . '_' . time() . '.pdf',
-                'public'
-            );
-
-            $suratPath = null;
-            if ($request->hasFile('surat_pengantar')) {
-                $suratPath = $request->file('surat_pengantar')->storeAs(
-                    'pendaftaran/surat',
-                    'surat_' . Str::slug($request->nama_lengkap) . '_' . time() . '.pdf',
-                    'public'
-                );
-            }
-
-            /* ================= USER ================= */
-
             $user = User::create([
                 'name' => $request->nama_lengkap,
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'role' => 'guest',
                 'status' => 'pending',
-                'password' => null
+                'password' => null, 
             ]);
 
-            /* ================= PROFILE ================= */
-
+            // 3. Logic Mapping Data
             $semesterKelas = $request->jenjang === 'universitas'
                 ? 'Semester ' . $request->semester
                 : 'Kelas ' . $request->kelas;
 
+            // 4. Create Profile
             PesertaProfile::create([
                 'user_id' => $user->id,
                 'jenis_peserta' => $request->jenjang === 'universitas' ? 'mahasiswa' : 'siswa',
                 'nim_nisn' => $request->jenjang === 'universitas' ? $request->nim : $request->nis,
-                'asal_instansi' => $request->jenjang === 'universitas'
-                    ? $request->nama_univ
-                    : $request->nama_sekolah,
+                'asal_instansi' => $request->jenjang === 'universitas' ? $request->nama_univ : $request->nama_sekolah,
+                'jurusan' => $request->jurusan, 
+                'semester_kelas' => $semesterKelas,
+                'alamat' => $request->alamat,
+                'kota' => $request->kota,
+                'provinsi' => $request->provinsi,
+                'tempat_lahir' => $request->tempat_lahir,
+                'tanggal_lahir' => $request->tanggal_lahir,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'nama_pembimbing_sekolah' => $request->nama_pembimbing,
+                'no_hp_pembimbing_sekolah' => $request->no_hp_pembimbing,
+                'tanggal_mulai' => $request->tanggal_mulai,
+                'tanggal_selesai' => $request->tanggal_selesai,
+            ]);
+
+            DB::commit();
+
+            return back()->with(
+                'success',
+                'Pendaftaran berhasil! Tim kami akan meninjau pendaftaran Anda. Akun akan dibuat setelah disetujui.'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Exception in pendaftaran store', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ]);
+
+            return back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan sistem saat menyimpan data. Silakan coba lagi.');
+        }
+    }
+
+    // guest
+    public function halPendaftaranGuest()
+    {
+        return Inertia::render('pendaftaran');
+    }
+
+    public function guestDaftar(Request $request)
+    {
+        // 1. Validasi
+        $validator = Validator::make($request->all(), [
+            'jenjang' => 'required|in:universitas,smk',
+
+            // Validasi Mahasiswa
+            'nim' => 'required_if:jenjang,universitas|nullable|string|max:50',
+            'nama_univ' => 'required_if:jenjang,universitas|nullable|string|max:255',
+            'jurusan' => 'required_if:jenjang,universitas|nullable|string|max:255',
+            'semester' => 'required_if:jenjang,universitas|nullable|integer|min:1|max:14',
+
+            // Validasi SMK
+            'nis' => 'required_if:jenjang,smk|nullable|string|max:50',
+            'nama_sekolah' => 'required_if:jenjang,smk|nullable|string|max:255',
+            'kelas' => 'required_if:jenjang,smk|nullable|string|max:10',
+            'nama_pembimbing' => 'required_if:jenjang,smk|nullable|string|max:255',
+            'no_hp_pembimbing' => 'required_if:jenjang,smk|nullable|string|max:20',
+
+            // Data Diri
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'required|string|max:20',
+            'tempat_lahir' => 'required|string|max:100',
+            'tanggal_lahir' => 'required|date|before:today',
+            'jenis_kelamin' => 'required|in:L,P',
+            'alamat' => 'required|string|max:500',
+            'kota' => 'required|string|max:100',
+            'provinsi' => 'required|string|max:100',
+
+            // Waktu Magang
+            'tanggal_mulai' => 'required|date|after_or_equal:today',
+            'tanggal_selesai' => 'required|date|after:tanggal_mulai',
+        ], [
+
+            // Global
+            'required' => 'Kolom ini wajib diisi.',
+            'string' => 'Isian harus berupa teks.',
+            'max' => 'Isian terlalu panjang (maksimal :max karakter).',
+
+            // Jenjang
+            'jenjang.required' => 'Mohon pilih jenjang pendidikan (Universitas atau SMK).',
+            'jenjang.in' => 'Pilihan jenjang tidak valid.',
+
+            // Mahasiswa
+            'nim.required_if' => 'NIM wajib diisi untuk kategori Mahasiswa.',
+            'nama_univ.required_if' => 'Nama Universitas wajib diisi.',
+            'jurusan.required_if' => 'Jurusan/Prodi wajib diisi.',
+            'semester.required_if' => 'Semester wajib diisi.',
+            'semester.min' => 'Semester tidak valid (minimal 1).',
+            'semester.max' => 'Semester tidak valid (maksimal 14).',
+
+            // SMK
+            'nis.required_if' => 'NIS wajib diisi untuk kategori Siswa SMK.',
+            'nama_sekolah.required_if' => 'Nama Sekolah wajib diisi.',
+            'kelas.required_if' => 'Kelas wajib diisi.',
+            'nama_pembimbing.required_if' => 'Nama Guru Pembimbing wajib diisi.',
+            'no_hp_pembimbing.required_if' => 'No. HP Guru Pembimbing wajib diisi.',
+
+            // Data Diri
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi sesuai identitas.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format email tidak valid (contoh: nama@email.com).',
+            'email.unique' => 'Email ini sudah terdaftar. Silakan gunakan email lain atau login.',
+            'phone.required' => 'Nomor WhatsApp/HP wajib diisi.',
+            'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
+            'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
+            'tanggal_lahir.before' => 'Tanggal lahir tidak valid (harus sebelum hari ini).',
+            'jenis_kelamin.required' => 'Silakan pilih jenis kelamin.',
+            'jenis_kelamin.in' => 'Pilihan jenis kelamin tidak valid.',
+            'alamat.required' => 'Alamat domisili lengkap wajib diisi.',
+            'kota.required' => 'Kota wajib diisi.',
+            'provinsi.required' => 'Provinsi wajib diisi.',
+
+            // Validasi Tanggal (Penting)
+            'tanggal_mulai.required' => 'Tentukan tanggal mulai magang.',
+            'tanggal_mulai.date' => 'Format tanggal mulai tidak valid.',
+            'tanggal_mulai.after_or_equal' => 'Tanggal mulai magang minimal sesudah hari ini (tidak boleh tanggal lampau).',
+
+            'tanggal_selesai.required' => 'Tentukan tanggal selesai magang.',
+            'tanggal_selesai.date' => 'Format tanggal selesai tidak valid.',
+            'tanggal_selesai.after' => 'Tanggal selesai harus sesudah tanggal mulai.',
+        ]);
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $user = User::create([
+                'name' => $request->nama_lengkap,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'role' => 'guest',
+                'status' => 'pending',
+                'password' => null,
+            ]);
+
+            // 3. Logic Mapping Data
+            $semesterKelas = $request->jenjang === 'universitas'
+                ? 'Semester ' . $request->semester
+                : 'Kelas ' . $request->kelas;
+
+            // 4. Create Profile
+            PesertaProfile::create([
+                'user_id' => $user->id,
+                'jenis_peserta' => $request->jenjang === 'universitas' ? 'mahasiswa' : 'siswa',
+                'nim_nisn' => $request->jenjang === 'universitas' ? $request->nim : $request->nis,
+                'asal_instansi' => $request->jenjang === 'universitas' ? $request->nama_univ : $request->nama_sekolah,
                 'jurusan' => $request->jurusan,
                 'semester_kelas' => $semesterKelas,
                 'alamat' => $request->alamat,
@@ -130,189 +294,26 @@ class PendaftaranController extends Controller
                 'no_hp_pembimbing_sekolah' => $request->no_hp_pembimbing,
                 'tanggal_mulai' => $request->tanggal_mulai,
                 'tanggal_selesai' => $request->tanggal_selesai,
-                'cv' => $cvPath,
-                'surat_pengantar' => $suratPath,
             ]);
-            DB::commit();
 
-            return back()->with('success', 'Pendaftar berhasil ditambahkan');
-        } catch (\Throwable $e) {
+            DB::commit(); 
+
+            return redirect()->route('tungguakun')->with(
+                'success',
+                'Pendaftaran berhasil! Tim kami akan meninjau pendaftaran Anda. Akun akan dibuat setelah disetujui.'
+            );
+        } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error('Gagal simpan pendaftaran', [
+            Log::error('Exception in pendaftaran store', [
                 'message' => $e->getMessage(),
                 'line' => $e->getLine(),
-                'file' => $e->getFile(),
+                'file' => $e->getFile()
             ]);
 
             return back()
-                ->with('error', 'Terjadi kesalahan sistem. Silakan coba lagi.')
-                ->withInput();
-        }
-    }
-
-    // guest
-    public function halPendaftaranGuest()
-    {
-        return Inertia::render('pendaftaran');
-    }
-
-    public function guestDaftar(Request $request)
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-
-                'jenjang' => 'required|in:universitas,smk',
-                'nim' => 'required_if:jenjang,universitas|nullable|string|max:50',
-                'nama_univ' => 'required_if:jenjang,universitas|nullable|string|max:255',
-                'jurusan' => 'required_if:jenjang,universitas|nullable|string|max:255',
-                'semester' => 'required_if:jenjang,universitas|nullable|integer|min:1|max:14',
-
-                'nis' => 'required_if:jenjang,smk|nullable|string|max:50',
-                'nama_sekolah' => 'required_if:jenjang,smk|nullable|string|max:255',
-                'kelas' => 'required_if:jenjang,smk|nullable|string|max:10',
-
-                'nama_lengkap' => 'required|string|max:255',
-                'email' => 'required|email|max:255|unique:users,email',
-                'phone' => 'required|string|max:20',
-                'tempat_lahir' => 'required|string|max:100',
-                'tanggal_lahir' => 'required|date|before:today',
-                'jenis_kelamin' => 'required|in:L,P',
-                'alamat' => 'required|string|max:500',
-                'kota' => 'required|string|max:100',
-                'provinsi' => 'required|string|max:100',
-
-                'nama_pembimbing' => 'required_if:jenjang,smk|nullable|string|max:255',
-                'no_hp_pembimbing' => 'required_if:jenjang,smk|nullable|string|max:20',
-
-                'tanggal_mulai' => 'required|date|after_or_equal:today',
-                'tanggal_selesai' => 'required|date|after:tanggal_mulai',
-
-                'cv' => 'required|file|mimes:pdf|max:2048',
-                'surat_pengantar' => 'nullable|file|mimes:pdf|max:2048',
-            ], [
-
-                'nim.required_if' => 'NIM wajib diisi untuk mahasiswa',
-                'nama_univ.required_if' => 'Nama universitas wajib diisi untuk mahasiswa',
-                'jurusan.required_if' => 'Jurusan/Program Studi wajib diisi untuk mahasiswa',
-                'semester.required_if' => 'Semester wajib diisi untuk mahasiswa',
-                'semester.min' => 'Semester minimal 1',
-                'semester.max' => 'Semester maksimal 14',
-
-                'nis.required_if' => 'NIS wajib diisi untuk siswa SMK',
-                'nama_sekolah.required_if' => 'Nama sekolah wajib diisi untuk siswa SMK',
-                'kelas.required_if' => 'Kelas wajib diisi untuk siswa SMK',
-
-                'nama_lengkap.required' => 'Nama lengkap wajib diisi',
-                'email.required' => 'Email wajib diisi',
-                'email.email' => 'Format email tidak valid',
-                'email.unique' => 'Email sudah terdaftar dalam sistem',
-                'phone.required' => 'Nomor telepon wajib diisi',
-                'tempat_lahir.required' => 'Tempat lahir wajib diisi',
-                'tanggal_lahir.required' => 'Tanggal lahir wajib diisi',
-                'tanggal_lahir.before' => 'Tanggal lahir harus sebelum hari ini',
-                'jenis_kelamin.required' => 'Jenis kelamin wajib dipilih',
-                'alamat.required' => 'Alamat lengkap wajib diisi',
-                'kota.required' => 'Kota wajib diisi',
-                'provinsi.required' => 'Provinsi wajib diisi',
-
-                'nama_pembimbing.required_if' => 'Nama pembimbing wajib diisi untuk siswa SMK',
-                'no_hp_pembimbing.required_if' => 'Nomor HP pembimbing wajib diisi untuk siswa SMK',
-
-                'tanggal_mulai.required' => 'Tanggal mulai magang wajib diisi',
-                'tanggal_mulai.after_or_equal' => 'Tanggal mulai magang tidak boleh di masa lalu',
-                'tanggal_selesai.required' => 'Tanggal selesai magang wajib diisi',
-                'tanggal_selesai.after' => 'Tanggal selesai harus setelah tanggal mulai',
-
-                'cv.required' => 'CV wajib diunggah',
-                'cv.mimes' => 'CV harus berformat PDF',
-                'cv.max' => 'Ukuran CV maksimal 2MB',
-                'surat_pengantar.mimes' => 'Surat pengantar harus berformat PDF',
-                'surat_pengantar.max' => 'Ukuran surat pengantar maksimal 2MB',
-            ]);
-
-            if ($validator->fails()) {
-                Log::warning('Errir Valdiasi', [
-                    'errors' => $validator->errors()->toArray(),
-                    'input' => $request->all()
-                ]);
-                return back()->withErrors($validator)->withInput();
-            }
-
-
-
-            Log::info('Starting transaction');
-
-            DB::beginTransaction();
-
-            $cvPath = null;
-            if ($request->hasFile('cv')) {
-                $cvFile = $request->file('cv');
-                $cvName = 'cv_' . Str::slug($request->nama_lengkap) . '_' . time() . '.pdf';
-                $cvPath = $cvFile->storeAs('pendaftaran/cv', $cvName, 'public');
-                Log::info('CV uploaded', ['path' => $cvPath]);
-            } else {
-                Log::warning('No CV file uploaded');
-            }
-
-            $suratPath = null;
-            if ($request->hasFile('surat_pengantar')) {
-                $suratFile = $request->file('surat_pengantar');
-                $suratName = 'surat_' . Str::slug($request->nama_lengkap) . '_' . time() . '.pdf';
-                $suratPath = $suratFile->storeAs('pendaftaran/surat', $suratName, 'public');
-                Log::info('Surat pengantar uploaded', ['path' => $suratPath]);
-            } else {
-                Log::info('No surat pengantar uploaded');
-            }
-
-            Log::info('Creating user');
-
-            $user = User::create([
-                'name' => $request->nama_lengkap,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'role' => 'guest',
-                'status' => 'pending',
-                'password' => null,
-            ]);
-
-            $semesterKelas = $request->jenjang === 'universitas'
-                ? 'Semester ' . $request->semester
-                : 'Kelas ' . $request->kelas;
-
-            $pesertaProfile = PesertaProfile::create([
-                'user_id' => $user->id,
-                'jenis_peserta' => $request->jenjang === 'universitas' ? 'mahasiswa' : 'siswa',
-                'nim_nisn' => $request->jenjang === 'universitas' ? $request->nim : $request->nis,
-                'asal_instansi' => $request->jenjang === 'universitas' ? $request->nama_univ : $request->nama_sekolah,
-                'jurusan' => $request->jurusan,
-                'semester_kelas' => $semesterKelas,
-                'alamat' => $request->alamat,
-                'kota' => $request->kota,
-                'provinsi' => $request->provinsi,
-                'tanggal_lahir' => $request->tanggal_lahir,
-                'jenis_kelamin' => $request->jenis_kelamin,
-                'nama_pembimbing_sekolah' => $request->nama_pembimbing,
-                'no_hp_pembimbing_sekolah' => $request->no_hp_pembimbing,
-                'tanggal_mulai' => $request->tanggal_mulai,
-                'tanggal_selesai' => $request->tanggal_selesai,
-                'cv' => $cvPath,
-                'surat_pengantar' => $suratPath,
-            ]);
-            DB::commit();
-            return redirect()->route('tungguakun')->with(
-                'success',
-                'Pendaftaran berhasil! Tim kami akan meninjau pendaftaran Anda. ' .
-                    'Akun akan dibuat dan kredensial login akan dikirim ke email Anda setelah disetujui.'
-            );
-        } catch (\Exception $e) {
-            Log::error('Exception in pendaftaran store', [
-                'error_message' => $e->getMessage(),
-                'error_line' => $e->getLine(),
-                'error_file' => $e->getFile(),
-                'request_data' => $request->all(),
-                'trace' => $e->getTraceAsString()
-            ]);
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan sistem saat menyimpan data. Silakan coba lagi.');
         }
     }
 
@@ -363,9 +364,6 @@ class PendaftaranController extends Controller
             ]
         ]);
     }
-
-
-
 
     public function index()
     {
@@ -428,7 +426,6 @@ class PendaftaranController extends Controller
             'email_verified_at' => now(),
         ]);
 
-        // $password = 'Magang' . rand(1000, 9999);
         $password = '123456';
         $user->update(['password' => Hash::make($password)]);
 
@@ -494,6 +491,7 @@ class PendaftaranController extends Controller
             'waktu' => $weeks . ' Minggu',
             'cv' => $peserta->cv ? asset('storage/' . $peserta->cv) : null,
             'surat_pengantar' => $peserta->surat_pengantar ? asset('storage/' . $peserta->surat_pengantar) : null,
+            'form_kesanggupan' => $peserta->form_kesanggupan ? asset('storage/' . $peserta->form_kesanggupan) : null,
             'nama_pembimbing' => $peserta->nama_pembimbing_sekolah,
             'no_hp_pembimbing' => $peserta->no_hp_pembimbing_sekolah,
             'status' => $statusLabels[$peserta->user->status] ?? 'Tidak Diketahui',

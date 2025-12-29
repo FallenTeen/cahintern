@@ -3,12 +3,21 @@ import { absenMahasiswa } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import Swal from 'sweetalert2';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Separator } from '@/components/ui/separator';
 import {
     Table,
@@ -18,6 +27,16 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import {
+    Calendar,
+    Check,
+    Clock,
+    Eye,
+    FileText,
+    Inbox,
+    User,
+    X,
+} from 'lucide-react';
 
 type Status = 'hadir' | 'izin' | 'sakit' | 'terlambat';
 
@@ -32,6 +51,7 @@ type AbsensiData = {
     keterangan: string | null;
     foto_masuk: string | null;
     foto_keluar: string | null;
+    status_approval?: 'pending' | 'disetujui' | 'ditolak';
 };
 
 type Props = {
@@ -70,6 +90,61 @@ export default function AbsensiMahasiswa() {
         effective_end_date: new Date().toISOString().slice(0, 10),
     });
 
+    const Show = (id: number) => {
+        router.get(`/absen-mahasiswa/${id}`);
+    }
+    const Approve = (id: number, nama: string) => {
+        Swal.fire({
+            title: `Approve absen ${nama}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Approve',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(
+                    `/absen-mahasiswa/${id}/approve`,
+                    {},
+                    {
+                        onSuccess: () => {
+                            Swal.fire(
+                                'Berhasil!',
+                                'Absen telah di-approve.',
+                                'success',
+                            );
+                        },
+                    },
+                );
+            }
+        });
+    };
+
+    const Reject = (id: number, nama: string) => {
+        Swal.fire({
+            title: `Tolak absen ${nama}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Tolak',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(
+                    `/absen-mahasiswa/${id}/reject`,
+                    {},
+                    {
+                        onSuccess: () => {
+                            Swal.fire(
+                                'Ditolak!',
+                                'Absen telah ditolak.',
+                                'success',
+                            );
+                        },
+                    },
+                );
+            }
+        });
+    };
+
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
         return students.filter((s) => {
@@ -84,19 +159,13 @@ export default function AbsensiMahasiswa() {
         });
     }, [students, query, statusFilter, showOnlyWithTime]);
 
-    const badgeVariant = (status: Status) => {
-        switch (status) {
-            case 'hadir':
-                return 'bg-green-500 text-white';
-            case 'izin':
-                return 'bg-blue-500 text-white';
-            case 'sakit':
-                return 'bg-yellow-400 text-black';
-            case 'terlambat':
-                return 'bg-red-500 text-white';
-            default:
-                return 'bg-gray-300 text-black';
-        }
+    const getStatusColor = (status: string) => {
+        const s = status.toLowerCase();
+        if (s.includes('hadir')) return 'bg-green-500 text-white';
+        if (s.includes('izin')) return 'bg-yellow-500 text-white';
+        if (s.includes('sakit')) return 'bg-blue-500 text-white';
+        if (s.includes('terlambat')) return 'bg-red-500 text-white';
+        return 'bg-gray-500 text-white';
     };
 
     return (
@@ -139,40 +208,39 @@ export default function AbsensiMahasiswa() {
                             {schedule?.jam_tutup ?? '-'}
                         </CardContent>
                     </Card>
-<Card>
-    <CardContent className="grid grid-cols-3 gap-6 items-center">
-        {/* Tanggal Aktif */}
-        <div>
-            <p className="text-sm text-muted-foreground">
-                 Aktif
-            </p>
-            <p className="mt-1 text-sm font-semibold">
-                {schedule?.effective_start_date ?? '-'}
-            </p>
-        </div>
+                    <Card>
+                        <CardContent className="grid grid-cols-3 items-center gap-6">
+                            {/* Tanggal Aktif */}
+                            <div>
+                                <p className="text-sm text-muted-foreground">
+                                    Aktif
+                                </p>
+                                <p className="mt-1 text-sm font-semibold">
+                                    {schedule?.effective_start_date ?? '-'}
+                                </p>
+                            </div>
 
-        {/* Toleransi */}
-        <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-                Toleransi
-            </p>
-            <p className="mt-1 text-sm font-semibold">
-                {schedule?.toleransi_menit ?? 0} menit
-            </p>
-        </div>
+                            {/* Toleransi */}
+                            <div className="text-center">
+                                <p className="text-sm text-muted-foreground">
+                                    Toleransi
+                                </p>
+                                <p className="mt-1 text-sm font-semibold">
+                                    {schedule?.toleransi_menit ?? 0} menit
+                                </p>
+                            </div>
 
-        {/* Tanggal Berakhir */}
-        <div className="text-right">
-            <p className="text-sm text-muted-foreground">
-                 Berakhir
-            </p>
-            <p className="mt-1 text-sm font-semibold">
-                {schedule?.effective_end_date ?? '-'}
-            </p>
-        </div>
-    </CardContent>
-</Card>
-
+                            {/* Tanggal Berakhir */}
+                            <div className="text-right">
+                                <p className="text-sm text-muted-foreground">
+                                    Berakhir
+                                </p>
+                                <p className="mt-1 text-sm font-semibold">
+                                    {schedule?.effective_end_date ?? '-'}
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {openDialog && (
@@ -347,98 +415,280 @@ export default function AbsensiMahasiswa() {
                     </CardContent>
                 </Card>
 
-                <div className="overflow-hidden rounded-lg border shadow-sm">
-                    <Table className="align-item-center text-center">
-                        <TableHeader className="text-center align-middle">
-                            <TableRow className="bg-gray-100">
-                                <TableHead className="text-center align-middle">
-                                    Nama Mahasiswa
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Tanggal
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Waktu Absen
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Status
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Keterangan
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Aksi
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filtered.length > 0 ? (
-                                filtered.map((s) => (
-                                    <TableRow key={s.id}>
-                                        <TableCell>{s.nama_peserta}</TableCell>
-
-                                        <TableCell>{s.tanggal}</TableCell>
-                                        <TableCell>
-                                            {s.jam_masuk ?? '-'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                className={badgeVariant(
-                                                    s.status,
-                                                )}
+                <div className="flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                    {/* --- LOGIC 1: JIKA DATA KOSONG --- */}
+                    {filtered.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <div className="mb-4 rounded-full bg-gray-50 p-4">
+                                <Inbox className="h-10 w-10 text-gray-400" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Belum ada data absensi dari user
+                            </h3>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Data kehadiran akan muncul di sini setelah user
+                                melakukan absen.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* --- TAMPILAN DESKTOP (Table) --- */}
+                            {/* Hidden di mobile, muncul di layar LG ke atas */}
+                            <div className="hidden overflow-x-auto lg:block">
+                                <Table className="w-full text-center text-sm">
+                                    <TableHeader className="bg-gray-50/50">
+                                        <TableRow className="hover:bg-transparent">
+                                            <TableHead className="text-center font-semibold text-gray-900">
+                                                Nama Mahasiswa
+                                            </TableHead>
+                                            <TableHead className="text-center font-semibold text-gray-900">
+                                                Tanggal
+                                            </TableHead>
+                                            <TableHead className="text-center font-semibold text-gray-900">
+                                                Waktu Absen
+                                            </TableHead>
+                                            <TableHead className="text-center font-semibold text-gray-900">
+                                                Status
+                                            </TableHead>
+                                            <TableHead className="text-center font-semibold text-gray-900">
+                                                Keterangan
+                                            </TableHead>
+                                            <TableHead className="text-center font-semibold text-gray-900">
+                                                Aksi
+                                            </TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {filtered.map((s) => (
+                                            <TableRow
+                                                key={s.id}
+                                                className="hover:bg-gray-50"
                                             >
-                                                {s.status_label}
+                                                <TableCell className="font-medium text-gray-900">
+                                                    {s.nama_peserta}
+                                                </TableCell>
+                                                <TableCell className="text-gray-600">
+                                                    {s.tanggal}
+                                                </TableCell>
+                                                <TableCell className="font-mono text-gray-600">
+                                                    {s.jam_masuk ?? '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge
+                                                        className={`${getStatusColor(s.status)} border-0 px-2.5 py-0.5 shadow-none`}
+                                                    >
+                                                        {s.status_label ||
+                                                            s.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell
+                                                    className="max-w-[200px] truncate text-gray-600"
+                                                    title={s.keterangan}
+                                                >
+                                                    {s.keterangan ?? '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                                        onClick={() =>
+                                                            Show(s.id,)
+                                                        }
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                    {s.status_approval ===
+                                                        'pending' && (
+                                                        <>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-green-600 hover:bg-green-50 hover:text-green-700"
+                                                                onClick={() =>
+                                                                    Approve(
+                                                                        s.id,
+                                                                        s.nama_peserta,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Check className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                                onClick={() =>
+                                                                    Reject(
+                                                                        s.id,
+                                                                        s.nama_peserta,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+
+                            <div className="flex flex-col divide-y divide-gray-100 lg:hidden">
+                                {filtered.map((s, index) => (
+                                    <div
+                                        key={s.id}
+                                        className="p-4 transition-colors hover:bg-gray-50"
+                                    >
+                                        {/* Header Card */}
+                                        <div className="mb-3 flex items-start justify-between">
+                                            <div className="flex gap-3">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                                                    <User className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-semibold text-gray-900">
+                                                        {s.nama_peserta}
+                                                    </h3>
+                                                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                        <Calendar className="h-3 w-3" />
+                                                        <span>{s.tanggal}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Badge
+                                                className={`${getStatusColor(s.status)} border-0 px-2 py-0.5 text-[10px] shadow-none`}
+                                            >
+                                                {s.status_label || s.status}
                                             </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            {s.keterangan ?? '-'}
-                                        </TableCell>
-                                        <TableCell className="text-center">
+                                        </div>
+
+                                        {/* Body Card */}
+                                        <div className="ml-13 grid grid-cols-2 gap-y-2 text-sm text-gray-600">
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="h-3.5 w-3.5 text-gray-400" />
+                                                <span className="font-mono">
+                                                    {s.jam_masuk ?? '-'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2 truncate">
+                                                <FileText className="h-3.5 w-3.5 text-gray-400" />
+                                                <span className="truncate">
+                                                    {s.keterangan || '-'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Footer Card */}
+                                        <div className="mt-4 flex justify-end border-t border-gray-100 pt-3">
                                             <Button
                                                 variant="outline"
-                                                size="icon"
+                                                size="sm"
+                                                className="h-8 border-gray-200 text-blue-600 hover:border-blue-200 hover:bg-blue-50"
                                                 onClick={() =>
                                                     window.alert(
                                                         `Detail ${s.nama_peserta}`,
                                                     )
                                                 }
                                             >
-                                                <svg
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    className="h-4 w-4"
-                                                    fill="none"
-                                                    viewBox="0 0 24 24"
-                                                    stroke="currentColor"
-                                                >
-                                                    <path
-                                                        strokeWidth={2}
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                    />
-                                                    <path
-                                                        strokeWidth={2}
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                                    />
-                                                </svg>
+                                                <Eye className="mr-2 h-3.5 w-3.5" />{' '}
+                                                Lihat Detail
                                             </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell
-                                        colSpan={7}
-                                        className="py-6 text-center text-muted-foreground"
-                                    >
-                                        Tidak ada data.
-                                    </TableCell>
-                                </TableRow>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {absensiData.total > 10 && (
+                                <div className="border-t border-gray-200 bg-gray-50/50 p-4">
+                                    <Pagination>
+                                        <PaginationContent>
+                                            <PaginationItem>
+                                                <PaginationPrevious
+                                                    href={
+                                                        absensiData.prev_page_url ??
+                                                        '#'
+                                                    }
+                                                    className={
+                                                        !absensiData.prev_page_url
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : ''
+                                                    }
+                                                    onClick={(e) => {
+                                                        if (
+                                                            !absensiData.prev_page_url
+                                                        )
+                                                            e.preventDefault();
+                                                        // Tambahkan logic router.get disini jika perlu
+                                                    }}
+                                                />
+                                            </PaginationItem>
+
+                                            {/* Logic loop pagination links */}
+                                            {absensiData.links &&
+                                                absensiData.links
+                                                    .slice(1, -1)
+                                                    .map((link, index) => (
+                                                        <PaginationItem
+                                                            key={index}
+                                                            className="hidden sm:block"
+                                                        >
+                                                            <PaginationLink
+                                                                href={
+                                                                    link.url ??
+                                                                    '#'
+                                                                }
+                                                                isActive={
+                                                                    link.active
+                                                                }
+                                                                onClick={(
+                                                                    e,
+                                                                ) => {
+                                                                    if (
+                                                                        !link.url
+                                                                    )
+                                                                        e.preventDefault();
+                                                                    // Tambahkan logic router.get disini jika perlu
+                                                                }}
+                                                            >
+                                                                {link.label}
+                                                            </PaginationLink>
+                                                        </PaginationItem>
+                                                    ))}
+
+                                            {/* Mobile Info */}
+                                            <span className="text-xs text-gray-500 sm:hidden">
+                                                Hal {absensiData.current_page}
+                                            </span>
+
+                                            <PaginationItem>
+                                                <PaginationNext
+                                                    href={
+                                                        absensiData.next_page_url ??
+                                                        '#'
+                                                    }
+                                                    className={
+                                                        !absensiData.next_page_url
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : ''
+                                                    }
+                                                    onClick={(e) => {
+                                                        if (
+                                                            !absensiData.next_page_url
+                                                        )
+                                                            e.preventDefault();
+                                                        // Tambahkan logic router.get disini jika perlu
+                                                    }}
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
+                                </div>
                             )}
-                        </TableBody>
-                    </Table>
+                        </>
+                    )}
                 </div>
             </div>
         </AppLayout>

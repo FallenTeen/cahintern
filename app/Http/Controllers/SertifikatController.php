@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Sertifikat;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class SertifikatController extends Controller
@@ -91,7 +89,7 @@ class SertifikatController extends Controller
 
         return response()->json([
             'message' => 'Sertifikat berhasil diregenerasi.',
-            'sertifikat' => $sertifikat->only(['id','nomor_sertifikat','tanggal_terbit','file_path','is_published']),
+            'sertifikat' => $sertifikat->only(['id', 'nomor_sertifikat', 'tanggal_terbit', 'file_path', 'is_published']),
         ]);
     }
 
@@ -102,7 +100,7 @@ class SertifikatController extends Controller
 
         return response()->json([
             'message' => 'Sertifikat berhasil divalidasi/publish.',
-            'sertifikat' => $sertifikat->only(['id','is_published']),
+            'sertifikat' => $sertifikat->only(['id', 'is_published']),
         ]);
     }
 }

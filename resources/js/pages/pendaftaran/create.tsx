@@ -355,6 +355,29 @@ export default function Create() {
                                                     </p>
                                                 )}
                                             </div>
+                                            <div className="space-y-2">
+                                                <Label>Jurusan</Label>
+                                                <span className="text-red-600">
+                                                    *
+                                                </span>
+                                                <Input
+                                                    className="h-12"
+                                                    placeholder="Contoh: XII RPL 1"
+                                                    maxLength={10}
+                                                    value={data.jurusan}
+                                                    onChange={(e) =>
+                                                        setData(
+                                                            'jurusan',
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                {errors.jurusan && (
+                                                    <p className="text-sm text-red-500">
+                                                        {errors.jurusan}
+                                                    </p>
+                                                )}
+                                            </div>
 
                                             <div className="space-y-2">
                                                 <Label>Nama Pembimbing</Label>
@@ -379,7 +402,7 @@ export default function Create() {
                                                 )}
                                             </div>
 
-                                            <div className="space-y-2 md:col-span-2">
+                                            <div className="space-y-2">
                                                 <Label>No HP Pembimbing</Label>
                                                 <span className="text-red-600">
                                                     *
@@ -685,7 +708,7 @@ export default function Create() {
                         </Card>
 
                         {/* Card: Upload Berkas */}
-                        <Card>
+                        {/* <Card>
                             <CardHeader>
                                 <div className="flex items-center gap-3">
                                     <div className="rounded-lg bg-pink-100 p-2">
@@ -755,7 +778,7 @@ export default function Create() {
                                     </div>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </Card> */}
 
                         {/* Submit Button */}
                         <div className="flex justify-end gap-4 pt-4">

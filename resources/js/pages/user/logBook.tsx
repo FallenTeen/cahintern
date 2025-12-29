@@ -560,7 +560,7 @@ const LogbookPage = () => {
                     </Table>
                 </CardContent>
             </Card>
-            {logbooks.links.length > 1 && (
+            {logbooks.data.length > 10 && logbooks.links.length > 1 && (
                 <div className="mt-4 flex justify-end">
                     <Pagination>
                         <PaginationContent>
@@ -871,7 +871,7 @@ const LogbookPage = () => {
                                     selectedLogbook.status,
                                 ) && (
                                     <Button
-                                    className='bg-red-600 hover:bg-red-700'
+                                        className="bg-red-600 hover:bg-red-700"
                                         size="sm"
                                         onClick={() => {
                                             setForm({

@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class AbsensiController extends Controller
 {
@@ -19,7 +18,7 @@ class AbsensiController extends Controller
         $status = request('status');
         $tanggal = request('tanggal');
 
-        $query = Absensi::with('pesertaProfile.user');
+        $query = Absensi::with('pesertaProfile.user')->orderBy('created_at', 'desc');
 
         if ($search) {
             $query->whereHas('pesertaProfile.user', function ($q) use ($search) {
@@ -43,6 +42,7 @@ class AbsensiController extends Controller
                 'jam_masuk' => $absensi->jam_masuk ? $absensi->jam_masuk->format('H:i') : null,
                 'jam_keluar' => $absensi->jam_keluar ? $absensi->jam_keluar->format('H:i') : null,
                 'status' => $absensi->status,
+                'status_approval' => $absensi->status_approval,
                 'status_label' => $absensi->getStatusLabel(),
                 'keterangan' => $absensi->keterangan,
                 'foto_masuk' => $absensi->getFotoMasuk(),
@@ -64,44 +64,105 @@ class AbsensiController extends Controller
         ]);
     }
 
-public function absensiPeserta()
-{
-    $user = Auth::user();
+    public function show($id)
+    {
+        $user = Auth::user();
+        $absensi = Absensi::with('pesertaProfile.user')->findOrFail($id);
 
-    $profileId = $user->pesertaProfile->id;
+        return Inertia::render('absensi/showAbsensi', [
+            'absensi' => [
+                'peserta_profile_id' => $absensi->pesertaProfile->id,
+                'name' => $absensi->pesertaProfile->user->name,
+                'avatar' => $user->avatar,
+                'tanggal' => $absensi->tanggal->format('d F Y'),
+                'jam_masuk' => $absensi->jam_masuk ? $absensi->jam_masuk->format('H:i') : null,
+                'jam_keluar' => $absensi->jam_keluar ? $absensi->jam_keluar->format('H:i') : null,
+                'status' => $absensi->status,
+                'keterangan' => $absensi->keterangan,
+                'surat' => $absensi->surat,
+                'status_approval' => $absensi->status_approval,
+            ],
+        ]);
+    }
 
-    $absensiData = Absensi::where('peserta_profile_id', $profileId)
-        ->orderBy('tanggal', 'desc')
-        ->paginate(5);
+    public function absensiPeserta()
+    {
+        $user = Auth::user();
 
-    $schedule = JadwalAbsensi::activeForDate(Carbon::today());
+        if (!$user->pesertaProfile) {
+            abort(403, 'Profil peserta belum dibuat');
+        }
 
-    $formattedAbsensi = $absensiData->through(function ($log) {
-        return [
-            'id' => $log->id,
-            'tanggal' => $log->tanggal->format('Y-m-d'),
-            'jam_masuk' => $log->jam_masuk
-                ? Carbon::parse($log->jam_masuk)->format('H:i')
-                : null,
-            'jam_keluar' => $log->jam_keluar
-                ? Carbon::parse($log->jam_keluar)->format('H:i')
-                : null,
-            'keterangan' => $log->keterangan,
-            'status' => $log->status,
-        ];
-    });
+        $profileId = $user->pesertaProfile->id;
 
-    return Inertia::render('user/absensiPeserta', [
-        'schedule' => $schedule ? [
-            'jam_buka' => Carbon::parse($schedule->jam_buka)->format('H:i'),
-            'jam_tutup' => Carbon::parse($schedule->jam_tutup)->format('H:i'),
-            'toleransi_menit' => $schedule->toleransi_menit,
-        ] : null,
-        'absensiData' => $formattedAbsensi,
-    ]);
-}
+        $absensiData = Absensi::where('peserta_profile_id', $profileId)
+            ->orderBy('tanggal', 'desc')
+            ->paginate(5);
 
+        $schedule = JadwalAbsensi::activeForDate(Carbon::today());
 
+        $formattedAbsensi = $absensiData->through(function ($log) {
+            return [
+                'id' => $log->id,
+                'tanggal' => $log->tanggal->format('Y-m-d'),
+                'jam_masuk' => $log->jam_masuk
+                    ? Carbon::parse($log->jam_masuk)->format('H:i')
+                    : null,
+                'jam_keluar' => $log->jam_keluar
+                    ? Carbon::parse($log->jam_keluar)->format('H:i')
+                    : null,
+                'keterangan' => $log->keterangan,
+                'status' => $log->status,
+            ];
+        });
+
+        return Inertia::render('user/absensiPeserta', [
+            'schedule' => $schedule ? [
+                'jam_buka' => Carbon::parse($schedule->jam_buka)->format('H:i'),
+                'jam_tutup' => Carbon::parse($schedule->jam_tutup)->format('H:i'),
+                'toleransi_menit' => $schedule->toleransi_menit,
+            ] : null,
+            'absensiData' => $formattedAbsensi,
+        ]);
+    }
+
+    public function detailAbsesnPeserta($id)
+    {
+        $user = Auth::user();
+        $absensi = Absensi::with('pesertaProfile.user')->findOrFail($id);
+
+        return Inertia::render('user/showAbsensi', [
+            'absensi' => [
+                'peserta_profile_id' => $absensi->pesertaProfile->id,
+                'name' => $absensi->pesertaProfile->user->name,
+                'avatar' => $user->avatar,
+                'tanggal' => $absensi->tanggal->format('d F Y'),
+                'jam_masuk' => $absensi->jam_masuk ? $absensi->jam_masuk->format('H:i') : null,
+                'jam_keluar' => $absensi->jam_keluar ? $absensi->jam_keluar->format('H:i') : null,
+                'status' => $absensi->status,
+                'keterangan' => $absensi->keterangan,
+                'surat' => $absensi->surat,
+                'status_approval' => $absensi->status_approval,
+            ],
+        ]);
+    }
+
+    public function approve($id)
+    {
+        $absensi = Absensi::findOrFail($id);
+        $absensi->status_approval = 'disetujui';
+        $absensi->save();
+
+        return back()->with('success', 'Absensi disetujui.');
+    }
+    public function reject($id)
+    {
+        $absensi = Absensi::findOrFail($id);
+        $absensi->status_approval = 'ditolak';
+        $absensi->save();
+
+        return back()->with('success', 'Absensi ditolak.');
+    }
 
     public function storeSchedule(Request $request)
     {

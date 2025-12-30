@@ -315,7 +315,7 @@ class AbsensiController extends Controller
         // JAM PULANG RESMI
         $jamPulang = Carbon::parse($tanggal . ' ' . $schedule->jam_tutup);
 
-        // ❌ BELUM JAM PULANG
+        // BELUM JAM PULANG
         if ($now->lt($jamPulang)) {
             return back()->with(
                 'error',
@@ -326,7 +326,7 @@ class AbsensiController extends Controller
         // BATAS AKHIR CHECKOUT (1 JAM SETELAH JAM PULANG)
         $batasCheckout = $jamPulang->copy()->addHour();
 
-        // ❌ SUDAH LEWAT BATAS
+        // SUDAH LEWAT BATAS
         if ($now->gt($batasCheckout)) {
             return back()->with(
                 'error',

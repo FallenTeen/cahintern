@@ -62,10 +62,10 @@ class SertifikatController extends Controller
             ->through(function ($profile) {
                 $sertifikat = $profile->sertifikat;
                 $penilaian = $profile->penilaianAkhir;
-                
+
                 // Hitung completion logbook
                 $logbookCompletion = $this->calculateLogbookCompletion($profile->id);
-                
+
                 $status = 'belum';
                 if ($sertifikat && $sertifikat->file_path) {
                     $status = $sertifikat->is_published ? 'terbit' : 'proses';
@@ -75,18 +75,18 @@ class SertifikatController extends Controller
                     'id' => $sertifikat ? $sertifikat->id : $profile->id,
                     'peserta_profile_id' => $profile->id,
                     'nama_peserta' => $profile->user->name ?? '',
-                    'tanggal_terbit' => $sertifikat && $sertifikat->tanggal_terbit 
-                        ? $sertifikat->tanggal_terbit->format('d F Y') 
+                    'tanggal_terbit' => $sertifikat && $sertifikat->tanggal_terbit
+                        ? $sertifikat->tanggal_terbit->format('d F Y')
                         : '-',
                     'nomor_sertifikat' => $sertifikat ? $sertifikat->nomor_sertifikat : '-',
                     'file_path' => $sertifikat ? $sertifikat->file_path : null,
                     'status' => $status,
                     'approval_status' => $sertifikat ? $sertifikat->approval_status : 'pending',
-                    'approved_at' => $sertifikat && $sertifikat->approved_at 
-                        ? $sertifikat->approved_at->format('d F Y H:i') 
+                    'approved_at' => $sertifikat && $sertifikat->approved_at
+                        ? $sertifikat->approved_at->format('d F Y H:i')
                         : null,
-                    'approved_by' => $sertifikat && $sertifikat->approvedBy 
-                        ? $sertifikat->approvedBy->name 
+                    'approved_by' => $sertifikat && $sertifikat->approvedBy
+                        ? $sertifikat->approvedBy->name
                         : null,
                     'can_approve' => $sertifikat && $sertifikat->file_path && $sertifikat->approval_status === 'pending',
                     'can_download' => $sertifikat && $sertifikat->file_path,
@@ -96,9 +96,16 @@ class SertifikatController extends Controller
                 ];
             });
 
+        $activeTemplate = CertificateTemplate::where('is_active', true)->first();
+        $activeTemplateUrl = null;
+        if ($activeTemplate && $activeTemplate->page1_template_path) {
+            $activeTemplateUrl = asset('storage/' . $activeTemplate->page1_template_path);
+        }
         return Inertia::render('penilaianSertifikat/index', [
             'sertifikatData' => $pesertaProfiles,
             'viewMode' => 'certificate',
+            'activeTemplateUrl' => $activeTemplateUrl,
+            'activeTemplateName' => $activeTemplate ? $activeTemplate->name : null,
         ]);
     }
 
@@ -110,9 +117,9 @@ class SertifikatController extends Controller
             ->through(function ($profile) {
                 $sertifikat = $profile->sertifikat;
                 $penilaian = $profile->penilaianAkhir;
-                
+
                 $logbookCompletion = $this->calculateLogbookCompletion($profile->id);
-                
+
                 $status = 'belum';
                 if ($sertifikat && $sertifikat->file_path) {
                     $status = $sertifikat->is_published ? 'terbit' : 'proses';
@@ -122,18 +129,18 @@ class SertifikatController extends Controller
                     'id' => $sertifikat ? $sertifikat->id : $profile->id,
                     'peserta_profile_id' => $profile->id,
                     'nama_peserta' => $profile->user->name ?? '',
-                    'tanggal_terbit' => $sertifikat && $sertifikat->tanggal_terbit 
-                        ? $sertifikat->tanggal_terbit->format('d F Y') 
+                    'tanggal_terbit' => $sertifikat && $sertifikat->tanggal_terbit
+                        ? $sertifikat->tanggal_terbit->format('d F Y')
                         : '-',
                     'nomor_sertifikat' => $sertifikat ? $sertifikat->nomor_sertifikat : '-',
                     'file_path' => $sertifikat ? $sertifikat->file_path : null,
                     'status' => $status,
                     'approval_status' => $sertifikat ? $sertifikat->approval_status : 'pending',
-                    'approved_at' => $sertifikat && $sertifikat->approved_at 
-                        ? $sertifikat->approved_at->format('d F Y H:i') 
+                    'approved_at' => $sertifikat && $sertifikat->approved_at
+                        ? $sertifikat->approved_at->format('d F Y H:i')
                         : null,
-                    'approved_by' => $sertifikat && $sertifikat->approvedBy 
-                        ? $sertifikat->approvedBy->name 
+                    'approved_by' => $sertifikat && $sertifikat->approvedBy
+                        ? $sertifikat->approvedBy->name
                         : null,
                     'can_approve' => $sertifikat && $sertifikat->file_path && $sertifikat->approval_status === 'pending',
                     'can_download' => $sertifikat && $sertifikat->file_path,
@@ -191,6 +198,8 @@ class SertifikatController extends Controller
             'participant_name' => 'Lorem Ipsum Dolor Sit Amet',
             'internship_duration' => 'Januari 2025 - Maret 2025 (3 Bulan)',
             'page1Background' => $page1Background,
+            'result' => 92,
+            'date_signed' => now()->translatedFormat('d F Y'),
         ];
 
         $pdf = Pdf::loadView('certificates.certificate', $data)
@@ -211,7 +220,7 @@ class SertifikatController extends Controller
 
         $logbookCompletion = $this->calculateLogbookCompletion($profile->id);
         $forceGenerate = $request->input('force_generate', false);
-        
+
         // PERUBAHAN: Hanya warning, tidak block
         if ($logbookCompletion < 80 && !$forceGenerate) {
             throw ValidationException::withMessages([
@@ -301,11 +310,11 @@ class SertifikatController extends Controller
     protected function calculateLogbookCompletion($pesertaProfileId): float
     {
         $totalLogbook = Logbook::where('peserta_profile_id', $pesertaProfileId)->count();
-        
+
         if ($totalLogbook === 0) {
             return 0;
         }
-        
+
         $completedLogbook = Logbook::where('peserta_profile_id', $pesertaProfileId)
             ->where('status', 'disetujui')
             ->count();
@@ -340,6 +349,16 @@ class SertifikatController extends Controller
             $durationLabel = $startLabel . ' - ' . $endLabel . ' (' . $months . ' Bulan)';
         }
 
+        $result = null;
+        if ($penilaian && $penilaian->nilai_total !== null) {
+            $result = (float) $penilaian->nilai_total;
+        }
+
+        $dateSigned = null;
+        if ($sertifikat->approved_at) {
+            $dateSigned = $sertifikat->approved_at->translatedFormat('d F Y');
+        }
+
         // Ambil template aktif dari database
         $activeTemplate = CertificateTemplate::where('is_active', true)->first();
 
@@ -354,6 +373,8 @@ class SertifikatController extends Controller
             'participant_name' => $user ? $user->name : '',
             'internship_duration' => $durationLabel,
             'page1Background' => $page1Background,
+            'result' => $result,
+            'date_signed' => $dateSigned,
         ];
 
         // Generate PDF dengan enable image rendering
@@ -397,7 +418,7 @@ class SertifikatController extends Controller
                 }
 
                 $logbookCompletion = $this->calculateLogbookCompletion($profileId);
-                
+
                 if ($logbookCompletion < 80 && !$forceGenerate) {
                     $requiresConfirmation[] = $profileId;
                     continue;
@@ -406,11 +427,11 @@ class SertifikatController extends Controller
                 // Generate atau regenerate sertifikat
                 $sertifikat = $profile->sertifikat ?: new Sertifikat();
                 $sertifikat->peserta_profile_id = $profileId;
-                
+
                 if (!$sertifikat->exists) {
                     $sertifikat->nomor_sertifikat = Sertifikat::generateNomorSertifikat();
                 }
-                
+
                 $sertifikat->tanggal_terbit = now()->toDateString();
                 $sertifikat->is_published = false;
                 $sertifikat->approval_status = 'pending';

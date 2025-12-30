@@ -102,11 +102,8 @@ export default function PenilaianSertifikat() {
     const [selected, setSelected] = useState<number[]>([]);
     const [page1Template, setPage1Template] = useState<File | null>(null);
     const [templateName, setTemplateName] = useState<string>('');
-    const prefix =
-        typeof window !== 'undefined' &&
-        window.location.pathname.startsWith('/pic')
-            ? '/pic'
-            : '/admin';
+    const role = (props.auth.user as any).role as string | undefined;
+    const prefix = role === 'pic' ? '/pic' : '/admin';
 
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState('');

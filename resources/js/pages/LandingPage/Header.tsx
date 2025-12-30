@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { GraduationCap, Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import logoImage from '../../../../public/logoDindik.svg';
 
 type AuthProps = {
     auth?: {
@@ -67,7 +68,11 @@ const Header = () => {
 
                         <div className="flex items-center gap-3">
                             <div className="rounded-full bg-red-100 p-2">
-                                <GraduationCap className="h-8 w-8 text-red-600" />
+                                <img
+                                    src={logoImage}
+                                    alt="Dinas Pendidikan Banyumas"
+                                    className="h-[40px] w-full rounded-xl object-cover md:h-[40px]"
+                                />
                             </div>
                             <div>
                                 <h1 className="text-lg font-semibold">

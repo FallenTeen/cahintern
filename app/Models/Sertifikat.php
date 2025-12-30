@@ -19,16 +19,26 @@ class Sertifikat extends Model
         'file_path',
         'qr_code',
         'is_published',
+        'approval_status',
+        'approved_at',
+        'approved_by',
     ];
 
     protected $casts = [
         'tanggal_terbit' => 'date',
         'is_published' => 'boolean',
+        'approved_at' => 'datetime',
+        'approval_status' => 'string',
     ];
 
     public function pesertaProfile()
     {
         return $this->belongsTo(PesertaProfile::class);
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function getFile(): ?string
@@ -41,18 +51,23 @@ class Sertifikat extends Model
         $year = date('Y');
         $month = date('m');
 
-        $lastCertificate = self::whereYear('tanggal_terbit', $year)
+        $existingNumbers = self::whereYear('tanggal_terbit', $year)
             ->whereMonth('tanggal_terbit', $month)
-            ->orderBy('id', 'desc')
-            ->first();
+            ->where('nomor_sertifikat', 'like', '%/CERT-MAGANG/%')
+            ->pluck('nomor_sertifikat');
 
-        $sequence = 1;
-        if ($lastCertificate && $lastCertificate->nomor_sertifikat) {
-            $parts = explode('/', $lastCertificate->nomor_sertifikat);
-            if (count($parts) >= 2) {
-                $sequence = intval($parts[0]) + 1;
+        $maxSequence = 0;
+
+        foreach ($existingNumbers as $nomor) {
+            if (preg_match('/^(\d{1,3})\/CERT-MAGANG\//', $nomor, $matches)) {
+                $seq = (int) $matches[1];
+                if ($seq > $maxSequence) {
+                    $maxSequence = $seq;
+                }
             }
         }
+
+        $sequence = $maxSequence + 1;
 
         return sprintf('%03d/CERT-MAGANG/%s/%s', $sequence, $month, $year);
     }
@@ -109,7 +124,12 @@ class Sertifikat extends Model
 
     public function approve(User $approver): bool
     {
-        $this->update(['is_published' => true]);
+        $this->update([
+            'is_published' => true,
+            'approval_status' => 'approved',
+            'approved_at' => now(),
+            'approved_by' => $approver->id,
+        ]);
 
         Notifikasi::create([
             'user_id' => $this->pesertaProfile->user_id,
@@ -122,9 +142,44 @@ class Sertifikat extends Model
         return true;
     }
 
+    public function reject(User $rejector, string $reason = ''): bool
+    {
+        $this->update([
+            'is_published' => false,
+            'approval_status' => 'rejected',
+            'approved_at' => now(),
+            'approved_by' => $rejector->id,
+        ]);
+
+        Notifikasi::create([
+            'user_id' => $this->pesertaProfile->user_id,
+            'judul' => 'Sertifikat Ditolak',
+            'pesan' => "Sertifikat magang Anda dengan nomor {$this->nomor_sertifikat} telah ditolak. Alasan: {$reason}",
+            'tipe' => 'error',
+            'dibaca' => false,
+        ]);
+
+        return true;
+    }
+
     public function scopePublished($query)
     {
         return $query->where('is_published', true);
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', 'approved');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('approval_status', 'pending');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('approval_status', 'rejected');
     }
 
     public function scopeByYear($query, $year)

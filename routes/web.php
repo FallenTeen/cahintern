@@ -49,6 +49,10 @@ Route::get('/waitingroom-pendaftaran', fn() => redirect()->route('pendaftaran.tu
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['bukancalonpeserta'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        
+        // Sertifikat untuk user biasa (peserta)
+        Route::get('/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat');
+        Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
     });
 });
 
@@ -169,6 +173,15 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
         Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
         Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');
+        Route::post('/sertifikat/template', [SertifikatController::class, 'uploadTemplate'])->name('sertifikat.uploadTemplate');
+        Route::get('/sertifikat/template/preview', [SertifikatController::class, 'previewTemplate'])->name('sertifikat.previewTemplate');
+        Route::get('/sertifikat/template/active', [SertifikatController::class, 'getActiveTemplate'])->name('sertifikat.activeTemplate');
+        Route::post('/sertifikat/batch-generate', [SertifikatController::class, 'generateBatch'])->name('sertifikat.batchGenerate');
+        Route::post('/penilaian/{penilaian}/generate-sertifikat', [SertifikatController::class, 'generateFromPenilaian'])->name('penilaian.generateSertifikat');
+        
+        // Approval sertifikat
+        Route::post('/sertifikat/{sertifikat}/approve', [SertifikatController::class, 'approveCertificate'])->name('sertifikat.approve');
+        Route::post('/sertifikat/batch-approve', [SertifikatController::class, 'approveBatch'])->name('sertifikat.batchApprove');
     });
 
 /*
@@ -192,6 +205,12 @@ Route::middleware(['auth', 'role:pic'])
         Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
         Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
         Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');
+        Route::post('/sertifikat/batch-generate', [SertifikatController::class, 'generateBatch'])->name('sertifikat.batchGenerate');
+        Route::post('/penilaian/{penilaian}/generate-sertifikat', [SertifikatController::class, 'generateFromPenilaian'])->name('penilaian.generateSertifikat');
+        
+        // Approval sertifikat untuk PIC
+        Route::post('/sertifikat/{sertifikat}/approve', [SertifikatController::class, 'approveCertificate'])->name('sertifikat.approve');
+        Route::post('/sertifikat/batch-approve', [SertifikatController::class, 'approveBatch'])->name('sertifikat.batchApprove');
     });
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

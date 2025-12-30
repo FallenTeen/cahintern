@@ -18,7 +18,6 @@ import {
     dataPIC,
     absenMahasiswa,
     logbookMahasiswa,
-    penilaianDanSertifikat,
     pengumumanKonten,
     logBook,
     absensi,
@@ -81,7 +80,7 @@ const adminNavItems: NavItem[] = [
     },
     {
         title: 'Penilaian & Sertifikat',
-        href: penilaianDanSertifikat(),
+        href: '/admin/sertifikat',
         icon: NotebookPen,
     },
     {

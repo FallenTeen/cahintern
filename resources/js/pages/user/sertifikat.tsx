@@ -4,16 +4,55 @@ import { Progress } from '@/components/ui/progress';
 import AppLayout from '@/layouts/app-layout';
 import { sertifikat } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { HardDriveDownload, Info, Mail, Phone } from 'lucide-react';
 
-export default function Sertifikat() {
-    const progress = 80;
+interface SertifikatData {
+    id: number;
+    nomor_sertifikat: string;
+    tanggal_terbit: string;
+    file_path: string;
+    approval_status: 'pending' | 'approved' | 'rejected';
+}
 
-    const certificateAvailable = false;
+interface Props {
+    sertifikat: SertifikatData | null;
+    progress: number;
+    total_hari: number;
+    hari_selesai: number;
+}
+
+export default function Sertifikat() {
+    const { sertifikat: sertifikatData, progress, total_hari, hari_selesai } = usePage<Props>().props;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Sertifikat', href: sertifikat().url },
     ];
+
+    const getApprovalStatusText = (status: string) => {
+        switch (status) {
+            case 'approved':
+                return 'Sertifikat telah disetujui';
+            case 'rejected':
+                return 'Sertifikat ditolak';
+            case 'pending':
+                return 'Sertifikat menunggu persetujuan admin';
+            default:
+                return 'Sertifikat belum tersedia';
+        }
+    };
+
+    const getApprovalStatusColor = (status: string) => {
+        switch (status) {
+            case 'approved':
+                return 'text-green-600';
+            case 'rejected':
+                return 'text-red-600';
+            case 'pending':
+                return 'text-yellow-600';
+            default:
+                return 'text-gray-600';
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -24,7 +63,7 @@ export default function Sertifikat() {
                     Lihat dan unduh sertifikat setelah program magang selesai
                 </p>
 
-                {certificateAvailable ? (
+                {sertifikatData && sertifikatData.approval_status === 'approved' ? (
                     <Card className="w-full rounded-2xl border shadow-sm">
                         <CardContent className="flex flex-col items-center gap-6 py-10 text-center">
                             <img
@@ -32,9 +71,19 @@ export default function Sertifikat() {
                                 alt="Certificate"
                                 className="w-full max-w-3xl rounded-lg shadow-md"
                             />
-
-                            <Button className="rounded-full bg-red-600 px-8 py-2 text-white hover:bg-red-700">
-                                Download
+                            <div className="space-y-2">
+                                <p className="text-sm text-gray-600">Nomor Sertifikat: {sertifikatData.nomor_sertifikat}</p>
+                                <p className="text-sm text-gray-600">Tanggal Terbit: {new Date(sertifikatData.tanggal_terbit).toLocaleDateString('id-ID')}</p>
+                                <p className={`text-sm font-medium ${getApprovalStatusColor(sertifikatData.approval_status)}`}>
+                                    {getApprovalStatusText(sertifikatData.approval_status)}
+                                </p>
+                            </div>
+                            <Button 
+                                className="rounded-full bg-red-600 px-8 py-2 text-white hover:bg-red-700"
+                                onClick={() => window.open(`/sertifikat/${sertifikatData.id}/download`, '_blank')}
+                            >
+                                <HardDriveDownload className="mr-2 h-4 w-4" />
+                                Download Sertifikat
                             </Button>
                         </CardContent>
                     </Card>
@@ -50,9 +99,8 @@ export default function Sertifikat() {
                             <h2 className="text-xl font-semibold">
                                 Sertifikat Belum Tersedia
                             </h2>
-                            <p className="max-w-md text-gray-500">
-                                Sertifikat akan diterbitkan setelah kamu
-                                menyelesaikan seluruh periode magang.
+                            <p className={`text-sm font-medium ${sertifikatData ? getApprovalStatusColor(sertifikatData.approval_status) : 'text-gray-600'}`}>
+                                {sertifikatData ? getApprovalStatusText(sertifikatData.approval_status) : 'Sertifikat akan diterbitkan setelah kamu menyelesaikan seluruh periode magang.'}
                             </p>
 
                             <div className="mt-3 w-full max-w-lg">
@@ -62,7 +110,7 @@ export default function Sertifikat() {
                                 </div>
                                 <Progress value={progress} className="h-3" />
                                 <p className="mt-1 text-sm text-gray-500">
-                                    32 dari 40 hari magang telah diselesaikan
+                                    {hari_selesai} dari {total_hari} hari magang telah diselesaikan
                                 </p>
                             </div>
 

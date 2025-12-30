@@ -1,7 +1,8 @@
 import { home } from '@/routes';
 import { Link } from '@inertiajs/react';
-import { Award, ChartLine, GraduationCap, Users } from 'lucide-react';
+import { Award, ChartLine, Users } from 'lucide-react';
 import { type PropsWithChildren } from 'react';
+import logoImage from '../../../../public/logoDindik.svg';
 
 interface AuthLayoutProps {
     title?: string;
@@ -22,12 +23,12 @@ export default function AuthSplitLayout({
 
                 {/* Header logo */}
                 <div className="relative z-10 flex items-center gap-3 p-10">
-                    <Link
-                        href={home()}
-                        className="rounded-full bg-white/20 p-3 shadow-md"
-                        aria-label="Home"
-                    >
-                        <GraduationCap className="h-10 w-10 text-white" />
+                    <Link href={home()} aria-label="Home">
+                        <img
+                            src={logoImage}
+                            alt="Dinas Pendidikan Banyumas"
+                            className="h-[70px] w-full rounded-xl object-cover md:h-[70px]"
+                        />
                     </Link>
                     <div>
                         <h1 className="text-2xl font-bold tracking-wide text-white">

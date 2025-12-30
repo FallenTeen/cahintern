@@ -194,7 +194,7 @@ class SertifikatController extends Controller
         }
 
         $data = [
-            'certificate_number' => '000/CERT-MAGANG/01/2025',
+            'certificate_number' => '001/PKL-DISDIK-BMS/XII/2025',
             'participant_name' => 'Lorem Ipsum Dolor Sit Amet',
             'internship_duration' => 'Januari 2025 - Maret 2025 (3 Bulan)',
             'page1Background' => $page1Background,
@@ -202,11 +202,7 @@ class SertifikatController extends Controller
             'date_signed' => now()->translatedFormat('d F Y'),
         ];
 
-        $pdf = Pdf::loadView('certificates.certificate', $data)
-            ->setPaper('a4', 'landscape')
-            ->setOption('isRemoteEnabled', true)
-            ->setOption('isHtml5ParserEnabled', true)
-            ->setOption('enable_php', true);
+        $pdf = $this->buildCertificatePdf($data);
 
         return $pdf->stream('preview-sertifikat.pdf');
     }
@@ -271,6 +267,24 @@ class SertifikatController extends Controller
         return response()->download($fullPath, basename($fullPath));
     }
 
+    public function previewCertificate(Sertifikat $sertifikat)
+    {
+        $path = $sertifikat->file_path;
+        if (!$path) {
+            return redirect()->back()->with('error', 'Sertifikat belum digenerate.');
+        }
+
+        $fullPath = storage_path('app/public/' . $path);
+        if (!file_exists($fullPath)) {
+            return redirect()->back()->with('error', 'File sertifikat tidak ditemukan.');
+        }
+
+        return response()->file($fullPath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"',
+        ]);
+    }
+
     public function regenerate(Request $request, Sertifikat $sertifikat)
     {
         $sertifikat->nomor_sertifikat = Sertifikat::generateNomorSertifikat();
@@ -283,6 +297,17 @@ class SertifikatController extends Controller
         $this->generateCertificatePdf($sertifikat);
 
         return redirect()->back()->with('success', 'Sertifikat berhasil diregenerasi dan menunggu persetujuan.');
+    }
+
+    public function destroy(Sertifikat $sertifikat)
+    {
+        if ($sertifikat->file_path) {
+            Storage::disk('public')->delete($sertifikat->file_path);
+        }
+
+        $sertifikat->delete();
+
+        return redirect()->back()->with('success', 'Sertifikat berhasil dihapus. Anda dapat generate ulang dari penilaian.');
     }
 
     public function validateCertificate(Request $request, Sertifikat $sertifikat)
@@ -378,14 +403,19 @@ class SertifikatController extends Controller
         ];
 
         // Generate PDF dengan enable image rendering
-        $pdf = Pdf::loadView('certificates.certificate', $data)
+        $pdf = $this->buildCertificatePdf($data);
+
+        Storage::disk('public')->put($sertifikat->file_path, $pdf->output());
+    }
+
+    protected function buildCertificatePdf(array $data)
+    {
+        return Pdf::loadView('certificates.certificate', $data)
             ->setPaper('a4', 'landscape')
             ->setOption('isRemoteEnabled', true)
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('enable_php', true)
             ->setOption('dpi', 150);
-
-        Storage::disk('public')->put($sertifikat->file_path, $pdf->output());
     }
 
     public function getActiveTemplate()

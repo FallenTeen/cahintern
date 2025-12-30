@@ -172,6 +172,7 @@ Route::middleware(['auth', 'role:admin'])
         // Sertifikat Admin
         Route::get('/sertifikat', [SertifikatController::class, 'adminIndex'])->name('sertifikat.index');
         Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
+        Route::get('/sertifikat/{sertifikat}/preview', [SertifikatController::class, 'previewCertificate'])->name('sertifikat.preview');
         Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
         Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');
         Route::post('/sertifikat/template', [SertifikatController::class, 'uploadTemplate'])->name('sertifikat.uploadTemplate');
@@ -183,6 +184,7 @@ Route::middleware(['auth', 'role:admin'])
         // Approval sertifikat
         Route::post('/sertifikat/{sertifikat}/approve', [SertifikatController::class, 'approveCertificate'])->name('sertifikat.approve');
         Route::post('/sertifikat/batch-approve', [SertifikatController::class, 'approveBatch'])->name('sertifikat.batchApprove');
+        Route::delete('/sertifikat/{sertifikat}', [SertifikatController::class, 'destroy'])->name('sertifikat.destroy');
     });
 
 /*
@@ -204,6 +206,7 @@ Route::middleware(['auth', 'role:pic'])
         // Sertifikat PIC
         Route::get('/sertifikat', [SertifikatController::class, 'picIndex'])->name('sertifikat.index');
         Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
+        Route::get('/sertifikat/{sertifikat}/preview', [SertifikatController::class, 'previewCertificate'])->name('sertifikat.preview');
         Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
         Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');
         Route::post('/sertifikat/batch-generate', [SertifikatController::class, 'generateBatch'])->name('sertifikat.batchGenerate');
@@ -212,6 +215,7 @@ Route::middleware(['auth', 'role:pic'])
         // Approval sertifikat untuk PIC
         Route::post('/sertifikat/{sertifikat}/approve', [SertifikatController::class, 'approveCertificate'])->name('sertifikat.approve');
         Route::post('/sertifikat/batch-approve', [SertifikatController::class, 'approveBatch'])->name('sertifikat.batchApprove');
+        Route::delete('/sertifikat/{sertifikat}', [SertifikatController::class, 'destroy'])->name('sertifikat.destroy');
     });
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

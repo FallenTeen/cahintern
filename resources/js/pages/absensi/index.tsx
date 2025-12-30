@@ -73,7 +73,7 @@ type Props = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Absensi Mahasiswa', href: absenMahasiswa().url },
+    { title: 'Absensi Peserta', href: absenMahasiswa().url },
 ];
 
 export default function AbsensiMahasiswa() {
@@ -218,12 +218,12 @@ export default function AbsensiMahasiswa() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Absensi Mahasiswa" />
+            <Head title="Absensi Peserta" />
 
             <div className="space-y-6 p-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-semibold">
-                        Absensi Mahasiswa
+                        Absensi Peserta
                     </h1>
                     <div className="flex items-center gap-3">
                         <Button
@@ -493,7 +493,7 @@ export default function AbsensiMahasiswa() {
                                     <TableHeader className="bg-gray-50/50">
                                         <TableRow className="hover:bg-transparent">
                                             <TableHead className="text-center font-semibold text-gray-900">
-                                                Nama Mahasiswa
+                                                Nama Peserta
                                             </TableHead>
                                             <TableHead className="text-center font-semibold text-gray-900">
                                                 Tanggal

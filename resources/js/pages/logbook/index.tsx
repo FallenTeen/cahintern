@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -81,7 +80,7 @@ type Props = {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Logbook Mahasiswa', href: logbookMahasiswa().url },
+    { title: 'Logbook Peserta', href: logbookMahasiswa().url },
 ];
 
 export default function LogbookMahasiswa() {
@@ -191,39 +190,112 @@ export default function LogbookMahasiswa() {
 
     const handlePagination = (url: string | null) => {
         if (url) {
-            router.get(url, {
-                status: statusFilter === 'Semua' ? undefined : statusFilter,
-                start,
-                end,
-                q: query,
-            }, { preserveState: true, preserveScroll: true });
+            router.get(
+                url,
+                {
+                    status: statusFilter === 'Semua' ? undefined : statusFilter,
+                    start,
+                    end,
+                    q: query,
+                },
+                { preserveState: true, preserveScroll: true },
+            );
         }
     };
 
-    // ... (Fungsi handleVerifikasi, handleTolak, handleRevisi SAMA seperti sebelumnya)
-    // Saya persingkat di sini agar fokus pada perubahan layout
-    const handleVerifikasi = (logbookId: number) => { /* logic sama */ };
-    const handleTolak = (logbookId: number) => { /* logic sama */ };
-    const handleRevisi = (logbookId: number) => { /* logic sama */ };
+    const handleVerifikasi = (_logbookId: number) => {
+        Swal.fire({
+            title: 'Setujui Logbook?',
+            text: 'Apakah Anda yakin ingin menyetujui logbook ini?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Setujui',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(`/logbook/${_logbookId}/approve`);
+            }
+        });
+    };
+
+    const handleTolak = (_logbookId: number) => {
+        Swal.fire({
+            title: 'Tolak Logbook',
+            input: 'textarea',
+            inputLabel: 'Catatan Pembimbing',
+            inputPlaceholder: 'Masukkan alasan penolakan...',
+            inputAttributes: {
+                required: 'true',
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Tolak',
+            cancelButtonText: 'Batal',
+            icon: 'warning',
+            preConfirm: (value) => {
+                if (!value || value.trim().length < 5) {
+                    Swal.showValidationMessage(
+                        'Catatan pembimbing wajib diisi (min. 5 karakter)',
+                    );
+                }
+                return value;
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(`/logbook/${_logbookId}/reject`, {
+                    catatan_pembimbing: result.value,
+                });
+            }
+        });
+    };
+
+    const handleRevisi = (_logbookId: number) => {
+        Swal.fire({
+            title: 'Revisi Logbook',
+            input: 'textarea',
+            inputLabel: 'Catatan Pembimbing',
+            inputPlaceholder: 'Masukkan catatan revisi...',
+            inputAttributes: {
+                required: 'true',
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Kirim Revisi',
+            cancelButtonText: 'Batal',
+            icon: 'info',
+            preConfirm: (value) => {
+                if (!value || value.trim().length < 5) {
+                    Swal.showValidationMessage(
+                        'Catatan pembimbing wajib diisi (min. 5 karakter)',
+                    );
+                }
+                return value;
+            },
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(`/logbook/${_logbookId}/revision`, {
+                    catatan_pembimbing: result.value,
+                });
+            }
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Logbook Mahasiswa" />
+            <Head title="Logbook Peserta" />
 
             <div className="space-y-6 p-4 md:p-6">
                 <div>
                     <h1 className="text-xl font-semibold md:text-2xl">
-                        Logbook Mahasiswa
+                        Logbook Peserta
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Lihat dan validasi logbook harian mahasiswa
+                        Lihat dan validasi logbook harian peserta
                     </p>
                 </div>
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
                     <Card>
-                        <CardHeader className="pb-2 p-4">
+                        <CardHeader className="p-4 pb-2">
                             <CardTitle className="text-xs font-medium md:text-sm">
                                 Menunggu Validasi
                             </CardTitle>
@@ -233,7 +305,7 @@ export default function LogbookMahasiswa() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="pb-2 p-4">
+                        <CardHeader className="p-4 pb-2">
                             <CardTitle className="text-xs font-medium md:text-sm">
                                 Sudah Divalidasi
                             </CardTitle>
@@ -246,7 +318,7 @@ export default function LogbookMahasiswa() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="pb-2 p-4">
+                        <CardHeader className="p-4 pb-2">
                             <CardTitle className="text-xs font-medium md:text-sm">
                                 Diminta Revisi
                             </CardTitle>
@@ -256,7 +328,7 @@ export default function LogbookMahasiswa() {
                         </CardContent>
                     </Card>
                     <Card>
-                        <CardHeader className="pb-2 p-4">
+                        <CardHeader className="p-4 pb-2">
                             <CardTitle className="text-xs font-medium md:text-sm">
                                 Ditolak
                             </CardTitle>
@@ -304,16 +376,28 @@ export default function LogbookMahasiswa() {
                                 <Tabs
                                     value={statusFilter}
                                     onValueChange={(value) =>
-                                        setStatusFilter(value as Status | 'Semua')
+                                        setStatusFilter(
+                                            value as Status | 'Semua',
+                                        )
                                     }
                                     className="w-full"
                                 >
                                     <TabsList className="w-full justify-start md:w-auto">
-                                        <TabsTrigger value="Semua">Semua</TabsTrigger>
-                                        <TabsTrigger value="pending">Menunggu</TabsTrigger>
-                                        <TabsTrigger value="disetujui">Valid</TabsTrigger>
-                                        <TabsTrigger value="revision">Revisi</TabsTrigger>
-                                        <TabsTrigger value="ditolak">Ditolak</TabsTrigger>
+                                        <TabsTrigger value="Semua">
+                                            Semua
+                                        </TabsTrigger>
+                                        <TabsTrigger value="pending">
+                                            Menunggu
+                                        </TabsTrigger>
+                                        <TabsTrigger value="disetujui">
+                                            Valid
+                                        </TabsTrigger>
+                                        <TabsTrigger value="revision">
+                                            Revisi
+                                        </TabsTrigger>
+                                        <TabsTrigger value="ditolak">
+                                            Ditolak
+                                        </TabsTrigger>
                                     </TabsList>
                                 </Tabs>
                             </div>
@@ -323,7 +407,9 @@ export default function LogbookMahasiswa() {
                                     <Input
                                         type="date"
                                         value={start}
-                                        onChange={(e) => setStart(e.target.value)}
+                                        onChange={(e) =>
+                                            setStart(e.target.value)
+                                        }
                                         className="w-full md:w-auto"
                                     />
                                     <Input
@@ -339,7 +425,10 @@ export default function LogbookMahasiswa() {
                                         className="flex-1 md:flex-none"
                                         onClick={() =>
                                             router.get('/logbook', {
-                                                status: statusFilter === 'Semua' ? undefined : statusFilter,
+                                                status:
+                                                    statusFilter === 'Semua'
+                                                        ? undefined
+                                                        : statusFilter,
                                                 start,
                                                 end,
                                             })
@@ -375,15 +464,16 @@ export default function LogbookMahasiswa() {
                 {/* Content Area */}
                 {sorted.length === 0 ? (
                     /* EMPTY STATE */
-                    <Card className="flex flex-col items-center justify-center py-12 text-center border-dashed">
-                        <div className="rounded-full bg-muted p-4 mb-4">
+                    <Card className="flex flex-col items-center justify-center border-dashed py-12 text-center">
+                        <div className="mb-4 rounded-full bg-muted p-4">
                             <FileText className="h-8 w-8 text-muted-foreground" />
                         </div>
                         <h3 className="text-lg font-semibold text-foreground">
                             Belum ada data absensi/logbook
                         </h3>
-                        <p className="text-sm text-muted-foreground max-w-sm mt-1">
-                            Data logbook tidak ditemukan untuk filter atau pencarian saat ini.
+                        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                            Data logbook tidak ditemukan untuk filter atau
+                            pencarian saat ini.
                         </p>
                     </Card>
                 ) : (
@@ -396,37 +486,59 @@ export default function LogbookMahasiswa() {
                                         <TableHeader className="bg-gray-100/50">
                                             <TableRow>
                                                 <TableHead
-                                                    className="cursor-pointer hover:bg-muted/50 w-[200px]"
-                                                    onClick={() => toggleSort('nama')}
+                                                    className="w-[200px] cursor-pointer hover:bg-muted/50"
+                                                    onClick={() =>
+                                                        toggleSort('nama')
+                                                    }
                                                 >
-                                                    Nama Mahasiswa <SortIcon field="nama" />
+                                                    Nama Peserta{' '}
+                                                    <SortIcon field="nama" />
                                                 </TableHead>
 
                                                 <TableHead
-                                                    className="cursor-pointer hover:bg-muted/50 w-[150px]"
-                                                    onClick={() => toggleSort('tanggal')}
+                                                    className="w-[150px] cursor-pointer hover:bg-muted/50"
+                                                    onClick={() =>
+                                                        toggleSort('tanggal')
+                                                    }
                                                 >
-                                                    Tanggal <SortIcon field="tanggal" />
+                                                    Tanggal{' '}
+                                                    <SortIcon field="tanggal" />
                                                 </TableHead>
-                                                <TableHead className="w-[100px]">Durasi</TableHead>
-                                                <TableHead className="min-w-[200px]">Deskripsi Singkat</TableHead>
+                                                <TableHead className="w-[100px]">
+                                                    Durasi
+                                                </TableHead>
+                                                <TableHead className="min-w-[200px]">
+                                                    Deskripsi Singkat
+                                                </TableHead>
                                                 <TableHead
-                                                    className="cursor-pointer hover:bg-muted/50 text-center w-[150px]"
-                                                    onClick={() => toggleSort('status')}
+                                                    className="w-[150px] cursor-pointer text-center hover:bg-muted/50"
+                                                    onClick={() =>
+                                                        toggleSort('status')
+                                                    }
                                                 >
-                                                    Status <SortIcon field="status" />
+                                                    Status{' '}
+                                                    <SortIcon field="status" />
                                                 </TableHead>
-                                                <TableHead className="text-center w-[180px]">Aksi</TableHead>
+                                                <TableHead className="w-[180px] text-center">
+                                                    Aksi
+                                                </TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {sorted.map((d) => (
-                                                <TableRow key={d.id} className="hover:bg-muted/50">
+                                                <TableRow
+                                                    key={d.id}
+                                                    className="hover:bg-muted/50"
+                                                >
                                                     <TableCell className="font-medium">
                                                         {d.nama_peserta}
                                                     </TableCell>
-                                                    <TableCell>{d.tanggal}</TableCell>
-                                                    <TableCell>{d.durasi}</TableCell>
+                                                    <TableCell>
+                                                        {d.tanggal}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {d.durasi}
+                                                    </TableCell>
                                                     <TableCell className="max-w-[200px] truncate md:whitespace-normal">
                                                         {d.deskripsi
                                                             ? `${d.deskripsi.slice(0, 60)}${d.deskripsi.length > 60 ? '...' : ''}`
@@ -434,7 +546,9 @@ export default function LogbookMahasiswa() {
                                                     </TableCell>
                                                     <TableCell className="text-center">
                                                         <div className="flex justify-center">
-                                                            {statusVariant(d.status_label)}
+                                                            {statusVariant(
+                                                                d.status_label,
+                                                            )}
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
@@ -443,18 +557,51 @@ export default function LogbookMahasiswa() {
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 className="h-8 w-8"
-                                                                onClick={() => router.visit(`/logbook/mahasiswa/${d.peserta_profile_id}`)}
+                                                                onClick={() =>
+                                                                    router.visit(
+                                                                        `/logbook/mahasiswa/${d.peserta_profile_id}`,
+                                                                    )
+                                                                }
                                                             >
                                                                 <Eye className="h-4 w-4 text-blue-500" />
                                                             </Button>
-                                                            
-                                                            {d.status === 'pending' && (
+
+                                                            {d.status ===
+                                                                'pending' && (
                                                                 <>
-                                                                    <Button size="sm" variant="outline" className="h-8 px-2 text-xs" onClick={() => handleVerifikasi(d.id)}>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        className="h-8 bg-green-500 px-2 text-xs text-white hover:bg-green-600"
+                                                                        onClick={() =>
+                                                                            handleVerifikasi(
+                                                                                d.id,
+                                                                            )
+                                                                        }
+                                                                    >
                                                                         Setuju
                                                                     </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        className="h-8 bg-yellow-500 px-2 text-xs text-white hover:bg-yellow-600"
+                                                                        onClick={() =>
+                                                                            handleRevisi(
+                                                                                d.id,
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        Revisi
+                                                                    </Button>
                                                                     {/* Tombol Tolak/Revisi bisa dijadikan dropdown jika terlalu sempit di HP */}
-                                                                    <Button size="sm" variant="destructive" className="h-8 px-2 text-xs" onClick={() => handleTolak(d.id)}>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="destructive"
+                                                                        className="h-8 px-2 text-xs"
+                                                                        onClick={() =>
+                                                                            handleTolak(
+                                                                                d.id,
+                                                                            )
+                                                                        }
+                                                                    >
                                                                         Tolak
                                                                     </Button>
                                                                 </>
@@ -489,7 +636,11 @@ export default function LogbookMahasiswa() {
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => handleViewLogbook(group.peserta_profile_id)}
+                                                    onClick={() =>
+                                                        handleViewLogbook(
+                                                            group.peserta_profile_id,
+                                                        )
+                                                    }
                                                 >
                                                     Lihat Detail
                                                 </Button>
@@ -499,50 +650,88 @@ export default function LogbookMahasiswa() {
                                             <div className="mb-4 grid grid-cols-2 gap-2 md:grid-cols-5 md:gap-4">
                                                 {/* Stats Cards - Simplified for mobile */}
                                                 <div className="col-span-2 rounded-lg bg-muted p-2 text-center md:col-span-1">
-                                                    <p className="text-xl font-bold">{group.total_logbook}</p>
-                                                    <p className="text-[10px] text-muted-foreground uppercase">Total</p>
+                                                    <p className="text-xl font-bold">
+                                                        {group.total_logbook}
+                                                    </p>
+                                                    <p className="text-[10px] text-muted-foreground uppercase">
+                                                        Total
+                                                    </p>
                                                 </div>
                                                 <div className="rounded-lg bg-yellow-50 p-2 text-center">
-                                                    <p className="text-xl font-bold text-yellow-600">{group.pending}</p>
-                                                    <p className="text-[10px] text-muted-foreground uppercase">Pending</p>
+                                                    <p className="text-xl font-bold text-yellow-600">
+                                                        {group.pending}
+                                                    </p>
+                                                    <p className="text-[10px] text-muted-foreground uppercase">
+                                                        Pending
+                                                    </p>
                                                 </div>
                                                 {/* ... other stats ... */}
                                                 <div className="rounded-lg bg-green-50 p-2 text-center">
-                                                    <p className="text-xl font-bold text-green-600">{group.disetujui}</p>
-                                                    <p className="text-[10px] text-muted-foreground uppercase">Valid</p>
+                                                    <p className="text-xl font-bold text-green-600">
+                                                        {group.disetujui}
+                                                    </p>
+                                                    <p className="text-[10px] text-muted-foreground uppercase">
+                                                        Valid
+                                                    </p>
                                                 </div>
                                                 {/* Hidden on very small screens if needed, or keeping grid-cols-2 behavior */}
                                                 <div className="rounded-lg bg-orange-50 p-2 text-center">
-                                                    <p className="text-xl font-bold text-orange-600">{group.revision}</p>
-                                                    <p className="text-[10px] text-muted-foreground uppercase">Revisi</p>
+                                                    <p className="text-xl font-bold text-orange-600">
+                                                        {group.revision}
+                                                    </p>
+                                                    <p className="text-[10px] text-muted-foreground uppercase">
+                                                        Revisi
+                                                    </p>
                                                 </div>
                                                 <div className="rounded-lg bg-red-50 p-2 text-center">
-                                                    <p className="text-xl font-bold text-red-600">{group.ditolak}</p>
-                                                    <p className="text-[10px] text-muted-foreground uppercase">Ditolak</p>
+                                                    <p className="text-xl font-bold text-red-600">
+                                                        {group.ditolak}
+                                                    </p>
+                                                    <p className="text-[10px] text-muted-foreground uppercase">
+                                                        Ditolak
+                                                    </p>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-2">
-                                                <p className="text-sm font-medium">Logbook Terbaru:</p>
-                                                {group.logbooks.slice(0, 3).map((logbook) => (
-                                                    <div
-                                                        key={logbook.id}
-                                                        className="flex cursor-pointer flex-col gap-2 rounded bg-muted/50 p-3 hover:bg-muted md:flex-row md:items-center md:justify-between"
-                                                        onClick={() => handleViewDetail(logbook.id)}
-                                                    >
-                                                        <div className="flex-1">
-                                                            <p className="text-sm font-medium line-clamp-1">
-                                                                {logbook.kegiatan}
-                                                            </p>
-                                                            <p className="text-xs text-muted-foreground">
-                                                                {logbook.tanggal} • {logbook.durasi}
-                                                            </p>
+                                                <p className="text-sm font-medium">
+                                                    Logbook Terbaru:
+                                                </p>
+                                                {group.logbooks
+                                                    .slice(0, 3)
+                                                    .map((logbook) => (
+                                                        <div
+                                                            key={logbook.id}
+                                                            className="flex cursor-pointer flex-col gap-2 rounded bg-muted/50 p-3 hover:bg-muted md:flex-row md:items-center md:justify-between"
+                                                            onClick={() =>
+                                                                handleViewDetail(
+                                                                    logbook.id,
+                                                                )
+                                                            }
+                                                        >
+                                                            <div className="flex-1">
+                                                                <p className="line-clamp-1 text-sm font-medium">
+                                                                    {
+                                                                        logbook.kegiatan
+                                                                    }
+                                                                </p>
+                                                                <p className="text-xs text-muted-foreground">
+                                                                    {
+                                                                        logbook.tanggal
+                                                                    }{' '}
+                                                                    •{' '}
+                                                                    {
+                                                                        logbook.durasi
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                            <div className="self-start md:self-center">
+                                                                {statusVariant(
+                                                                    logbook.status_label,
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                        <div className="self-start md:self-center">
-                                                            {statusVariant(logbook.status_label)}
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -552,31 +741,41 @@ export default function LogbookMahasiswa() {
 
                         {/* PAGINATION SECTION */}
                         {logbookData.total > 10 && (
-                            <div className="flex items-center justify-between border-t pt-4 mt-4">
-                                <div className="text-sm text-muted-foreground hidden md:block">
-                                    Halaman {logbookData.current_page} dari {logbookData.last_page}
+                            <div className="mt-4 flex items-center justify-between border-t pt-4">
+                                <div className="hidden text-sm text-muted-foreground md:block">
+                                    Halaman {logbookData.current_page} dari{' '}
+                                    {logbookData.last_page}
                                 </div>
-                                <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+                                <div className="flex w-full items-center justify-between gap-2 md:w-auto md:justify-end">
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handlePagination(logbookData.prev_page_url)}
+                                        onClick={() =>
+                                            handlePagination(
+                                                logbookData.prev_page_url,
+                                            )
+                                        }
                                         disabled={!logbookData.prev_page_url}
                                     >
-                                        <ChevronLeft className="h-4 w-4 mr-1" />
+                                        <ChevronLeft className="mr-1 h-4 w-4" />
                                         Sebelumnya
                                     </Button>
                                     <span className="text-sm text-muted-foreground md:hidden">
-                                        {logbookData.current_page} / {logbookData.last_page}
+                                        {logbookData.current_page} /{' '}
+                                        {logbookData.last_page}
                                     </span>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handlePagination(logbookData.next_page_url)}
+                                        onClick={() =>
+                                            handlePagination(
+                                                logbookData.next_page_url,
+                                            )
+                                        }
                                         disabled={!logbookData.next_page_url}
                                     >
                                         Selanjutnya
-                                        <ChevronRight className="h-4 w-4 ml-1" />
+                                        <ChevronRight className="ml-1 h-4 w-4" />
                                     </Button>
                                 </div>
                             </div>

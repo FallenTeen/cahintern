@@ -38,7 +38,7 @@ type Props = {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Data PIC',
+        title: 'Kelola Peserta',
         href: dashboard().url,
     },
 ];
@@ -68,22 +68,18 @@ export default function DataPICPage() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Data PIC" />
+            <Head title="Kelola Peserta" />
 
             <div className="flex flex-col gap-6 p-6">
                 <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
                     <div className="space-y-1">
                         <h2 className="text-2xl font-semibold">
-                            Data PIC (Pembimbing Lapangan)
+                            Kelola Peserta
                         </h2>
                         <p className="text-sm text-gray-500 md:text-base">
-                            Kelola data pembimbing lapangan
+                            Kelola data peserta
                         </p>
                     </div>
-                    <Button className="flex items-center gap-2 bg-red-500 text-white hover:bg-red-600">
-                        <Plus size={16} />
-                        Tambah PIC
-                    </Button>
                 </div>
                 <div className="flex flex-col items-center gap-3 sm:flex-row">
                     <div className="relative w-full sm:w-1/2">
@@ -106,7 +102,7 @@ export default function DataPICPage() {
                             <thead className="bg-gray-100 text-gray-700">
                                 <tr>
                                     <th className="p-3 text-left">
-                                        Nama Mahasiswa
+                                        Nama Peserta
                                     </th>
 
                                     <th className="p-3 text-left">NIM/NISN</th>
@@ -115,7 +111,6 @@ export default function DataPICPage() {
                                         Asal Instansi
                                     </th>
                                     <th className="p-3 text-left">Status</th>
-                                    <th className="p-3 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -134,32 +129,19 @@ export default function DataPICPage() {
                                             {pic.asal_instansi}
                                         </td>
                                         <td className="p-3">
-                                            <Badge variant="secondary">
+                                            <Badge
+                                                className={
+                                                    pic.status === 'Menunggu Verifikasi'
+                                                        ? 'bg-yellow-100 text-yellow-900'
+                                                        : pic.status === 'Aktif'
+                                                        ? 'bg-green-100 text-green-900'
+                                                        : pic.status === 'Ditolak'
+                                                        ? 'bg-red-100 text-red-900'
+                                                        : ''
+                                                }
+                                            >
                                                 {pic.status}
                                             </Badge>
-                                        </td>
-                                        <td className="p-3 text-center">
-                                            <div className="flex justify-center gap-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                >
-                                                    <Eye size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                >
-                                                    <Pencil size={16} />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="text-red-500 hover:text-red-600"
-                                                >
-                                                    <Trash size={16} />
-                                                </Button>
-                                            </div>
                                         </td>
                                     </tr>
                                 ))}

@@ -36,9 +36,9 @@ import {
     Megaphone,
     NotebookPen,
     NotebookText,
+    Settings,
     Undo2,
     User,
-    UserCog,
     Users,
 } from 'lucide-react';
 import { useMemo } from 'react';
@@ -59,22 +59,22 @@ const adminNavItems: NavItem[] = [
         icon: FileText,
     },
     {
-        title: 'Data Mahasiswa Aktif',
+        title: 'Data Peserta Aktif',
         href: dataMahasiswaAktif(),
         icon: Users,
     },
     {
-        title: 'Data PIC',
+        title: 'Kelola Akun Peserta',
         href: dataPIC(),
-        icon: User,
+        icon: Settings,
     },
     {
-        title: 'Absensi Mahasiswa',
+        title: 'Absensi Peserta',
         href: absenMahasiswa(),
         icon: Clock,
     },
     {
-        title: 'Logbook Mahasiswa',
+        title: 'Logbook Peserta',
         href: logbookMahasiswa(),
         icon: NotebookText,
     },

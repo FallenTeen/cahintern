@@ -1,8 +1,15 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -18,6 +25,7 @@ import { penilaianDanSertifikat } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
+import { CircleCheckBig, RefreshCw, X } from 'lucide-react';
 
 type Status = 'belum' | 'proses' | 'terbit';
 
@@ -98,7 +106,8 @@ type PageProps = SharedData & Props;
 
 export default function PenilaianSertifikat() {
     const props = usePage<PageProps>().props;
-    const isCertificateView = Boolean(props.sertifikatData) || props.viewMode === 'certificate';
+    const isCertificateView =
+        Boolean(props.sertifikatData) || props.viewMode === 'certificate';
     const [selected, setSelected] = useState<number[]>([]);
     const [page1Template, setPage1Template] = useState<File | null>(null);
     const [templateName, setTemplateName] = useState<string>('');
@@ -112,7 +121,9 @@ export default function PenilaianSertifikat() {
     const [confirmMessage, setConfirmMessage] = useState('');
     const [confirmAction, setConfirmAction] = useState<() => void>(() => {});
     const [pendingGenerateIds, setPendingGenerateIds] = useState<number[]>([]);
-    const [pendingGenerateType, setPendingGenerateType] = useState<'individual' | 'batch'>('individual');
+    const [pendingGenerateType, setPendingGenerateType] = useState<
+        'individual' | 'batch'
+    >('individual');
 
     const { flash } = props;
     const [showFlash, setShowFlash] = useState(false);
@@ -214,8 +225,8 @@ export default function PenilaianSertifikat() {
         }
 
         // Gunakan peserta_profile_id untuk batch generate
-        const profileIds = selected.map(id => {
-            const row = rows.find(r => r.id === id);
+        const profileIds = selected.map((id) => {
+            const row = rows.find((r) => r.id === id);
             return row?.peserta_profile_id || id;
         });
 
@@ -249,51 +260,70 @@ export default function PenilaianSertifikat() {
 
     const batchApprove = (action: 'approve' | 'reject') => {
         if (selected.length === 0) {
-            window.alert('Pilih minimal satu sertifikat untuk di' + (action === 'approve' ? 'setujui' : 'tolak'));
+            window.alert(
+                'Pilih minimal satu sertifikat untuk di' +
+                    (action === 'approve' ? 'setujui' : 'tolak'),
+            );
             return;
         }
 
         // Filter hanya yang has_sertifikat = true
-        const sertifikatIds = selected.filter(id => {
-            const row = rows.find(r => r.id === id);
+        const sertifikatIds = selected.filter((id) => {
+            const row = rows.find((r) => r.id === id);
             return row?.has_sertifikat;
         });
 
         if (sertifikatIds.length === 0) {
-            window.alert('Tidak ada sertifikat yang dapat di' + (action === 'approve' ? 'setujui' : 'tolak'));
+            window.alert(
+                'Tidak ada sertifikat yang dapat di' +
+                    (action === 'approve' ? 'setujui' : 'tolak'),
+            );
             return;
         }
 
-        const confirmMessage = action === 'approve'
-            ? 'Apakah Anda yakin ingin menyetujui sertifikat yang dipilih?'
-            : 'Apakah Anda yakin ingin menolak sertifikat yang dipilih?';
+        const confirmMessage =
+            action === 'approve'
+                ? 'Apakah Anda yakin ingin menyetujui sertifikat yang dipilih?'
+                : 'Apakah Anda yakin ingin menolak sertifikat yang dipilih?';
 
         if (!window.confirm(confirmMessage)) {
             return;
         }
 
-        router.post(`${prefix}/sertifikat/batch-approve`, {
-            sertifikat_ids: sertifikatIds,
-            action: action,
-        }, {
-            onSuccess: () => {
-                setSelected([]);
+        router.post(
+            `${prefix}/sertifikat/batch-approve`,
+            {
+                sertifikat_ids: sertifikatIds,
+                action: action,
             },
-        });
+            {
+                onSuccess: () => {
+                    setSelected([]);
+                },
+            },
+        );
     };
 
     const deleteCertificate = (sertifikatId: number) => {
-        if (!window.confirm('Apakah Anda yakin ingin menghapus sertifikat ini? Sertifikat dapat digenerate ulang dari penilaian.')) {
+        if (
+            !window.confirm(
+                'Apakah Anda yakin ingin menghapus sertifikat ini? Sertifikat dapat digenerate ulang dari penilaian.',
+            )
+        ) {
             return;
         }
 
         router.delete(`${prefix}/sertifikat/${sertifikatId}`);
     };
 
-    const approveCertificate = (sertifikatId: number, action: 'approve' | 'reject') => {
-        const confirmMessage = action === 'approve'
-            ? 'Apakah Anda yakin ingin menyetujui sertifikat ini?'
-            : 'Apakah Anda yakin ingin menolak sertifikat ini?';
+    const approveCertificate = (
+        sertifikatId: number,
+        action: 'approve' | 'reject',
+    ) => {
+        const confirmMessage =
+            action === 'approve'
+                ? 'Apakah Anda yakin ingin menyetujui sertifikat ini?'
+                : 'Apakah Anda yakin ingin menolak sertifikat ini?';
 
         if (!window.confirm(confirmMessage)) {
             return;
@@ -304,13 +334,20 @@ export default function PenilaianSertifikat() {
         });
     };
 
-    const regenerateIndividual = (sertifikatId: number, hasSertifikat: boolean) => {
+    const regenerateIndividual = (
+        sertifikatId: number,
+        hasSertifikat: boolean,
+    ) => {
         if (!hasSertifikat) {
             window.alert('Belum ada sertifikat untuk diregenerasi');
             return;
         }
 
-        if (!window.confirm('Apakah Anda yakin ingin meregenerasi sertifikat ini?')) {
+        if (
+            !window.confirm(
+                'Apakah Anda yakin ingin meregenerasi sertifikat ini?',
+            )
+        ) {
             return;
         }
 
@@ -324,7 +361,8 @@ export default function PenilaianSertifikat() {
 
         const q = query.trim().toLowerCase();
         return rows.filter((d) => {
-            if (statusFilter !== 'Semua' && d.status !== statusFilter) return false;
+            if (statusFilter !== 'Semua' && d.status !== statusFilter)
+                return false;
             if (!q) return true;
             return d.nama_peserta.toLowerCase().includes(q) || false;
         });
@@ -372,10 +410,15 @@ export default function PenilaianSertifikat() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Penilaian & Sertifikat" />
-            <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+            <Dialog
+                open={showConfirmDialog}
+                onOpenChange={setShowConfirmDialog}
+            >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Konfirmasi Generate Sertifikat</DialogTitle>
+                        <DialogTitle>
+                            Konfirmasi Generate Sertifikat
+                        </DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                         <p className="text-sm text-gray-700">
@@ -410,11 +453,13 @@ export default function PenilaianSertifikat() {
             </Dialog>
 
             {showFlash && (
-                <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
-                    flashType === 'success'
-                        ? 'bg-green-500 text-white'
-                        : 'bg-red-500 text-white'
-                }`}>
+                <div
+                    className={`fixed top-4 right-4 z-50 rounded-lg p-4 shadow-lg ${
+                        flashType === 'success'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-red-500 text-white'
+                    }`}
+                >
                     <div className="flex items-center justify-between">
                         <span>{flashMessage}</span>
                         <button
@@ -437,34 +482,6 @@ export default function PenilaianSertifikat() {
                             Kelola penilaian mahasiswa dan penerbitan sertifikat
                         </p>
                     </div>
-                    {isCertificateView && (
-                        <div className="flex gap-2">
-                            <Button
-                                variant="default"
-                                className="bg-purple-600 text-white hover:bg-purple-700"
-                                disabled={selected.length === 0}
-                                onClick={() => batchGenerate()}
-                            >
-                                Generate Batch
-                            </Button>
-                            <Button
-                                variant="default"
-                                className="bg-emerald-600 text-white hover:bg-emerald-700"
-                                disabled={selected.length === 0}
-                                onClick={() => batchApprove('approve')}
-                            >
-                                Approve Batch
-                            </Button>
-                            <Button
-                                variant="default"
-                                className="bg-red-600 text-white hover:bg-red-700"
-                                disabled={selected.length === 0}
-                                onClick={() => batchApprove('reject')}
-                            >
-                                Reject Batch
-                            </Button>
-                        </div>
-                    )}
                 </div>
 
                 {prefix === '/admin' && (
@@ -493,13 +510,18 @@ export default function PenilaianSertifikat() {
                                 {/* Kolom Kiri - Form & Info */}
                                 <div className="flex-1 space-y-4">
                                     <div className="rounded-lg bg-blue-50 p-3 text-sm text-blue-800">
-                                        <p className="font-medium mb-1">Informasi Template</p>
+                                        <p className="mb-1 font-medium">
+                                            Informasi Template
+                                        </p>
                                         <p className="text-xs leading-relaxed">
-                                            Format: PNG/JPG • Ukuran: A4 Landscape (297×210mm) • Resolusi: 300 DPI (3508×2480px)
+                                            Format: PNG/JPG • Ukuran: A4
+                                            Landscape (297×210mm) • Resolusi:
+                                            300 DPI (3508×2480px)
                                         </p>
                                     </div>
 
-                                    {props.activeTemplateUrl || props.activeTemplateName ? (
+                                    {props.activeTemplateUrl ||
+                                    props.activeTemplateName ? (
                                         <div className="space-y-3 rounded-lg border border-green-200 bg-green-50 p-4">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
@@ -520,9 +542,12 @@ export default function PenilaianSertifikat() {
                                                         </svg>
                                                     </div>
                                                     <div>
-                                                        <p className="text-xs font-medium text-green-700">Template Aktif</p>
+                                                        <p className="text-xs font-medium text-green-700">
+                                                            Template Aktif
+                                                        </p>
                                                         <p className="text-sm font-semibold text-green-900">
-                                                            {props.activeTemplateName || 'Tanpa nama'}
+                                                            {props.activeTemplateName ||
+                                                                'Tanpa nama'}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -578,8 +603,14 @@ export default function PenilaianSertifikat() {
                                                     />
                                                 </svg>
                                                 <div>
-                                                    <p className="text-sm font-medium text-yellow-800">Belum ada template</p>
-                                                    <p className="text-xs text-yellow-700">Unggah template untuk mulai generate sertifikat</p>
+                                                    <p className="text-sm font-medium text-yellow-800">
+                                                        Belum ada template
+                                                    </p>
+                                                    <p className="text-xs text-yellow-700">
+                                                        Unggah template untuk
+                                                        mulai generate
+                                                        sertifikat
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
@@ -588,8 +619,10 @@ export default function PenilaianSertifikat() {
                                     <Separator />
 
                                     <div className="space-y-3">
-                                        <h3 className="text-sm font-semibold text-gray-700">Upload Template Baru</h3>
-                                        
+                                        <h3 className="text-sm font-semibold text-gray-700">
+                                            Upload Template Baru
+                                        </h3>
+
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-gray-700">
                                                 Nama Template
@@ -598,7 +631,11 @@ export default function PenilaianSertifikat() {
                                                 type="text"
                                                 placeholder="Contoh: Template Sertifikat 2025"
                                                 value={templateName}
-                                                onChange={(e) => setTemplateName(e.target.value)}
+                                                onChange={(e) =>
+                                                    setTemplateName(
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 className="border-gray-300"
                                             />
                                         </div>
@@ -613,7 +650,9 @@ export default function PenilaianSertifikat() {
                                                     accept="image/png,image/jpeg,image/jpg"
                                                     onChange={(e) =>
                                                         setPage1Template(
-                                                            e.target.files?.[0] ?? null,
+                                                            e.target
+                                                                .files?.[0] ??
+                                                                null,
                                                         )
                                                     }
                                                     className="border-gray-300"
@@ -634,7 +673,9 @@ export default function PenilaianSertifikat() {
                                                                 d="M4.5 12.75l6 6 9-13.5"
                                                             />
                                                         </svg>
-                                                        <span className="font-medium">{page1Template.name}</span>
+                                                        <span className="font-medium">
+                                                            {page1Template.name}
+                                                        </span>
                                                     </div>
                                                 )}
                                             </div>
@@ -643,7 +684,10 @@ export default function PenilaianSertifikat() {
                                         <Button
                                             className="w-full bg-blue-600 text-white hover:bg-blue-700"
                                             onClick={uploadTemplate}
-                                            disabled={!page1Template || !templateName.trim()}
+                                            disabled={
+                                                !page1Template ||
+                                                !templateName.trim()
+                                            }
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -665,15 +709,19 @@ export default function PenilaianSertifikat() {
                                 </div>
 
                                 {/* Kolom Kanan - Preview */}
-                                <div className="lg:w-130 flex-shrink-0">
+                                <div className="flex-shrink-0 lg:w-130">
                                     <div className="sticky top-4 space-y-3">
-                                        <h3 className="text-sm font-semibold text-gray-700">Preview Template</h3>
+                                        <h3 className="text-sm font-semibold text-gray-700">
+                                            Preview Template
+                                        </h3>
                                         {props.activeTemplateUrl ? (
                                             <div className="overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50 shadow-md">
                                                 <img
-                                                    src={props.activeTemplateUrl}
+                                                    src={
+                                                        props.activeTemplateUrl
+                                                    }
                                                     alt="Template preview"
-                                                    className="w-full h-auto"
+                                                    className="h-auto w-full"
                                                     style={{ display: 'block' }}
                                                 />
                                             </div>
@@ -695,7 +743,8 @@ export default function PenilaianSertifikat() {
                                                         />
                                                     </svg>
                                                     <p className="mt-2 text-xs text-gray-500">
-                                                        Preview akan muncul di sini
+                                                        Preview akan muncul di
+                                                        sini
                                                     </p>
                                                 </div>
                                             </div>
@@ -721,7 +770,7 @@ export default function PenilaianSertifikat() {
                             <CardTitle>Sertifikat Terbit</CardTitle>
                         </CardHeader>
                         <CardContent className="text-3xl font-semibold text-green-500">
-                            {rows.filter(r => r.status === 'terbit').length}
+                            {rows.filter((r) => r.status === 'terbit').length}
                         </CardContent>
                     </Card>
                     <Card>
@@ -729,7 +778,13 @@ export default function PenilaianSertifikat() {
                             <CardTitle>Menunggu Approval</CardTitle>
                         </CardHeader>
                         <CardContent className="text-3xl font-semibold text-yellow-600">
-                            {rows.filter(r => r.approval_status === 'pending' && r.has_sertifikat).length}
+                            {
+                                rows.filter(
+                                    (r) =>
+                                        r.approval_status === 'pending' &&
+                                        r.has_sertifikat,
+                                ).length
+                            }
                         </CardContent>
                     </Card>
                 </div>
@@ -742,32 +797,41 @@ export default function PenilaianSertifikat() {
                             onChange={(e) => setQuery(e.target.value)}
                         />
 
-                        <div className="flex flex-wrap gap-2">
-                            {['Semua', 'belum', 'proses', 'terbit'].map(
-                                (status) => (
-                                    <Button
-                                        key={status}
-                                        variant={
-                                            statusFilter === status
-                                                ? 'default'
-                                                : 'outline'
-                                        }
-                                        size="sm"
-                                        onClick={() =>
-                                            setStatusFilter(
-                                                status as Status | 'Semua',
-                                            )
-                                        }
-                                    >
-                                        {status === 'belum'
-                                            ? 'Belum'
-                                            : status === 'proses'
-                                              ? 'Proses'
-                                              : status === 'terbit'
-                                                ? 'Terbit'
-                                                : status}
-                                    </Button>
-                                ),
+                        <div className="flex flex-wrap gap-2 items-center">
+                            <Tabs value={statusFilter} onValueChange={(val) => setStatusFilter(val as Status | 'Semua')}>
+                                <TabsList>
+                                    <TabsTrigger value="Semua">Semua</TabsTrigger>
+                                    <TabsTrigger value="belum">Belum</TabsTrigger>
+                                    <TabsTrigger value="proses">Proses</TabsTrigger>
+                                    <TabsTrigger value="terbit">Terbit</TabsTrigger>
+                                </TabsList>
+                            </Tabs>
+                            {isCertificateView && (
+                                <div className="flex-1 flex justify-end">
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="default"
+                                            disabled={selected.length === 0}
+                                            onClick={() => batchGenerate()}
+                                        >
+                                            <RefreshCw className='text-yellow-500'/>Generate Batch
+                                        </Button>
+                                        <Button
+                                            variant="default"
+                                            disabled={selected.length === 0}
+                                            onClick={() => batchApprove('approve')}
+                                        >
+                                            <CircleCheckBig className='text-green-600'/>Approve Batch
+                                        </Button>
+                                        <Button
+                                            variant="default"
+                                            disabled={selected.length === 0}
+                                            onClick={() => batchApprove('reject')}
+                                        >
+                                            <X className='text-red-600'/>Reject Batch
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
                         </div>
 
@@ -858,18 +922,26 @@ export default function PenilaianSertifikat() {
                                         </TableCell>
                                         {isCertificateView && (
                                             <TableCell>
-                                                <Badge className={
-                                                    (d.logbook_completion || 0) >= 80
-                                                        ? 'bg-green-500 text-white'
-                                                        : 'bg-orange-500 text-white'
-                                                }>
-                                                    {d.logbook_completion?.toFixed(0) || 0}%
+                                                <Badge
+                                                    className={
+                                                        (d.logbook_completion ||
+                                                            0) >= 80
+                                                            ? 'bg-green-500 text-white'
+                                                            : 'bg-orange-500 text-white'
+                                                    }
+                                                >
+                                                    {d.logbook_completion?.toFixed(
+                                                        0,
+                                                    ) || 0}
+                                                    %
                                                 </Badge>
                                             </TableCell>
                                         )}
                                         <TableCell>
                                             <Badge
-                                                className={getStatusBadgeClass(d.status)}
+                                                className={getStatusBadgeClass(
+                                                    d.status,
+                                                )}
                                             >
                                                 {d.status === 'belum'
                                                     ? 'Belum'
@@ -881,22 +953,36 @@ export default function PenilaianSertifikat() {
                                         {isCertificateView && (
                                             <TableCell>
                                                 <Badge
-                                                    className={getApprovalBadgeClass(d.approval_status || 'pending')}
+                                                    className={getApprovalBadgeClass(
+                                                        d.approval_status ||
+                                                            'pending',
+                                                    )}
                                                 >
-                                                    {getApprovalBadgeText(d.approval_status || 'pending')}
+                                                    {getApprovalBadgeText(
+                                                        d.approval_status ||
+                                                            'pending',
+                                                    )}
                                                 </Badge>
                                             </TableCell>
                                         )}
                                         <TableCell className="flex justify-center gap-2">
                                             {isCertificateView ? (
-                                            <>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => regenerateIndividual(d.id, d.has_sertifikat || false)}
-                                                    disabled={!d.has_sertifikat}
-                                                    title="Regenerate"
-                                                >
+                                                <>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            regenerateIndividual(
+                                                                d.id,
+                                                                d.has_sertifikat ||
+                                                                    false,
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            !d.has_sertifikat
+                                                        }
+                                                        title="Regenerate"
+                                                    >
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
                                                             fill="none"
@@ -936,133 +1022,144 @@ export default function PenilaianSertifikat() {
                                                                     strokeLinecap="round"
                                                                     strokeLinejoin="round"
                                                                     d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-                                                            />
-                                                        </svg>
-                                                    </Button>
-                                                )}
-                                                {d.has_sertifikat && d.file_path && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() =>
-                                                            window.open(
-                                                                `${prefix}/sertifikat/${d.id}/preview`,
-                                                                '_blank',
-                                                            )
-                                                        }
-                                                        title="Preview Sertifikat"
-                                                    >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            strokeWidth={2}
-                                                            stroke="currentColor"
-                                                            className="h-5 w-5"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                                                            />
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                            />
-                                                        </svg>
-                                                    </Button>
-                                                )}
-                                                {d.has_sertifikat && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => deleteCertificate(d.id)}
-                                                        title="Hapus Sertifikat"
-                                                    >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            strokeWidth={2}
-                                                            stroke="currentColor"
-                                                            className="h-5 w-5 text-red-600"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                                            />
-                                                        </svg>
-                                                    </Button>
-                                                )}
-                                                {d.has_sertifikat && d.approval_status === 'pending' && (
-                                                    <>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                                onClick={() =>
-                                                                    approveCertificate(
-                                                                        d.id,
-                                                                        'approve',
-                                                                    )
-                                                                }
-                                                                className="text-green-600 hover:text-green-700"
-                                                                title="Approve"
-                                                            >
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    fill="none"
-                                                                    viewBox="0 0 24 24"
-                                                                    strokeWidth={2}
-                                                                    stroke="currentColor"
-                                                                    className="h-5 w-5"
-                                                                >
-                                                                    <path
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                        d="M4.5 12.75l6 6 9-13.5"
-                                                                    />
-                                                                </svg>
-                                                            </Button>
+                                                                />
+                                                            </svg>
+                                                        </Button>
+                                                    )}
+                                                    {d.has_sertifikat &&
+                                                        d.file_path && (
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
                                                                 onClick={() =>
-                                                                    approveCertificate(
-                                                                        d.id,
-                                                                        'reject',
+                                                                    window.open(
+                                                                        `${prefix}/sertifikat/${d.id}/preview`,
+                                                                        '_blank',
                                                                     )
                                                                 }
-                                                                className="text-red-600 hover:text-red-700"
-                                                                title="Reject"
+                                                                title="Preview Sertifikat"
                                                             >
                                                                 <svg
                                                                     xmlns="http://www.w3.org/2000/svg"
                                                                     fill="none"
                                                                     viewBox="0 0 24 24"
-                                                                    strokeWidth={2}
+                                                                    strokeWidth={
+                                                                        2
+                                                                    }
                                                                     stroke="currentColor"
                                                                     className="h-5 w-5"
                                                                 >
                                                                     <path
                                                                         strokeLinecap="round"
                                                                         strokeLinejoin="round"
-                                                                        d="M6 18L18 6M6 6l12 12"
+                                                                        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                                                                    />
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                                                                     />
                                                                 </svg>
                                                             </Button>
-                                                        </>
+                                                        )}
+                                                    {d.has_sertifikat && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                deleteCertificate(
+                                                                    d.id,
+                                                                )
+                                                            }
+                                                            title="Hapus Sertifikat"
+                                                        >
+                                                            <svg
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                fill="none"
+                                                                viewBox="0 0 24 24"
+                                                                strokeWidth={2}
+                                                                stroke="currentColor"
+                                                                className="h-5 w-5 text-red-600"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                                                                />
+                                                            </svg>
+                                                        </Button>
                                                     )}
+                                                    {d.has_sertifikat &&
+                                                        d.approval_status ===
+                                                            'pending' && (
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() =>
+                                                                        approveCertificate(
+                                                                            d.id,
+                                                                            'approve',
+                                                                        )
+                                                                    }
+                                                                    className="text-green-600 hover:text-green-700"
+                                                                    title="Approve"
+                                                                >
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        fill="none"
+                                                                        viewBox="0 0 24 24"
+                                                                        strokeWidth={
+                                                                            2
+                                                                        }
+                                                                        stroke="currentColor"
+                                                                        className="h-5 w-5"
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                            d="M4.5 12.75l6 6 9-13.5"
+                                                                        />
+                                                                    </svg>
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() =>
+                                                                        approveCertificate(
+                                                                            d.id,
+                                                                            'reject',
+                                                                        )
+                                                                    }
+                                                                    className="text-red-600 hover:text-red-700"
+                                                                    title="Reject"
+                                                                >
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        fill="none"
+                                                                        viewBox="0 0 24 24"
+                                                                        strokeWidth={
+                                                                            2
+                                                                        }
+                                                                        stroke="currentColor"
+                                                                        className="h-5 w-5"
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                            d="M6 18L18 6M6 6l12 12"
+                                                                        />
+                                                                    </svg>
+                                                                </Button>
+                                                            </>
+                                                        )}
                                                 </>
                                             ) : (
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
                                                     onClick={() =>
-                                                        generateIndividual(
-                                                            d.id,
-                                                        )
+                                                        generateIndividual(d.id)
                                                     }
                                                     title="Generate Sertifikat"
                                                 >

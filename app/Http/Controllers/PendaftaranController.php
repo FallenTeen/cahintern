@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class PendaftaranController extends Controller
 {
@@ -28,13 +29,25 @@ class PendaftaranController extends Controller
             'jenjang' => 'required|in:universitas,smk',
 
             // Validasi Mahasiswa
-            'nim' => 'required_if:jenjang,universitas|nullable|string|max:50',
+            'nim' => [
+                'required_if:jenjang,universitas',
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('peserta_profiles', 'nim_nisn'),
+            ],
             'nama_univ' => 'required_if:jenjang,universitas|nullable|string|max:255',
             'jurusan' => 'required_if:jenjang,universitas|nullable|string|max:255',
             'semester' => 'required_if:jenjang,universitas|nullable|integer|min:1|max:14',
 
             // Validasi SMK
-            'nis' => 'required_if:jenjang,smk|nullable|string|max:50',
+            'nis' => [
+                'required_if:jenjang,smk',
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('peserta_profiles', 'nim_nisn'),
+            ],
             'nama_sekolah' => 'required_if:jenjang,smk|nullable|string|max:255',
             'kelas' => 'required_if:jenjang,smk|nullable|string|max:10',
             'nama_pembimbing' => 'required_if:jenjang,smk|nullable|string|max:255',
@@ -43,7 +56,7 @@ class PendaftaranController extends Controller
             // Data Diri
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:users,phone',
             'tempat_lahir' => 'required|string|max:100',
             'tanggal_lahir' => 'required|date|before:today',
             'jenis_kelamin' => 'required|in:L,P',
@@ -84,8 +97,11 @@ class PendaftaranController extends Controller
             'nama_lengkap.required' => 'Nama lengkap wajib diisi sesuai identitas.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format email tidak valid (contoh: nama@email.com).',
-            'email.unique' => 'Email ini sudah terdaftar. Silakan gunakan email lain atau login.',
+            'email.unique' => 'Email ini sudah terdaftar.',
             'phone.required' => 'Nomor WhatsApp/HP wajib diisi.',
+            'phone.unique' => 'Nomor HP ini sudah terdaftar.',
+            'nim.unique' => 'NIM ini sudah terdaftar.',
+            'nis.unique' => 'NIS ini sudah terdaftar.',
             'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
             'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir.before' => 'Tanggal lahir tidak valid (harus sebelum hari ini).',
@@ -108,7 +124,7 @@ class PendaftaranController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        DB::beginTransaction(); 
+        DB::beginTransaction();
 
         try {
             $user = User::create([
@@ -117,7 +133,7 @@ class PendaftaranController extends Controller
                 'phone' => $request->phone,
                 'role' => 'guest',
                 'status' => 'pending',
-                'password' => null, 
+                'password' => null,
             ]);
 
             // 3. Logic Mapping Data
@@ -131,7 +147,7 @@ class PendaftaranController extends Controller
                 'jenis_peserta' => $request->jenjang === 'universitas' ? 'mahasiswa' : 'siswa',
                 'nim_nisn' => $request->jenjang === 'universitas' ? $request->nim : $request->nis,
                 'asal_instansi' => $request->jenjang === 'universitas' ? $request->nama_univ : $request->nama_sekolah,
-                'jurusan' => $request->jurusan, 
+                'jurusan' => $request->jurusan,
                 'semester_kelas' => $semesterKelas,
                 'alamat' => $request->alamat,
                 'kota' => $request->kota,
@@ -179,13 +195,25 @@ class PendaftaranController extends Controller
             'jenjang' => 'required|in:universitas,smk',
 
             // Validasi Mahasiswa
-            'nim' => 'required_if:jenjang,universitas|nullable|string|max:50',
+            'nim' => [
+                'required_if:jenjang,universitas',
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('peserta_profiles', 'nim_nisn'),
+            ],
             'nama_univ' => 'required_if:jenjang,universitas|nullable|string|max:255',
             'jurusan' => 'required_if:jenjang,universitas|nullable|string|max:255',
             'semester' => 'required_if:jenjang,universitas|nullable|integer|min:1|max:14',
 
             // Validasi SMK
-            'nis' => 'required_if:jenjang,smk|nullable|string|max:50',
+            'nis' => [
+                'required_if:jenjang,smk',
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('peserta_profiles', 'nim_nisn'),
+            ],
             'nama_sekolah' => 'required_if:jenjang,smk|nullable|string|max:255',
             'kelas' => 'required_if:jenjang,smk|nullable|string|max:10',
             'nama_pembimbing' => 'required_if:jenjang,smk|nullable|string|max:255',
@@ -194,7 +222,7 @@ class PendaftaranController extends Controller
             // Data Diri
             'nama_lengkap' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:users,phone',
             'tempat_lahir' => 'required|string|max:100',
             'tanggal_lahir' => 'required|date|before:today',
             'jenis_kelamin' => 'required|in:L,P',
@@ -235,8 +263,11 @@ class PendaftaranController extends Controller
             'nama_lengkap.required' => 'Nama lengkap wajib diisi sesuai identitas.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.email' => 'Format email tidak valid (contoh: nama@email.com).',
-            'email.unique' => 'Email ini sudah terdaftar. Silakan gunakan email lain atau login.',
+            'email.unique' => 'Email ini sudah terdaftar.',
             'phone.required' => 'Nomor WhatsApp/HP wajib diisi.',
+            'phone.unique' => 'Nomor HP ini sudah terdaftar.',
+            'nim.unique' => 'NIM ini sudah terdaftar.',
+            'nis.unique' => 'NIS ini sudah terdaftar.',
             'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
             'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
             'tanggal_lahir.before' => 'Tanggal lahir tidak valid (harus sebelum hari ini).',
@@ -296,7 +327,7 @@ class PendaftaranController extends Controller
                 'tanggal_selesai' => $request->tanggal_selesai,
             ]);
 
-            DB::commit(); 
+            DB::commit();
 
             return redirect()->route('tungguakun')->with(
                 'success',
@@ -419,6 +450,9 @@ class PendaftaranController extends Controller
         if ($user->status !== 'pending') {
             return response()->json(['message' => 'Pendaftar sudah diproses'], 400);
         }
+
+        $peserta->diterima_pada = now();
+        $peserta->save();
 
         $user->update([
             'status' => 'diterima',

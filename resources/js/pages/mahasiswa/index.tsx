@@ -67,7 +67,7 @@ interface PaginatedData {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Data Mahasiswa Aktif',
+        title: 'Data Peserta Aktif',
         href: dataMahasiswaAktif().url,
     },
 ];
@@ -99,11 +99,11 @@ export default function DataMahasiswaAktif({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Data Mahasiswa Aktif" />
+            <Head title="Data Peserta Aktif" />
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="space-y-1">
                     <h2 className="text-2xl font-semibold">
-                        Data Mahasiswa Aktif
+                        Data Peserta Aktif
                     </h2>
                     <p className="text-sm text-gray-500 md:text-base">
                         Kelola data pendaftar magang ke Dinas Pendidikan
@@ -143,7 +143,7 @@ export default function DataMahasiswaAktif({
                 <Table className="align-item-center w-full text-center text-sm">
                     <TableHeader className="bg-gray-50/50">
                         <TableRow className="hover:bg-transparent">
-                            <TableHead className="text-center font-semibold text-gray-900">Nama Mahasiswa</TableHead>
+                            <TableHead className="text-center font-semibold text-gray-900">Nama Peserta</TableHead>
                             <TableHead className="text-center font-semibold text-gray-900">Asal Instansi</TableHead>
                             <TableHead className="text-center font-semibold text-gray-900">Jurusan</TableHead>
                             <TableHead className="text-center font-semibold text-gray-900">NIM/NISN</TableHead>

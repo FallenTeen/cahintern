@@ -45,7 +45,7 @@ const ShowAbsensi = ({ absensi }: { absensi: AbsensiData }) => {
             <div className="mt-8 px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-semibold">
-                        Absensi Mahasiswa
+                        Absensi Peserta
                     </h1>
                     <div className="mb-3 flex items-center gap-3">
                         <Button

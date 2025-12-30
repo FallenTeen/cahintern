@@ -375,13 +375,13 @@ export default function Dashboard() {
 
     const statsCards = [
         {
-            label: 'Total Mahasiswa Terdaftar',
+            label: 'Total Peserta Terdaftar',
             value: (props.statistik?.totalPendaftar ?? 0).toString(),
             icon: Users,
             color: 'bg-blue-100 text-blue-600',
         },
         {
-            label: 'Mahasiswa Aktif',
+            label: 'Peserta Aktif',
             value: (props.statistik?.pesertaAktif ?? 0).toString(),
             icon: UserCheck,
             color: 'bg-green-100 text-green-600',

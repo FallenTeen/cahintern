@@ -88,6 +88,7 @@ Route::middleware(['auth', 'role:admin,pic'])->group(function () {
     Route::post('/absen-mahasiswa/{id}/reject', [AbsensiController::class, 'reject'])->name('absenMahasiswa.reject');
     Route::post('/absen-jadwal', [AbsensiController::class, 'storeSchedule'])->name('absenJadwal.update');
     Route::delete('/absen-jadwal/reset', [AbsensiController::class, 'resetSchedule'])->name('absenJadwal.resetSchedule');
+    Route::delete('/absensi/{id}/delete', [AbsensiController::class, 'deleteAbsensi'])->name('absensi.delete');
 
     // LOGBOOK (ADMIN+PIC)
     Route::get('/logbook-mahasiswa', [LogbookController::class, 'index'])->name('logbookMahasiswa');

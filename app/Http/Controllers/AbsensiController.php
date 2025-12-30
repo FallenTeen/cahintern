@@ -216,26 +216,43 @@ class AbsensiController extends Controller
 
         $schedule = JadwalAbsensi::activeForDate($tanggal);
 
-        // Tidak ada jadwal atau jam buka / tutup kosong
         if (!$schedule || empty($schedule->jam_buka) || empty($schedule->jam_tutup)) {
-            return back()->with('error', 'Absensi belum dibuka. Jadwal belum tersedia.');
+            return back()->with('error', 'Absensi belum dibuka.');
         }
 
-        // Tidak bisa absen tanggal lampau
-        if ($tanggal < Carbon::now()->toDateString()) {
-            return back()->with('error', 'Tidak bisa absen untuk tanggal lampau.');
+        // Jam masuk resmi (contoh 07:00)
+        $jamMasuk = Carbon::parse($tanggal . ' ' . $schedule->jam_buka);
+
+        // BOLEH ABSEN 30 MENIT LEBIH AWAL
+        $open = $jamMasuk->copy()->subMinutes(30);
+
+        // Jam tutup
+        $close = Carbon::parse($tanggal . ' ' . $schedule->jam_tutup);
+
+        // Belum waktunya absen
+        if ($now->lt($open)) {
+            return back()->with(
+                'error',
+                'Absensi dibuka mulai ' . $open->format('H:i')
+            );
         }
 
-        $open = Carbon::parse($tanggal . ' ' . $schedule->jam_buka);
+        // Sudah lewat jam tutup
+        if ($now->gt($close)) {
+            return back()->with('error', 'Absensi sudah ditutup.');
+        }
+
+        // Hitung status hadir / terlambat
         $tolerance = (int) ($schedule->toleransi_menit ?? 0);
-        $statusMasuk = $now->gt($open->copy()->addMinutes($tolerance)) ? 'terlambat' : 'hadir';
+        $statusMasuk = $now->gt($jamMasuk->copy()->addMinutes($tolerance))
+            ? 'terlambat'
+            : 'hadir';
 
         $absensi = Absensi::firstOrNew([
             'peserta_profile_id' => $profile->id,
             'tanggal' => $tanggal,
         ]);
 
-        // izin / sakit tidak boleh check-in
         if (in_array($absensi->status, ['izin', 'sakit'])) {
             return back()->with(
                 'error',
@@ -243,7 +260,6 @@ class AbsensiController extends Controller
             );
         }
 
-        // Sudah check-in
         if ($absensi->jam_masuk) {
             return back()->with('error', 'Sudah absen datang.');
         }
@@ -252,9 +268,11 @@ class AbsensiController extends Controller
         $absensi->status = $statusMasuk;
         $absensi->save();
 
-        return back()->with('success', 'Absen datang tercatat. Status ' . $absensi->status);
+        return back()->with(
+            'success',
+            'Absen datang tercatat. Status ' . strtoupper($absensi->status)
+        );
     }
-
 
 
     public function checkOut(Request $request)
@@ -267,29 +285,18 @@ class AbsensiController extends Controller
 
         $schedule = JadwalAbsensi::activeForDate($tanggal);
 
-        // Tidak ada jadwal atau jam buka / tutup kosong
         if (!$schedule || empty($schedule->jam_buka) || empty($schedule->jam_tutup)) {
             return back()->with('error', 'Absensi belum dibuka. Jadwal belum tersedia.');
-        }
-
-        // Tidak bisa absen tanggal lampau
-        if ($tanggal < Carbon::now()->toDateString()) {
-            return back()->with(
-                'error',
-                'Tidak bisa absen untuk tanggal lampau.'
-            );
         }
 
         $absensi = Absensi::where('peserta_profile_id', $profile->id)
             ->where('tanggal', $tanggal)
             ->first();
 
-        // Belum ada absensi
         if (!$absensi) {
             return back()->with('error', 'Belum absen datang.');
         }
 
-        // izin / sakit tidak boleh check-out
         if (in_array($absensi->status, ['izin', 'sakit'])) {
             return back()->with(
                 'error',
@@ -297,14 +304,34 @@ class AbsensiController extends Controller
             );
         }
 
-        // Belum check-in
         if (!$absensi->jam_masuk) {
             return back()->with('error', 'Anda belum melakukan absen datang.');
         }
 
-        // Sudah check-out
         if ($absensi->jam_keluar) {
             return back()->with('error', 'Sudah absen pulang.');
+        }
+
+        // JAM PULANG RESMI
+        $jamPulang = Carbon::parse($tanggal . ' ' . $schedule->jam_tutup);
+
+        // ❌ BELUM JAM PULANG
+        if ($now->lt($jamPulang)) {
+            return back()->with(
+                'error',
+                'Absen pulang hanya bisa dilakukan setelah ' . $jamPulang->format('H:i')
+            );
+        }
+
+        // BATAS AKHIR CHECKOUT (1 JAM SETELAH JAM PULANG)
+        $batasCheckout = $jamPulang->copy()->addHour();
+
+        // ❌ SUDAH LEWAT BATAS
+        if ($now->gt($batasCheckout)) {
+            return back()->with(
+                'error',
+                'Absen pulang sudah ditutup pada ' . $batasCheckout->format('H:i')
+            );
         }
 
         $absensi->jam_keluar = $now;
@@ -314,6 +341,13 @@ class AbsensiController extends Controller
     }
 
 
+    public function deleteAbsensi($id)
+    {
+        $absensi = Absensi::findOrFail($id);
+        $absensi->delete();
+
+        return back()->with('success', 'Data absensi berhasil dihapus.');
+    }
 
     public function requestIzin(Request $request)
     {

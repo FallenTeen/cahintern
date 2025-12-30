@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import AppLayout from '@/layouts/app-layout';
 import { sertifikat } from '@/routes';
-import { type BreadcrumbItem } from '@/types';
+import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { HardDriveDownload, Info, Mail, Phone } from 'lucide-react';
 
@@ -22,8 +22,10 @@ interface Props {
     hari_selesai: number;
 }
 
+type PageProps = SharedData & Props;
+
 export default function Sertifikat() {
-    const { sertifikat: sertifikatData, progress, total_hari, hari_selesai } = usePage<Props>().props;
+    const { sertifikat: sertifikatData, progress, total_hari, hari_selesai } = usePage<PageProps>().props;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Sertifikat', href: sertifikat().url },
     ];

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('page1_template_path');
-            $table->string('page2_template_path');
+            $table->string('page2_template_path')->nullable();
             $table->boolean('is_active')->default(false);
             $table->json('config')->nullable();
             $table->timestamps();

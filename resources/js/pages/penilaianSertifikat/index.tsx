@@ -41,14 +41,33 @@ type PenilaianData = {
     status: Status;
 };
 
+type SertifikatData = {
+    id: number;
+    peserta_profile_id: number;
+    nama_peserta: string;
+    tanggal_terbit: string;
+    nomor_sertifikat: string;
+    file_path: string | null;
+    status: Status;
+    approval_status: ApprovalStatus;
+    can_approve?: boolean;
+    can_download?: boolean;
+    nilai_total?: number;
+    logbook_completion?: number;
+    has_sertifikat?: boolean;
+};
+
 type Row = {
     id: number;
+    peserta_profile_id?: number;
     nama_peserta: string;
     tanggal: string;
     status: Status;
     file_path: string | null;
     approval_status?: ApprovalStatus;
     nilai_total?: number;
+    logbook_completion?: number;
+    has_sertifikat?: boolean;
 };
 
 type Props = {
@@ -61,17 +80,7 @@ type Props = {
     };
     viewMode?: 'certificate' | 'penilaian';
     sertifikatData?: {
-        data: Array<{
-            id: number;
-            nama_peserta: string;
-            tanggal_terbit: string;
-            nomor_sertifikat: string | null;
-            file_path: string | null;
-            status: Status;
-            approval_status: ApprovalStatus;
-            can_approve?: boolean;
-            can_download?: boolean;
-        }>;
+        data: SertifikatData[];
         current_page: number;
         last_page: number;
         per_page: number;
@@ -90,7 +99,6 @@ export default function PenilaianSertifikat() {
     const isCertificateView = Boolean(props.sertifikatData) || props.viewMode === 'certificate';
     const [selected, setSelected] = useState<number[]>([]);
     const [page1Template, setPage1Template] = useState<File | null>(null);
-    const [page2Template, setPage2Template] = useState<File | null>(null);
     const [templateName, setTemplateName] = useState<string>('');
     const prefix =
         typeof window !== 'undefined' &&
@@ -98,8 +106,6 @@ export default function PenilaianSertifikat() {
             ? '/pic'
             : '/admin';
 
-            
-    // Confirmation dialog state
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [confirmMessage, setConfirmMessage] = useState('');
     const [confirmAction, setConfirmAction] = useState<() => void>(() => {});
@@ -117,7 +123,6 @@ export default function PenilaianSertifikat() {
             setFlashType(flash.success ? 'success' : 'error');
             setShowFlash(true);
             
-            // Auto hide after 5 seconds
             setTimeout(() => {
                 setShowFlash(false);
             }, 5000);
@@ -128,11 +133,15 @@ export default function PenilaianSertifikat() {
         if (isCertificateView) {
             return props.sertifikatData!.data.map((s) => ({
                 id: s.id,
+                peserta_profile_id: s.peserta_profile_id,
                 nama_peserta: s.nama_peserta,
                 tanggal: s.tanggal_terbit,
                 status: s.status,
                 file_path: s.file_path,
                 approval_status: s.approval_status,
+                nilai_total: s.nilai_total,
+                logbook_completion: s.logbook_completion,
+                has_sertifikat: s.has_sertifikat,
             }));
         }
         return props.penilaianData.data.map((p) => ({
@@ -149,8 +158,8 @@ export default function PenilaianSertifikat() {
     const [statusFilter, setStatusFilter] = useState<Status | 'Semua'>('Semua');
 
     const uploadTemplate = () => {
-        if (!page1Template && !page2Template) {
-            window.alert('Pilih minimal satu file template terlebih dahulu');
+        if (!page1Template) {
+            window.alert('Pilih file template terlebih dahulu');
             return;
         }
         if (!templateName.trim()) {
@@ -158,19 +167,13 @@ export default function PenilaianSertifikat() {
             return;
         }
         const fd = new FormData();
-        if (page1Template) {
-            fd.append('page1_template', page1Template);
-        }
-        if (page2Template) {
-            fd.append('page2_template', page2Template);
-        }
+        fd.append('page1_template', page1Template);
         fd.append('template_name', templateName.trim());
         router.post(`${prefix}/sertifikat/template`, fd, {
             forceFormData: true,
             onSuccess: () => {
                 setTemplateName('');
                 setPage1Template(null);
-                setPage2Template(null);
             },
         });
     };
@@ -208,10 +211,16 @@ export default function PenilaianSertifikat() {
             return;
         }
         
+        // Gunakan peserta_profile_id untuk batch generate
+        const profileIds = selected.map(id => {
+            const row = rows.find(r => r.id === id);
+            return row?.peserta_profile_id || id;
+        });
+        
         router.post(
             `${prefix}/sertifikat/batch-generate`,
             {
-                sertifikat_ids: selected,
+                sertifikat_ids: profileIds,
                 force_generate: forceGenerate,
             },
             {
@@ -235,9 +244,21 @@ export default function PenilaianSertifikat() {
             },
         );
     };
+
     const batchApprove = (action: 'approve' | 'reject') => {
         if (selected.length === 0) {
             window.alert('Pilih minimal satu sertifikat untuk di' + (action === 'approve' ? 'setujui' : 'tolak'));
+            return;
+        }
+        
+        // Filter hanya yang has_sertifikat = true
+        const sertifikatIds = selected.filter(id => {
+            const row = rows.find(r => r.id === id);
+            return row?.has_sertifikat;
+        });
+        
+        if (sertifikatIds.length === 0) {
+            window.alert('Tidak ada sertifikat yang dapat di' + (action === 'approve' ? 'setujui' : 'tolak'));
             return;
         }
         
@@ -250,11 +271,10 @@ export default function PenilaianSertifikat() {
         }
         
         router.post(`${prefix}/sertifikat/batch-approve`, {
-            sertifikat_ids: selected,
+            sertifikat_ids: sertifikatIds,
             action: action,
         }, {
             onSuccess: () => {
-                // Flash message akan ditampilkan otomatis
                 setSelected([]);
             },
         });
@@ -271,23 +291,34 @@ export default function PenilaianSertifikat() {
         
         router.post(`${prefix}/sertifikat/${sertifikatId}/approve`, {
             action: action,
-        }, {
-            onSuccess: () => {
-                // Flash message akan ditampilkan otomatis oleh component
-                // Tidak perlu alert lagi
-            },
         });
     };
 
+    const regenerateIndividual = (sertifikatId: number, hasSertifikat: boolean) => {
+        if (!hasSertifikat) {
+            window.alert('Belum ada sertifikat untuk diregenerasi');
+            return;
+        }
+        
+        if (!window.confirm('Apakah Anda yakin ingin meregenerasi sertifikat ini?')) {
+            return;
+        }
+        
+        router.post(`${prefix}/sertifikat/${sertifikatId}/regenerate`);
+    };
+
     const filtered = useMemo(() => {
+        if (isCertificateView) {
+            return rows;
+        }
+
         const q = query.trim().toLowerCase();
         return rows.filter((d) => {
-            if (statusFilter !== 'Semua' && d.status !== statusFilter)
-                return false;
+            if (statusFilter !== 'Semua' && d.status !== statusFilter) return false;
             if (!q) return true;
             return d.nama_peserta.toLowerCase().includes(q) || false;
         });
-    }, [rows, query, statusFilter]);
+    }, [rows, query, statusFilter, isCertificateView]);
 
     const getStatusBadgeClass = (status: Status): string => {
         switch (status) {
@@ -339,7 +370,7 @@ export default function PenilaianSertifikat() {
                     <div className="space-y-4">
                         <p className="text-sm text-gray-700">
                             {confirmMessage ||
-                                'Logbook &lt;80%, apakah tetap generate sertifikat?'}
+                                'Logbook <80%, apakah tetap generate sertifikat?'}
                         </p>
                         <div className="rounded-md border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-800">
                             {pendingGenerateType === 'individual'
@@ -367,7 +398,7 @@ export default function PenilaianSertifikat() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            {/* Flash Messages */}
+
             {showFlash && (
                 <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
                     flashType === 'success' 
@@ -396,28 +427,8 @@ export default function PenilaianSertifikat() {
                             Kelola penilaian mahasiswa dan penerbitan sertifikat
                         </p>
                     </div>
-                    {isCertificateView ? (
+                    {isCertificateView && (
                         <div className="flex gap-2">
-                            <Button
-                                variant="default"
-                                className="bg-blue-600 text-white hover:bg-blue-700"
-                                disabled={selected.length === 0}
-                                onClick={() => {
-                                    if (
-                                        window.confirm(
-                                            'Logbook peserta mungkin belum mencapai 80%. Apakah Anda yakin ingin meregenerasi sertifikat untuk peserta yang dipilih?',
-                                        )
-                                    ) {
-                                        selected.forEach((id) =>
-                                            router.post(
-                                                `${prefix}/sertifikat/${id}/regenerate`,
-                                            ),
-                                        );
-                                    }
-                                }}
-                            >
-                                Regenerate Batch
-                            </Button>
                             <Button
                                 variant="default"
                                 className="bg-purple-600 text-white hover:bg-purple-700"
@@ -425,20 +436,6 @@ export default function PenilaianSertifikat() {
                                 onClick={() => batchGenerate()}
                             >
                                 Generate Batch
-                            </Button>
-                            <Button
-                                variant="default"
-                                className="bg-green-600 text-white hover:bg-green-700"
-                                disabled={selected.length === 0}
-                                onClick={() => {
-                                    selected.forEach((id) =>
-                                        router.post(
-                                            `${prefix}/sertifikat/${id}/validate`,
-                                        ),
-                                    );
-                                }}
-                            >
-                                Publish Batch
                             </Button>
                             <Button
                                 variant="default"
@@ -456,38 +453,10 @@ export default function PenilaianSertifikat() {
                             >
                                 Reject Batch
                             </Button>
-                            <Button
-                                variant="default"
-                                className="bg-gray-700 text-white hover:bg-gray-800"
-                                disabled={selected.length === 0}
-                                onClick={() => {
-                                    const generatedSertifikats = props.sertifikatData?.data.filter(
-                                        s => selected.includes(s.id) && s.file_path
-                                    ) || [];
-                                    generatedSertifikats.forEach((s) =>
-                                        window.open(
-                                            `${prefix}/sertifikat/${s.id}/download`,
-                                            '_blank',
-                                        ),
-                                    );
-                                }}
-                            >
-                                Download Batch
-                            </Button>
                         </div>
-                    ) : (
-                        <Button
-                            className="bg-red-600 text-white hover:bg-red-700"
-                            onClick={() => {
-                                filtered.forEach((d) =>
-                                    generateIndividual(d.id),
-                                );
-                            }}
-                        >
-                            + Generate Sertifikat
-                        </Button>
                     )}
                 </div>
+                
                 {prefix === '/admin' && (
                     <Card>
                         <CardHeader>
@@ -495,56 +464,47 @@ export default function PenilaianSertifikat() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <p className="text-sm text-muted-foreground">
-                                Unggah template sertifikat halaman 1 dan 2 dalam
-                                format PNG. Template ini akan digunakan untuk
-                                semua sertifikat yang digenerate.
+                                Unggah template background sertifikat dalam format PNG/JPG. 
+                                Template ini akan digunakan sebagai background untuk semua sertifikat.
+                                <br />
+                                <strong>Ukuran rekomendasi:</strong> 297mm x 210mm (A4 Landscape) atau 3508 x 2480 pixels (300 DPI)
                             </p>
                             <div className="space-y-2">
                                 <p className="text-sm font-medium">
                                     Nama Template
                                 </p>
-                                <input
+                                <Input
                                     type="text"
                                     placeholder="Masukkan nama template"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
                                     value={templateName}
                                     onChange={(e) => setTemplateName(e.target.value)}
                                 />
                             </div>
-                            <div className="grid gap-4 md:grid-cols-2">
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium">
-                                        Template Halaman 1
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium">
+                                    Background Template (PNG/JPG)
+                                </p>
+                                <input
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/jpg"
+                                    onChange={(e) =>
+                                        setPage1Template(
+                                            e.target.files?.[0] ?? null,
+                                        )
+                                    }
+                                    className="w-full"
+                                />
+                                {page1Template && (
+                                    <p className="text-xs text-green-600">
+                                        ✓ File dipilih: {page1Template.name}
                                     </p>
-                                    <input
-                                        type="file"
-                                        accept="image/png"
-                                        onChange={(e) =>
-                                            setPage1Template(
-                                                e.target.files?.[0] ?? null,
-                                            )
-                                        }
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-sm font-medium">
-                                        Template Halaman 2
-                                    </p>
-                                    <input
-                                        type="file"
-                                        accept="image/png"
-                                        onChange={(e) =>
-                                            setPage2Template(
-                                                e.target.files?.[0] ?? null,
-                                            )
-                                        }
-                                    />
-                                </div>
+                                )}
                             </div>
                             <div className="flex flex-wrap gap-2">
                                 <Button
                                     className="bg-blue-600 text-white hover:bg-blue-700"
                                     onClick={uploadTemplate}
+                                    disabled={!page1Template || !templateName.trim()}
                                 >
                                     Simpan Template
                                 </Button>
@@ -563,13 +523,14 @@ export default function PenilaianSertifikat() {
                         </CardContent>
                     </Card>
                 )}
+
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Total Mahasiswa Selesai</CardTitle>
+                            <CardTitle>Total Mahasiswa</CardTitle>
                         </CardHeader>
                         <CardContent className="text-3xl font-semibold text-gray-700">
-                            5
+                            {rows.length}
                         </CardContent>
                     </Card>
                     <Card>
@@ -577,18 +538,19 @@ export default function PenilaianSertifikat() {
                             <CardTitle>Sertifikat Terbit</CardTitle>
                         </CardHeader>
                         <CardContent className="text-3xl font-semibold text-green-500">
-                            3
+                            {rows.filter(r => r.status === 'terbit').length}
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Rata-Rata Nilai</CardTitle>
+                            <CardTitle>Menunggu Approval</CardTitle>
                         </CardHeader>
-                        <CardContent className="text-3xl font-semibold text-blue-600">
-                            85
+                        <CardContent className="text-3xl font-semibold text-yellow-600">
+                            {rows.filter(r => r.approval_status === 'pending' && r.has_sertifikat).length}
                         </CardContent>
                     </Card>
                 </div>
+
                 <Card>
                     <CardContent className="space-y-4 p-4">
                         <Input
@@ -660,13 +622,15 @@ export default function PenilaianSertifikat() {
                                         </TableHead>
                                     )}
                                     <TableHead>Nama Mahasiswa</TableHead>
-
                                     <TableHead>
                                         {isCertificateView
                                             ? 'Tanggal Terbit'
                                             : 'Tanggal Penilaian'}
                                     </TableHead>
                                     <TableHead>Nilai Akhir</TableHead>
+                                    {isCertificateView && (
+                                        <TableHead>Logbook</TableHead>
+                                    )}
                                     <TableHead>Status Sertifikat</TableHead>
                                     {isCertificateView && (
                                         <TableHead>Status Approval</TableHead>
@@ -705,11 +669,21 @@ export default function PenilaianSertifikat() {
                                             </TableCell>
                                         )}
                                         <TableCell>{d.nama_peserta}</TableCell>
-
                                         <TableCell>{d.tanggal}</TableCell>
                                         <TableCell>
                                             {d.nilai_total ?? '-'}
                                         </TableCell>
+                                        {isCertificateView && (
+                                            <TableCell>
+                                                <Badge className={
+                                                    (d.logbook_completion || 0) >= 80 
+                                                        ? 'bg-green-500 text-white' 
+                                                        : 'bg-orange-500 text-white'
+                                                }>
+                                                    {d.logbook_completion?.toFixed(0) || 0}%
+                                                </Badge>
+                                            </TableCell>
+                                        )}
                                         <TableCell>
                                             <Badge
                                                 className={getStatusBadgeClass(d.status)}
@@ -718,9 +692,7 @@ export default function PenilaianSertifikat() {
                                                     ? 'Belum'
                                                     : d.status === 'proses'
                                                       ? 'Proses'
-                                                      : d.status === 'terbit'
-                                                        ? 'Terbit'
-                                                        : d.status}
+                                                      : 'Terbit'}
                                             </Badge>
                                         </TableCell>
                                         {isCertificateView && (
@@ -738,17 +710,9 @@ export default function PenilaianSertifikat() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        onClick={() => {
-                                                            if (
-                                                                window.confirm(
-                                                                    'Logbook peserta ini mungkin belum mencapai 80%. Apakah Anda yakin ingin meregenerasi sertifikat?',
-                                                                )
-                                                            ) {
-                                                                router.post(
-                                                                    `${prefix}/sertifikat/${d.id}/regenerate`,
-                                                                );
-                                                            }
-                                                        }}
+                                                        onClick={() => regenerateIndividual(d.id, d.has_sertifikat || false)}
+                                                        disabled={!d.has_sertifikat}
+                                                        title="Regenerate"
                                                     >
                                                         <svg
                                                             xmlns="http://www.w3.org/2000/svg"
@@ -761,7 +725,7 @@ export default function PenilaianSertifikat() {
                                                             <path
                                                                 strokeLinecap="round"
                                                                 strokeLinejoin="round"
-                                                                d="M16.862 4.487l1.651 1.651a1.5 1.5 0 010 2.122l-9.193 9.193-3.764.418a.375.375 0 01-.414-.414l.418-3.764 9.193-9.193a1.5 1.5 0 012.122 0z"
+                                                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
                                                             />
                                                         </svg>
                                                     </Button>
@@ -775,38 +739,7 @@ export default function PenilaianSertifikat() {
                                                                     '_blank',
                                                                 )
                                                             }
-                                                        >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                strokeWidth={2}
-                                                                stroke="currentColor"
-                                                                className="h-5 w-5 text-purple-600"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                                                                />
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                                />
-                                                            </svg>
-                                                        </Button>
-                                                    )}
-                                                    {d.file_path && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() =>
-                                                                window.open(
-                                                                    `${prefix}/sertifikat/${d.id}/download`,
-                                                                    '_blank',
-                                                                )
-                                                            }
+                                                            title="Download"
                                                         >
                                                             <svg
                                                                 xmlns="http://www.w3.org/2000/svg"
@@ -824,7 +757,7 @@ export default function PenilaianSertifikat() {
                                                             </svg>
                                                         </Button>
                                                     )}
-                                                    {d.approval_status === 'pending' && (
+                                                    {d.has_sertifikat && d.approval_status === 'pending' && (
                                                         <>
                                                             <Button
                                                                 variant="ghost"
@@ -836,6 +769,7 @@ export default function PenilaianSertifikat() {
                                                                     )
                                                                 }
                                                                 className="text-green-600 hover:text-green-700"
+                                                                title="Approve"
                                                             >
                                                                 <svg
                                                                     xmlns="http://www.w3.org/2000/svg"
@@ -862,6 +796,7 @@ export default function PenilaianSertifikat() {
                                                                     )
                                                                 }
                                                                 className="text-red-600 hover:text-red-700"
+                                                                title="Reject"
                                                             >
                                                                 <svg
                                                                     xmlns="http://www.w3.org/2000/svg"
@@ -880,82 +815,33 @@ export default function PenilaianSertifikat() {
                                                             </Button>
                                                         </>
                                                     )}
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() =>
-                                                            router.post(
-                                                                `${prefix}/sertifikat/${d.id}/validate`,
-                                                            )
-                                                        }
-                                                    >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            strokeWidth={2}
-                                                            stroke="currentColor"
-                                                            className="h-5 w-5 text-green-600"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                d="M9 12l2 2 4-4"
-                                                            />
-                                                        </svg>
-                                                    </Button>
                                                 </>
                                             ) : (
-                                                <>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() =>
-                                                            generateIndividual(
-                                                                d.id,
-                                                            )
-                                                        }
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        generateIndividual(
+                                                            d.id,
+                                                        )
+                                                    }
+                                                    title="Generate Sertifikat"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        strokeWidth={2}
+                                                        stroke="currentColor"
+                                                        className="h-5 w-5 text-blue-600"
                                                     >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            strokeWidth={2}
-                                                            stroke="currentColor"
-                                                            className="h-5 w-5 text-orange-500"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                d="M16.862 4.487l1.651 1.651a1.5 1.5 0 010 2.122l-9.193 9.193-3.764.418a.375.375 0 01-.414-.414l.418-3.764 9.193-9.193a1.5 1.5 0 012.122 0z"
-                                                            />
-                                                        </svg>
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() =>
-                                                            generateIndividual(
-                                                                d.id,
-                                                            )
-                                                        }
-                                                    >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            strokeWidth={2}
-                                                            stroke="currentColor"
-                                                            className="h-5 w-5 text-blue-600"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-                                                            />
-                                                        </svg>
-                                                    </Button>
-                                                </>
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            d="M12 4.5v15m7.5-7.5h-15"
+                                                        />
+                                                    </svg>
+                                                </Button>
                                             )}
                                         </TableCell>
                                     </TableRow>

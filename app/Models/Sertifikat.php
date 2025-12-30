@@ -46,6 +46,11 @@ class Sertifikat extends Model
         return $this->file_path ? asset('storage/' . $this->file_path) : null;
     }
 
+    public static function generateCertificateNumber(): string
+    {
+        return self::generateNomorSertifikat();
+    }
+
     public static function generateNomorSertifikat(): string
     {
         $year = date('Y');

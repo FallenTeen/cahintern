@@ -335,12 +335,17 @@ const AbsensiMagang = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
+                                <p className="mb-4 flex items-center gap-1 text-sm text-yellow-500">
+                                    Absensi dibuka sebelum 30 menit dari jam masuk.
+                                </p>
                                 {schedule ? (
-                                    <p className="mb-4 text-sm text-red-600">
-                                        Jam masuk: {schedule.jam_buka}{' '}
-                                        (Toleransi {schedule.toleransi_menit}{' '}
-                                        menit)
-                                    </p>
+                                    <>
+                                        <p className="mb-4 text-sm text-red-600">
+                                            Jam masuk: {schedule.jam_buka}{' '}
+                                            (Toleransi{' '}
+                                            {schedule.toleransi_menit} menit)
+                                        </p>
+                                    </>
                                 ) : (
                                     <p className="mb-4 text-sm text-gray-600">
                                         Tidak ada jadwal absensi hari ini.
@@ -367,6 +372,9 @@ const AbsensiMagang = () => {
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
+                                <p className="mb-4 flex items-center gap-1 text-sm text-yellow-500">
+                                    Absensi ditututp setelah 1 jam dari jam pulang.
+                                </p>
                                 {schedule ? (
                                     <p className="mb-4 text-sm text-red-600">
                                         Jam pulang: {schedule.jam_tutup}
@@ -593,7 +601,7 @@ const AbsensiMagang = () => {
                                                     <Button
                                                         variant="outline"
                                                         size="sm"
-                                                        className="text-blue-600 border-transparent"
+                                                        className="border-transparent text-blue-600"
                                                         onClick={() =>
                                                             router.get(
                                                                 `/absensi/${log.id}`,

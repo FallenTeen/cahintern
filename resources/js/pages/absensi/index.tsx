@@ -34,6 +34,7 @@ import {
     Eye,
     FileText,
     Inbox,
+    Trash2,
     User,
     X,
 } from 'lucide-react';
@@ -93,6 +94,7 @@ export default function AbsensiMahasiswa() {
     const Show = (id: number) => {
         router.get(`/absen-mahasiswa/${id}`);
     };
+
     const Approve = (id: number, nama: string) => {
         Swal.fire({
             title: `Approve absen ${nama}?`,
@@ -141,6 +143,29 @@ export default function AbsensiMahasiswa() {
                         },
                     },
                 );
+            }
+        });
+    };
+
+    const deleteAbsensi = (id: number) => {
+        Swal.fire({
+            title: `Hapus data absen ini?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus',
+            cancelButtonText: 'Batal',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.delete(`/absensi/${id}/delete`, {
+                    data: { id: id },
+                    onSuccess: () => {
+                        Swal.fire(
+                            'Berhasil!',
+                            'Data absensi berhasil dihapus.',
+                            'success',
+                        );
+                    },
+                });
             }
         });
     };
@@ -558,6 +583,16 @@ export default function AbsensiMahasiswa() {
                                                             </Button>
                                                         </>
                                                     )}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                        onClick={() =>
+                                                            deleteAbsensi(s.id)
+                                                        }
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}

@@ -25,4 +25,5 @@ createInertiaApp({
 });
 
 // This will set light / dark mode on load...
-initializeTheme();
+document.documentElement.classList.remove('dark');
+localStorage.setItem('appearance', 'light');

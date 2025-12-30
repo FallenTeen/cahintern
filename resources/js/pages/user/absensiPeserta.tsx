@@ -34,6 +34,7 @@ import {
     ClockArrowDown,
     ClockArrowUp,
     Eye,
+    Inbox,
     Moon,
     Send,
     Sun,
@@ -336,7 +337,8 @@ const AbsensiMagang = () => {
                             </CardHeader>
                             <CardContent>
                                 <p className="mb-4 flex items-center gap-1 text-sm text-yellow-500">
-                                    Absensi dibuka sebelum 30 menit dari jam masuk.
+                                    Absensi dibuka sebelum 30 menit dari jam
+                                    masuk.
                                 </p>
                                 {schedule ? (
                                     <>
@@ -373,7 +375,8 @@ const AbsensiMagang = () => {
                             </CardHeader>
                             <CardContent>
                                 <p className="mb-4 flex items-center gap-1 text-sm text-yellow-500">
-                                    Absensi ditututp setelah 1 jam dari jam pulang.
+                                    Absensi ditututp setelah 1 jam dari jam
+                                    pulang.
                                 </p>
                                 {schedule ? (
                                     <p className="mb-4 text-sm text-red-600">
@@ -617,9 +620,21 @@ const AbsensiMagang = () => {
                                         <TableRow>
                                             <TableCell
                                                 colSpan={6}
-                                                className="h-24 text-center"
+                                                className="py-16 text-center"
                                             >
-                                                Tidak ada data Absensi
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <div className="mb-4 rounded-full bg-gray-50 p-4">
+                                                        <Inbox className="h-10 w-10 text-gray-400" />
+                                                    </div>
+                                                    <h3 className="text-lg font-semibold text-gray-900">
+                                                        Belum ada data logbook
+                                                        harian
+                                                    </h3>
+                                                    <p className="mt-1 text-sm text-gray-500">
+                                                        Data logbook harian akan
+                                                        muncul di sini.
+                                                    </p>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     )}

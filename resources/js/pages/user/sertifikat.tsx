@@ -6,6 +6,8 @@ import { sertifikat } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { HardDriveDownload, Info, Mail, Phone } from 'lucide-react';
+import WhatsappCS from '../whatsappCs';
+import FloatingWhatsapp from '../whatsappCs';
 
 interface SertifikatData {
     id: number;
@@ -25,7 +27,12 @@ interface Props {
 type PageProps = SharedData & Props;
 
 export default function Sertifikat() {
-    const { sertifikat: sertifikatData, progress, total_hari, hari_selesai } = usePage<PageProps>().props;
+    const {
+        sertifikat: sertifikatData,
+        progress,
+        total_hari,
+        hari_selesai,
+    } = usePage<PageProps>().props;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Sertifikat', href: sertifikat().url },
     ];
@@ -65,7 +72,8 @@ export default function Sertifikat() {
                     Lihat dan unduh sertifikat setelah program magang selesai
                 </p>
 
-                {sertifikatData && sertifikatData.approval_status === 'approved' ? (
+                {sertifikatData &&
+                sertifikatData.approval_status === 'approved' ? (
                     <Card className="w-full rounded-2xl border shadow-sm">
                         <CardContent className="flex flex-col items-center gap-6 py-10 text-center">
                             <img
@@ -74,15 +82,32 @@ export default function Sertifikat() {
                                 className="w-full max-w-3xl rounded-lg shadow-md"
                             />
                             <div className="space-y-2">
-                                <p className="text-sm text-gray-600">Nomor Sertifikat: {sertifikatData.nomor_sertifikat}</p>
-                                <p className="text-sm text-gray-600">Tanggal Terbit: {new Date(sertifikatData.tanggal_terbit).toLocaleDateString('id-ID')}</p>
-                                <p className={`text-sm font-medium ${getApprovalStatusColor(sertifikatData.approval_status)}`}>
-                                    {getApprovalStatusText(sertifikatData.approval_status)}
+                                <p className="text-sm text-gray-600">
+                                    Nomor Sertifikat:{' '}
+                                    {sertifikatData.nomor_sertifikat}
+                                </p>
+                                <p className="text-sm text-gray-600">
+                                    Tanggal Terbit:{' '}
+                                    {new Date(
+                                        sertifikatData.tanggal_terbit,
+                                    ).toLocaleDateString('id-ID')}
+                                </p>
+                                <p
+                                    className={`text-sm font-medium ${getApprovalStatusColor(sertifikatData.approval_status)}`}
+                                >
+                                    {getApprovalStatusText(
+                                        sertifikatData.approval_status,
+                                    )}
                                 </p>
                             </div>
-                            <Button 
+                            <Button
                                 className="rounded-full bg-red-600 px-8 py-2 text-white hover:bg-red-700"
-                                onClick={() => window.open(`/sertifikat/${sertifikatData.id}/download`, '_blank')}
+                                onClick={() =>
+                                    window.open(
+                                        `/sertifikat/${sertifikatData.id}/download`,
+                                        '_blank',
+                                    )
+                                }
                             >
                                 <HardDriveDownload className="mr-2 h-4 w-4" />
                                 Download Sertifikat
@@ -101,8 +126,14 @@ export default function Sertifikat() {
                             <h2 className="text-xl font-semibold">
                                 Sertifikat Belum Tersedia
                             </h2>
-                            <p className={`text-sm font-medium ${sertifikatData ? getApprovalStatusColor(sertifikatData.approval_status) : 'text-gray-600'}`}>
-                                {sertifikatData ? getApprovalStatusText(sertifikatData.approval_status) : 'Sertifikat akan diterbitkan setelah kamu menyelesaikan seluruh periode magang.'}
+                            <p
+                                className={`text-sm font-medium ${sertifikatData ? getApprovalStatusColor(sertifikatData.approval_status) : 'text-gray-600'}`}
+                            >
+                                {sertifikatData
+                                    ? getApprovalStatusText(
+                                          sertifikatData.approval_status,
+                                      )
+                                    : 'Sertifikat akan diterbitkan setelah kamu menyelesaikan seluruh periode magang.'}
                             </p>
 
                             <div className="mt-3 w-full max-w-lg">
@@ -112,7 +143,8 @@ export default function Sertifikat() {
                                 </div>
                                 <Progress value={progress} className="h-3" />
                                 <p className="mt-1 text-sm text-gray-500">
-                                    {hari_selesai} dari {total_hari} hari magang telah diselesaikan
+                                    {hari_selesai} dari {total_hari} hari magang
+                                    telah diselesaikan
                                 </p>
                             </div>
 
@@ -124,30 +156,9 @@ export default function Sertifikat() {
                                 Tersedia)
                             </Button>
                         </CardContent>
+                        <FloatingWhatsapp />
                     </Card>
                 )}
-                <Card className="w-full rounded-2xl border shadow-sm">
-                    <CardContent className="flex flex-col gap-3 p-6">
-                        <div className="flex items-center gap-2 text-lg font-semibold">
-                            <Info className="h-5 w-5 text-blue-600" /> Informasi
-                        </div>
-                        <p className="text-gray-600">
-                            Hubungi admin Dinas Pendidikan Banyumas jika
-                            sertifikat belum muncul setelah program selesai.
-                        </p>
-
-                        <div className="mt-2 flex flex-col gap-2 text-gray-700">
-                            <div className="flex items-center gap-2">
-                                <Mail className="h-5 w-5 text-red-500" />{' '}
-                                admin@disdikbms.go.id
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Phone className="h-5 w-5 text-green-600" />{' '}
-                                (0281) 1234567
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </AppLayout>
     );

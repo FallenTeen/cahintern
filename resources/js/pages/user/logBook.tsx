@@ -44,6 +44,7 @@ import {
     ChevronDownIcon,
     Edit,
     Eye,
+    Inbox,
     Plus,
     Trash2,
     Undo2,
@@ -548,11 +549,18 @@ const LogbookPage = () => {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell
-                                        colSpan={6}
-                                        className="h-24 text-center"
-                                    >
-                                        Tidak ada data logbook
+                                    <TableCell colSpan={6} className="py-16 text-center">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <div className="mb-4 rounded-full bg-gray-50 p-4">
+                                                <Inbox className="h-10 w-10 text-gray-400" />
+                                            </div>
+                                            <h3 className="text-lg font-semibold text-gray-900">
+                                                Belum ada data logbook harian
+                                            </h3>
+                                            <p className="mt-1 text-sm text-gray-500">
+                                                Data logbook harian akan muncul di sini.
+                                            </p>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             )}

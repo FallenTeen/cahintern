@@ -359,91 +359,95 @@ const LogbookPage = () => {
             </div>
 
             <Card className="mt-4">
-                <div className="flex flex-col gap-4 px-6 sm:flex-row sm:items-end sm:justify-between">
-                    {/* Judul */}
-                    <CardHeader className="mb-3 p-0">
-                        <CardTitle>Daftar Logbook</CardTitle>
-                    </CardHeader>
+                {logbooks.data.length > 0 && (
+                    <div className="flex flex-col gap-4 px-6 sm:flex-row sm:items-end sm:justify-between">
+                        {/* Judul */}
+                        <CardHeader className="mb-3 p-0">
+                            <CardTitle>Daftar Logbook</CardTitle>
+                        </CardHeader>
 
-                    {/* Filter */}
-                    <div className="flex flex-wrap items-end gap-3">
-                        <Popover open={open} onOpenChange={setOpen}>
-                            <PopoverTrigger asChild>
+                        {/* Filter */}
+                        <div className="flex flex-wrap items-end gap-3">
+                            <Popover open={open} onOpenChange={setOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className="w-52 justify-between font-normal"
+                                    >
+                                        {date
+                                            ? format(date, 'dd MMM yyyy', {
+                                                  locale: id,
+                                              })
+                                            : 'Filter tanggal'}
+                                        <Calendar1 className="h-4 w-4 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+
+                                <PopoverContent
+                                    align="start"
+                                    className="w-auto p-0"
+                                >
+                                    <Calendar
+                                        mode="single"
+                                        selected={date}
+                                        onSelect={(selectedDate) => {
+                                            setDate(selectedDate);
+
+                                            handleFilterTanggal(
+                                                selectedDate
+                                                    ? format(
+                                                          selectedDate,
+                                                          'yyyy-MM-dd',
+                                                      )
+                                                    : '',
+                                            );
+
+                                            setOpen(false);
+                                        }}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+
+                            {filterTanggal && (
                                 <Button
                                     variant="outline"
-                                    className="w-52 justify-between font-normal"
+                                    className="h-10"
+                                    onClick={() => handleFilterTanggal('')}
                                 >
-                                    {date
-                                        ? format(date, 'dd MMM yyyy', {
-                                              locale: id,
-                                          })
-                                        : 'Filter tanggal'}
-                                    <Calendar1 className="h-4 w-4 opacity-50" />
+                                    Reset
                                 </Button>
-                            </PopoverTrigger>
-
-                            <PopoverContent
-                                align="start"
-                                className="w-auto p-0"
-                            >
-                                <Calendar
-                                    mode="single"
-                                    selected={date}
-                                    onSelect={(selectedDate) => {
-                                        setDate(selectedDate);
-
-                                        handleFilterTanggal(
-                                            selectedDate
-                                                ? format(
-                                                      selectedDate,
-                                                      'yyyy-MM-dd',
-                                                  )
-                                                : '',
-                                        );
-
-                                        setOpen(false);
-                                    }}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-
-                        {filterTanggal && (
-                            <Button
-                                variant="outline"
-                                className="h-10"
-                                onClick={() => handleFilterTanggal('')}
-                            >
-                                Reset
-                            </Button>
-                        )}
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <CardContent>
                     <Table className="align-item-center text-center">
-                        <TableHeader className="text-center align-middle">
-                            <TableRow className="bg-gray-100">
-                                <TableHead className="text-center align-middle">
-                                    Tanggal
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Kegiatan
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Jam
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Durasi
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Status
-                                </TableHead>
-                                <TableHead className="text-center align-middle">
-                                    Aksi
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
+                        {logbooks.data.length > 0 && (
+                            <TableHeader className="text-center align-middle">
+                                <TableRow className="bg-gray-100">
+                                    <TableHead className="text-center align-middle">
+                                        Tanggal
+                                    </TableHead>
+                                    <TableHead className="text-center align-middle">
+                                        Kegiatan
+                                    </TableHead>
+                                    <TableHead className="text-center align-middle">
+                                        Jam
+                                    </TableHead>
+                                    <TableHead className="text-center align-middle">
+                                        Durasi
+                                    </TableHead>
+                                    <TableHead className="text-center align-middle">
+                                        Status
+                                    </TableHead>
+                                    <TableHead className="text-center align-middle">
+                                        Aksi
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                        )}
 
                         <TableBody>
                             {logbooks.data.length > 0 ? (
@@ -549,7 +553,10 @@ const LogbookPage = () => {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="py-16 text-center">
+                                    <TableCell
+                                        colSpan={6}
+                                        className="py-16 text-center"
+                                    >
                                         <div className="flex flex-col items-center justify-center">
                                             <div className="mb-4 rounded-full bg-gray-50 p-4">
                                                 <Inbox className="h-10 w-10 text-gray-400" />
@@ -558,7 +565,8 @@ const LogbookPage = () => {
                                                 Belum ada data logbook harian
                                             </h3>
                                             <p className="mt-1 text-sm text-gray-500">
-                                                Data logbook harian akan muncul di sini.
+                                                Data logbook harian akan muncul
+                                                di sini.
                                             </p>
                                         </div>
                                     </TableCell>

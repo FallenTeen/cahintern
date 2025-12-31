@@ -38,6 +38,7 @@ import {
     User,
     X,
 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type Status = 'hadir' | 'izin' | 'sakit' | 'terlambat';
 
@@ -412,38 +413,15 @@ export default function AbsensiMahasiswa() {
                                 onChange={(e) => setQuery(e.target.value)}
                             />
                             <div className="col-span-2 flex flex-wrap items-center gap-2">
-                                {[
-                                    'Semua',
-                                    'hadir',
-                                    'izin',
-                                    'sakit',
-                                    'terlambat',
-                                ].map((status) => (
-                                    <Button
-                                        key={status}
-                                        variant={
-                                            statusFilter === status
-                                                ? 'default'
-                                                : 'outline'
-                                        }
-                                        size="sm"
-                                        onClick={() =>
-                                            setStatusFilter(
-                                                status as Status | 'Semua',
-                                            )
-                                        }
-                                    >
-                                        {status === 'hadir'
-                                            ? 'Hadir'
-                                            : status === 'izin'
-                                              ? 'Izin'
-                                              : status === 'sakit'
-                                                ? 'Sakit'
-                                                : status === 'terlambat'
-                                                  ? 'Terlambat'
-                                                  : status}
-                                    </Button>
-                                ))}
+                                <Tabs value={statusFilter} onValueChange={(val) => setStatusFilter(val as Status | 'Semua')}>
+                                    <TabsList>
+                                        <TabsTrigger value="Semua">Semua</TabsTrigger>
+                                        <TabsTrigger value="hadir">Hadir</TabsTrigger>
+                                        <TabsTrigger value="izin">Izin</TabsTrigger>
+                                        <TabsTrigger value="sakit">Sakit</TabsTrigger>
+                                        <TabsTrigger value="terlambat">Terlambat</TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
                             </div>
                         </div>
 
@@ -486,8 +464,6 @@ export default function AbsensiMahasiswa() {
                         </div>
                     ) : (
                         <>
-                            {/* --- TAMPILAN DESKTOP (Table) --- */}
-                            {/* Hidden di mobile, muncul di layar LG ke atas */}
                             <div className="hidden overflow-x-auto lg:block">
                                 <Table className="w-full text-center text-sm">
                                     <TableHeader className="bg-gray-50/50">

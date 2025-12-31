@@ -554,28 +554,30 @@ const AbsensiMagang = () => {
                         </CardHeader>
                         <CardContent className="overflow-x-auto">
                             <Table className="text-center align-middle">
-                                <TableHeader>
-                                    <TableRow className="bg-gray-100">
-                                        <TableHead className="text-center align-middle">
-                                            Tanggal
-                                        </TableHead>
-                                        <TableHead className="text-center align-middle">
-                                            Jam Masuk
-                                        </TableHead>
-                                        <TableHead className="text-center align-middle">
-                                            Jam Keluar
-                                        </TableHead>
-                                        <TableHead className="text-center align-middle">
-                                            Keterangan
-                                        </TableHead>
-                                        <TableHead className="text-center align-middle">
-                                            Status
-                                        </TableHead>
-                                        <TableHead className="text-center align-middle">
-                                            Aksi
-                                        </TableHead>
-                                    </TableRow>
-                                </TableHeader>
+                                {absensiData.data.length > 0 && (
+                                    <TableHeader>
+                                        <TableRow className="bg-gray-100">
+                                            <TableHead className="text-center align-middle">
+                                                Tanggal
+                                            </TableHead>
+                                            <TableHead className="text-center align-middle">
+                                                Jam Masuk
+                                            </TableHead>
+                                            <TableHead className="text-center align-middle">
+                                                Jam Keluar
+                                            </TableHead>
+                                            <TableHead className="text-center align-middle">
+                                                Keterangan
+                                            </TableHead>
+                                            <TableHead className="text-center align-middle">
+                                                Status
+                                            </TableHead>
+                                            <TableHead className="text-center align-middle">
+                                                Aksi
+                                            </TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                )}
 
                                 <TableBody>
                                     {absensiData.data.length > 0 ? (

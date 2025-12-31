@@ -515,6 +515,35 @@ export default function PenilaianSertifikat() {
                                             Landscape (297×210mm) • Resolusi:
                                             300 DPI (3508×2480px)
                                         </p>
+                                        <div className="mt-3">
+                                            <a
+                                                href={`${prefix}/sertifikat/template/example-download`}
+                                                className="inline-flex"
+                                            >
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="border-blue-300 text-blue-800 hover:bg-blue-100"
+                                                    type="button"
+                                                >
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        fill="none"
+                                                        viewBox="0 0 24 24"
+                                                        strokeWidth={2}
+                                                        stroke="currentColor"
+                                                        className="mr-2 h-4 w-4"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+                                                        />
+                                                    </svg>
+                                                    Download Safepoint Template Sertifikat
+                                                </Button>
+                                            </a>
+                                        </div>
                                     </div>
 
                                     {props.activeTemplateUrl ||

@@ -267,6 +267,19 @@ class SertifikatController extends Controller
         return response()->download($fullPath, basename($fullPath));
     }
 
+    public function downloadTemplateExample()
+    {
+        $relativePath = 'template/template-template-sertifikat.png';
+
+        if (!Storage::disk('public')->exists($relativePath)) {
+            abort(404, 'File template sertifikat contoh tidak ditemukan.');
+        }
+
+        $fullPath = Storage::disk('public')->path($relativePath);
+
+        return response()->download($fullPath, 'template-template.sertifikat.png');
+    }
+
     public function previewCertificate(Sertifikat $sertifikat)
     {
         $path = $sertifikat->file_path;

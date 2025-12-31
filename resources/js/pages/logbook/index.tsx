@@ -469,11 +469,10 @@ export default function LogbookMahasiswa() {
                             <FileText className="h-8 w-8 text-muted-foreground" />
                         </div>
                         <h3 className="text-lg font-semibold text-foreground">
-                            Belum ada data absensi/logbook
+                            Belum ada data logbook
                         </h3>
                         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                            Data logbook tidak ditemukan untuk filter atau
-                            pencarian saat ini.
+                            Data logbook akan muncul di sini setelah user mengisi logbook.
                         </p>
                     </Card>
                 ) : (

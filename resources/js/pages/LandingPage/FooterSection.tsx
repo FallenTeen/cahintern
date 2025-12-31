@@ -128,15 +128,15 @@ const FooterSection = () => {
                                     href="/pendaftaran"
                                     className="text-gray-800 hover:underline"
                                 >
-                                    Program Magang
+                                    Pendaftaran
                                 </Link>
                             </li>
                             <li>
                                 <Link
-                                    href="/tentang"
+                                    href="/persyaratan"
                                     className="text-gray-800 hover:underline"
                                 >
-                                    Tentang
+                                    Persyaratan
                                 </Link>
                             </li>
                         </ul>
@@ -229,7 +229,7 @@ const FooterSection = () => {
                             </li>
                             <li>
                                 <a
-                                    href="#"
+                                    href="/pendaftaran"
                                     className="mt-4 flex items-center text-gray-400 hover:text-white"
                                 >
                                     <span className="inline-block rounded-lg bg-red-600 px-4 py-2 text-white hover:bg-red-700">

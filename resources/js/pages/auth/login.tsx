@@ -1,4 +1,4 @@
-import AuthenticatedSessionController from '@/actions/App/Http/Controllers/Auth/AuthenticatedSessionController';
+    import AuthenticatedSessionController from '@/actions/App/Http/Controllers/Auth/AuthenticatedSessionController';
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="-mt-6 text-center text-sm hidden lg:block">
+                        {/* <div className="-mt-6 text-center text-sm hidden lg:block">
                             Belum punya akun?{' '}
                             <TextLink
                                 href={register()}
@@ -37,7 +37,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             >
                                 Daftar
                             </TextLink>
-                        </div>
+                        </div> */}
                         <div className="grid gap-6">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email address</Label>
@@ -101,7 +101,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 Masuk
                             </Button>
                         </div>
-                        <div className="-mt-6 text-center text-sm lg:hidden mt-1">
+                        {/* <div className="-mt-6 text-center text-sm lg:hidden mt-1">
                             Belum punya akun?{' '}
                             <TextLink
                                 href={register()}
@@ -110,7 +110,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             >
                                 Daftar
                             </TextLink>
-                        </div>
+                        </div> */}
                     </>
                 )}
             </Form>

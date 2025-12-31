@@ -173,6 +173,7 @@ Route::middleware(['auth', 'role:admin'])
         // Sertifikat Admin
         Route::get('/sertifikat', [SertifikatController::class, 'adminIndex'])->name('sertifikat.index');
         Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
+        Route::get('/sertifikat/template/example-download', [SertifikatController::class, 'downloadTemplateExample'])->name('sertifikat.downloadTemplateExample');
         Route::get('/sertifikat/{sertifikat}/preview', [SertifikatController::class, 'previewCertificate'])->name('sertifikat.preview');
         Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
         Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');

@@ -9,10 +9,12 @@ use App\Models\User;
 use App\Models\PenilaianAkhir;
 use App\Models\PesertaProfile;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use NumberFormatter;
 
 class SertifikatController extends Controller
 {
@@ -366,60 +368,100 @@ class SertifikatController extends Controller
         return $this->calculateLogbookCompletion($pesertaProfileId) >= 80;
     }
 
+    protected function numberToWords(int $number): string
+    {
+        $fmt = new NumberFormatter('id', NumberFormatter::SPELLOUT);
+        return $fmt->format($number);
+    }
+
+
     protected function generateCertificatePdf(Sertifikat $sertifikat): void
     {
         $profile = $sertifikat->pesertaProfile;
         $user = $profile ? $profile->user : null;
         $penilaian = $profile ? $profile->penilaianAkhir : null;
 
-        $startDate = $profile ? $profile->tanggal_mulai : null;
-        $endDate = $profile ? $profile->tanggal_selesai : null;
+        $startDate = $profile ? Carbon::parse($profile->tanggal_mulai) : null;
+        $endDate   = $profile ? Carbon::parse($profile->tanggal_selesai) : null;
 
-        $months = 0;
-        if ($startDate && $endDate) {
-            $months = max(1, (int) ceil($startDate->floatDiffInMonths($endDate)));
-        }
-
-        $startLabel = $startDate ? $startDate->translatedFormat('F Y') : '';
-        $endLabel = $endDate ? $endDate->translatedFormat('F Y') : '';
+        // =============================
+        // DURASI RESMI (BULAN + HARI)
+        // =============================
         $durationLabel = '';
-        if ($startLabel && $endLabel) {
-            $durationLabel = $startLabel . ' - ' . $endLabel . ' (' . $months . ' Bulan)';
+
+        if ($startDate && $endDate) {
+            $diff = $startDate->diff($endDate);
+
+            $months = ($diff->y * 12) + $diff->m;
+            $days   = $diff->d;
+
+            $bulanText = $months > 0
+                ? $this->numberToWords($months) . ' bulan'
+                : '';
+
+            $hariText = $days > 0
+                ? $this->numberToWords($days) . ' hari'
+                : '';
+
+            $durationText = trim($bulanText . ' ' . $hariText);
+
+            $startFormatted = $startDate->translatedFormat('d F');
+            $endFormatted   = $endDate->translatedFormat('d F Y');
+
+            $durationLabel =
+                $durationText .
+                ' sejak tanggal ' .
+                $startFormatted .
+                ' sampai dengan ' .
+                $endFormatted;
         }
 
+        // =============================
+        // HASIL PENILAIAN
+        // =============================
         $result = null;
         if ($penilaian && $penilaian->nilai_total !== null) {
             $result = (float) $penilaian->nilai_total;
         }
 
+        // =============================
+        // TANGGAL TTD
+        // =============================
         $dateSigned = null;
         if ($sertifikat->approved_at) {
             $dateSigned = $sertifikat->approved_at->translatedFormat('d F Y');
         }
 
-        // Ambil template aktif dari database
+        // =============================
+        // TEMPLATE AKTIF
+        // =============================
         $activeTemplate = CertificateTemplate::where('is_active', true)->first();
 
         $page1Background = null;
-
         if ($activeTemplate && $activeTemplate->page1_template_path) {
             $page1Background = storage_path('app/public/' . $activeTemplate->page1_template_path);
         }
 
+        // =============================
+        // DATA KE PDF
+        // =============================
         $data = [
-            'certificate_number' => $sertifikat->nomor_sertifikat,
-            'participant_name' => $user ? $user->name : '',
-            'internship_duration' => $durationLabel,
-            'page1Background' => $page1Background,
-            'result' => $result,
-            'date_signed' => $dateSigned,
+            'certificate_number'   => $sertifikat->nomor_sertifikat,
+            'participant_name'     => $user ? $user->name : '',
+            'internship_duration'  => $durationLabel,
+            'page1Background'      => $page1Background,
+            'result'               => $result,
+            'date_signed'          => $dateSigned,
         ];
 
-        // Generate PDF dengan enable image rendering
+        // =============================
+        // GENERATE PDF
+        // =============================
         $pdf = $this->buildCertificatePdf($data);
 
         Storage::disk('public')->put($sertifikat->file_path, $pdf->output());
     }
+
 
     protected function buildCertificatePdf(array $data)
     {

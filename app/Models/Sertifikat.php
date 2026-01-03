@@ -51,20 +51,65 @@ class Sertifikat extends Model
         return self::generateNomorSertifikat();
     }
 
+    // public static function generateNomorSertifikat(): string
+    // {
+    //     $year = date('Y');
+    //     $month = date('m');
+
+    //     $existingNumbers = self::whereYear('tanggal_terbit', $year)
+    //         ->whereMonth('tanggal_terbit', $month)
+    //         ->where('nomor_sertifikat', 'like', '%/CERT-MAGANG/%')
+    //         ->pluck('nomor_sertifikat');
+
+    //     $maxSequence = 0;
+
+    //     foreach ($existingNumbers as $nomor) {
+    //         if (preg_match('/^(\d{1,3})\/CERT-MAGANG\//', $nomor, $matches)) {
+    //             $seq = (int) $matches[1];
+    //             if ($seq > $maxSequence) {
+    //                 $maxSequence = $seq;
+    //             }
+    //         }
+    //     }
+
+    //     $sequence = $maxSequence + 1;
+
+    //     return sprintf('%03d/CERT-MAGANG/%s/%s', $sequence, $month, $year);
+    // }
+
     public static function generateNomorSertifikat(): string
     {
-        $year = date('Y');
-        $month = date('m');
+        $now = Carbon::now();
 
+        $year = $now->year;
+        $month = $now->month;
+
+        $bulanRomawi = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV',
+            5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII',
+            9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
+        ];
+
+        $bulan = $bulanRomawi[$month];
+
+        // Ambil nomor sertifikat bulan & tahun yang sama
         $existingNumbers = self::whereYear('tanggal_terbit', $year)
             ->whereMonth('tanggal_terbit', $month)
-            ->where('nomor_sertifikat', 'like', '%/CERT-MAGANG/%')
+            ->where('nomor_sertifikat', 'like', 'B/400.14.5.4/%')
             ->pluck('nomor_sertifikat');
 
         $maxSequence = 0;
 
         foreach ($existingNumbers as $nomor) {
-            if (preg_match('/^(\d{1,3})\/CERT-MAGANG\//', $nomor, $matches)) {
+            /**
+             * Cocokkan:
+             * B/400.14.5.4/{urut}/{bulan}/{tahun}
+             */
+            if (preg_match(
+                '#^B/400\.14\.5\.4/(\d+)/[IVXLCDM]+/\d{4}$#',
+                $nomor,
+                $matches
+            )) {
                 $seq = (int) $matches[1];
                 if ($seq > $maxSequence) {
                     $maxSequence = $seq;
@@ -74,7 +119,12 @@ class Sertifikat extends Model
 
         $sequence = $maxSequence + 1;
 
-        return sprintf('%03d/CERT-MAGANG/%s/%s', $sequence, $month, $year);
+        return sprintf(
+            'B/400.14.5.4/%d/%s/%d',
+            $sequence,
+            $bulan,
+            $year
+        );
     }
 
     public function getDataSertifikat(): array

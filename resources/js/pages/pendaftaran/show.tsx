@@ -71,6 +71,18 @@ export default function ShowPendaftaran({
         }
     };
 
+    const formatPhoneToWA = (phone: string) => {
+        if (!phone) return '';
+
+        let cleanPhone = phone.replace(/[^0-9]/g, '');
+
+        if (cleanPhone.startsWith('0')) {
+            cleanPhone = '62' + cleanPhone.slice(1);
+        }
+
+        return cleanPhone;
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Detail Pendaftar" />
@@ -365,37 +377,35 @@ export default function ShowPendaftaran({
                                             </Button>
                                         </div>
                                     )}
-                                    {
-                                        pendaftar.form_kesanggupan && (
-                                            <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                                                <div className="flex items-center gap-3">
-                                                    <FileText className="h-5 w-5 text-gray-500" />
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-900">
-                                                            Form Kesanggupan
-                                                        </p>
-                                                        <p className="text-xs text-gray-500">
-                                                            PDF Document
-                                                        </p>
-                                                    </div>
+                                    {pendaftar.form_kesanggupan && (
+                                        <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+                                            <div className="flex items-center gap-3">
+                                                <FileText className="h-5 w-5 text-gray-500" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">
+                                                        Form Kesanggupan
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        PDF Document
+                                                    </p>
                                                 </div>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                        window.open(
-                                                            pendaftar.form_kesanggupan!,
-                                                            '_blank',
-                                                        )
-                                                    }
-                                                    className="flex items-center gap-2"
-                                                >
-                                                    <Download className="h-4 w-4" />
-                                                    Lihat
-                                                </Button>
                                             </div>
-                                        )
-                                    }
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    window.open(
+                                                        pendaftar.form_kesanggupan!,
+                                                        '_blank',
+                                                    )
+                                                }
+                                                className="flex items-center gap-2"
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                Lihat
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </Card>
                         )}
@@ -450,11 +460,13 @@ export default function ShowPendaftaran({
                                     variant="outline"
                                     className="w-full justify-start"
                                     onClick={() =>
-                                        window.open(`tel:${pendaftar.phone}`)
+                                        window.open(
+                                            `https://wa.me/${formatPhoneToWA(pendaftar.phone)}`,
+                                        )
                                     }
                                 >
-                                    <Phone className="mr-2 h-4 w-4" />
-                                    Telepon
+                                    <Phone className="mr-2 h-4 w-4 text-green-500" />
+                                    WhatsApp
                                 </Button>
                             </div>
                         </Card>

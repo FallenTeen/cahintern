@@ -59,6 +59,9 @@
             padding-bottom: 4px;
             margin-top: 170px;
         }
+        .number {
+            font-weight: bold;
+        }
 
         .participant-name {
             font-size: 48px;
@@ -82,9 +85,9 @@
             margin-bottom: 10px;
         }
 
-        .duration {
+        /* .duration {
             font-weight: bold;
-        }
+        } */
 
         .result-category {
             font-size: 36px;
@@ -98,7 +101,8 @@
             margin-top: 6px;
             font-size: 25.4px;
             letter-spacing: 1px;
-            transform: translate(420px, 5.2px);
+            /* transform: translate(420px, 5.2px); */
+            transform: translate(398px, 5.2px);
             font-family: ArialMT;
         }
 
@@ -146,7 +150,7 @@
             @endphp
 
             <div class="certificate-number">
-                <span>Nomor:</span>
+                <span class="number">Nomor:</span>
                 <span>{{ $certificate_number }}</span>
             </div>
 
@@ -154,10 +158,10 @@
 
             <div class="description">
                 Telah menyelesaikan Praktik Kerja Lapangan di Dinas Pendidikan Kabupaten Banyumas
-                <br>pada periode<span class="duration"> {{ $internship_duration }}</span> dengan hasil
+                <br>selama<span class="duration"> {{ $internship_duration }}</span> dengan hasil
             </div>
 
-            <div class="result-category">{{ $resultCategory }}</div>
+            <div class="result-category">{{ $resultCategory ?? 'BAIK' }}</div>
 
             @if (!empty($date_signed))
             <span class="date-signed">{{ $date_signed }}</span>

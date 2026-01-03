@@ -194,7 +194,7 @@ export default function ShowMhsAktif({
                                                 onClick={() => window.open(formatWaLink(pendaftar.phone)!)}
                                                 className="flex items-center gap-2"
                                             >
-                                                <Phone className="h-4 w-4" />
+                                                <Phone className="h-4 w-4 text-green-500" />
                                                 Chat WhatsApp
                                             </Button>
                                         </div>

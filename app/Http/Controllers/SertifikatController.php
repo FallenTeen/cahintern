@@ -369,8 +369,12 @@ class SertifikatController extends Controller
 
         if ($sertifikat->is_published) {
             $sertifikat->is_published = false;
+            $sertifikat->approval_status = 'pending';
+            $sertifikat->approved_at = null;
+            $sertifikat->approved_by = null;
             $sertifikat->save();
-            return redirect()->back()->with('success', 'Publikasi sertifikat dinonaktifkan.');
+
+            return redirect()->back()->with('success', 'Publikasi sertifikat dinonaktifkan dan status dikembalikan menjadi belum disetujui.');
         }
 
         if ($sertifikat->approval_status !== 'approved') {
@@ -381,14 +385,13 @@ class SertifikatController extends Controller
                 $sertifikat->approval_status = 'approved';
                 $sertifikat->approved_at = now();
                 $sertifikat->save();
-                return redirect()->back()->with('success', 'Sertifikat berhasil disetujui dan dipublikasikan.');
             }
         }
 
         $sertifikat->is_published = true;
         $sertifikat->save();
 
-        return redirect()->back()->with('success', 'Publikasi sertifikat diaktifkan.');
+        return redirect()->back()->with('success', 'Sertifikat berhasil disetujui dan dipublikasikan.');
     }
 
     public function uploadSignedCertificate(Request $request, Sertifikat $sertifikat)

@@ -2,23 +2,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Toggle } from '@/components/ui/toggle';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { penilaianDanSertifikat } from '@/routes';
@@ -947,6 +935,9 @@ export default function PenilaianSertifikat() {
                                     {isCertificateView && (
                                         <TableHead>Status Approval</TableHead>
                                     )}
+                                    {isCertificateView && (
+                                        <TableHead>Publikasi</TableHead>
+                                    )}
                                     <TableHead className="text-center">
                                         Aksi
                                     </TableHead>
@@ -1028,6 +1019,30 @@ export default function PenilaianSertifikat() {
                                                             'pending',
                                                     )}
                                                 </Badge>
+                                            </TableCell>
+                                        )}
+                                        {isCertificateView && (
+                                            <TableCell>
+                                                {d.has_sertifikat &&
+                                                d.file_path ? (
+                                                    <Toggle
+                                                        pressed={Boolean(
+                                                            d.is_published,
+                                                        )}
+                                                        onPressedChange={() =>
+                                                            togglePublish(d.id)
+                                                        }
+                                                        aria-label="Toggle Publikasi"
+                                                    >
+                                                        {d.is_published
+                                                            ? 'Dipublikasikan'
+                                                            : 'Belum'}
+                                                    </Toggle>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Belum ada sertifikat
+                                                    </span>
+                                                )}
                                             </TableCell>
                                         )}
                                         <TableCell className="flex justify-center gap-2">

@@ -44,6 +44,7 @@ class SertifikatController extends Controller
                     'tanggal_terbit' => $sertifikatData->tanggal_terbit,
                     'file_path' => $sertifikatData->file_path,
                     'approval_status' => $sertifikatData->approval_status,
+                    'is_published' => $sertifikatData->is_published,
                 ];
             }
         }
@@ -95,6 +96,8 @@ class SertifikatController extends Controller
                     'nilai_total' => $penilaian ? $penilaian->nilai_total : null,
                     'logbook_completion' => $logbookCompletion,
                     'has_sertifikat' => $sertifikat !== null,
+                    'generation_disabled' => $sertifikat ? $sertifikat->generation_disabled : false,
+                    'is_published' => $sertifikat ? $sertifikat->is_published : false,
                 ];
             });
 
@@ -149,6 +152,8 @@ class SertifikatController extends Controller
                     'nilai_total' => $penilaian ? $penilaian->nilai_total : null,
                     'logbook_completion' => $logbookCompletion,
                     'has_sertifikat' => $sertifikat !== null,
+                    'generation_disabled' => $sertifikat ? $sertifikat->generation_disabled : false,
+                    'is_published' => $sertifikat ? $sertifikat->is_published : false,
                 ];
             });
 
@@ -216,6 +221,12 @@ class SertifikatController extends Controller
             abort(404, 'Profil peserta tidak ditemukan.');
         }
 
+        if ($profile->sertifikat && $profile->sertifikat->generation_disabled) {
+            throw ValidationException::withMessages([
+                'error' => 'Sertifikat final sudah diupload, generate otomatis tidak tersedia.',
+            ]);
+        }
+
         $logbookCompletion = $this->calculateLogbookCompletion($profile->id);
         $forceGenerate = $request->input('force_generate', false);
 
@@ -235,6 +246,7 @@ class SertifikatController extends Controller
         $sertifikat->is_published = false;
         $sertifikat->approval_status = 'pending';
         $sertifikat->file_path = 'certificates/' . $sertifikat->peserta_profile_id . '_' . time() . '.pdf';
+        $sertifikat->generation_disabled = false;
         $sertifikat->save();
 
         $this->generateCertificatePdf($sertifikat);
@@ -251,8 +263,11 @@ class SertifikatController extends Controller
         }
 
         if (!in_array($user->role, ['admin', 'pic'], true)) {
-            if ($sertifikat->approval_status !== 'approved') {
-                abort(403, 'Sertifikat belum disetujui oleh admin.');
+            if (!$sertifikat->pesertaProfile || $sertifikat->pesertaProfile->user_id !== $user->id) {
+                abort(403, 'Anda tidak berhak mengakses sertifikat ini.');
+            }
+            if (!$sertifikat->is_published) {
+                abort(403, 'Sertifikat belum dipublikasikan.');
             }
         }
 
@@ -284,6 +299,20 @@ class SertifikatController extends Controller
 
     public function previewCertificate(Sertifikat $sertifikat)
     {
+        $user = auth()->user();
+        if (!$user) {
+            abort(401, 'Unauthorized');
+        }
+
+        if (!in_array($user->role, ['admin', 'pic'], true)) {
+            if (!$sertifikat->pesertaProfile || $sertifikat->pesertaProfile->user_id !== $user->id) {
+                abort(403, 'Anda tidak berhak mengakses sertifikat ini.');
+            }
+            if (!$sertifikat->is_published) {
+                abort(403, 'Sertifikat belum dipublikasikan.');
+            }
+        }
+
         $path = $sertifikat->file_path;
         if (!$path) {
             return redirect()->back()->with('error', 'Sertifikat belum digenerate.');
@@ -302,11 +331,16 @@ class SertifikatController extends Controller
 
     public function regenerate(Request $request, Sertifikat $sertifikat)
     {
+        if ($sertifikat->generation_disabled) {
+            return redirect()->back()->with('error', 'Sertifikat final sudah diupload, generate otomatis tidak tersedia.');
+        }
+
         $sertifikat->nomor_sertifikat = Sertifikat::generateNomorSertifikat();
         $sertifikat->tanggal_terbit = now()->toDateString();
         $sertifikat->is_published = false;
         $sertifikat->approval_status = 'pending';
         $sertifikat->file_path = 'certificates/' . $sertifikat->peserta_profile_id . '_' . time() . '.pdf';
+        $sertifikat->generation_disabled = false;
         $sertifikat->save();
 
         $this->generateCertificatePdf($sertifikat);
@@ -327,8 +361,17 @@ class SertifikatController extends Controller
 
     public function validateCertificate(Request $request, Sertifikat $sertifikat)
     {
-        // PERUBAHAN: Hapus validasi logbook 80%, izinkan publish kapan saja
         $user = auth()->user();
+
+        if (!$sertifikat->file_path) {
+            return redirect()->back()->with('error', 'Sertifikat belum tersedia.');
+        }
+
+        if ($sertifikat->is_published) {
+            $sertifikat->is_published = false;
+            $sertifikat->save();
+            return redirect()->back()->with('success', 'Publikasi sertifikat dinonaktifkan.');
+        }
 
         if ($sertifikat->approval_status !== 'approved') {
             if ($user instanceof User) {
@@ -338,13 +381,45 @@ class SertifikatController extends Controller
                 $sertifikat->approval_status = 'approved';
                 $sertifikat->approved_at = now();
                 $sertifikat->save();
+                return redirect()->back()->with('success', 'Sertifikat berhasil disetujui dan dipublikasikan.');
             }
-        } else {
-            $sertifikat->is_published = true;
-            $sertifikat->save();
         }
 
-        return redirect()->back()->with('success', 'Sertifikat berhasil divalidasi/publish.');
+        $sertifikat->is_published = true;
+        $sertifikat->save();
+
+        return redirect()->back()->with('success', 'Publikasi sertifikat diaktifkan.');
+    }
+
+    public function uploadSignedCertificate(Request $request, Sertifikat $sertifikat)
+    {
+        $request->validate([
+            'signed_certificate' => 'required|file|mimes:pdf|max:10240',
+        ]);
+
+        if ($sertifikat->file_path) {
+            Storage::disk('public')->delete($sertifikat->file_path);
+        }
+
+        $file = $request->file('signed_certificate');
+        $path = $file->store('signed_certificates', 'public');
+
+        $user = auth()->user();
+
+        $sertifikat->file_path = $path;
+        $sertifikat->generation_disabled = true;
+        if ($sertifikat->approval_status !== 'approved') {
+            if ($user instanceof User) {
+                $sertifikat->approve($user);
+            } else {
+                $sertifikat->approval_status = 'approved';
+                $sertifikat->approved_at = now();
+            }
+        }
+        $sertifikat->is_published = false;
+        $sertifikat->save();
+
+        return redirect()->back()->with('success', 'Sertifikat bertanda tangan berhasil diupload. Gunakan toggle untuk mengatur publikasi.');
     }
 
     protected function calculateLogbookCompletion($pesertaProfileId): float
@@ -499,6 +574,11 @@ class SertifikatController extends Controller
                 $profile = PesertaProfile::find($profileId);
                 if (!$profile) {
                     $failed[] = ['id' => $profileId, 'reason' => 'Profil peserta tidak ditemukan'];
+                    continue;
+                }
+
+                if ($profile->sertifikat && $profile->sertifikat->generation_disabled) {
+                    $failed[] = ['id' => $profileId, 'reason' => 'Sertifikat final sudah diupload'];
                     continue;
                 }
 

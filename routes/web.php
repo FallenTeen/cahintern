@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Sertifikat untuk user biasa (peserta)
         Route::get('/sertifikat', [SertifikatController::class, 'index'])->name('sertifikat');
         Route::get('/sertifikat/{sertifikat}/download', [SertifikatController::class, 'download'])->name('sertifikat.download');
+        Route::get('/sertifikat/{sertifikat}/preview', [SertifikatController::class, 'previewCertificate'])->name('sertifikat.preview');
     });
 });
 
@@ -177,6 +178,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/sertifikat/{sertifikat}/preview', [SertifikatController::class, 'previewCertificate'])->name('sertifikat.preview');
         Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
         Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');
+        Route::post('/sertifikat/{sertifikat}/upload-signed', [SertifikatController::class, 'uploadSignedCertificate'])->name('sertifikat.uploadSigned');
         Route::post('/sertifikat/template', [SertifikatController::class, 'uploadTemplate'])->name('sertifikat.uploadTemplate');
         Route::get('/sertifikat/template/preview', [SertifikatController::class, 'previewTemplate'])->name('sertifikat.previewTemplate');
         Route::get('/sertifikat/template/active', [SertifikatController::class, 'getActiveTemplate'])->name('sertifikat.activeTemplate');
@@ -211,6 +213,7 @@ Route::middleware(['auth', 'role:pic'])
         Route::get('/sertifikat/{sertifikat}/preview', [SertifikatController::class, 'previewCertificate'])->name('sertifikat.preview');
         Route::post('/sertifikat/{sertifikat}/regenerate', [SertifikatController::class, 'regenerate'])->name('sertifikat.regenerate');
         Route::post('/sertifikat/{sertifikat}/validate', [SertifikatController::class, 'validateCertificate'])->name('sertifikat.validate');
+        Route::post('/sertifikat/{sertifikat}/upload-signed', [SertifikatController::class, 'uploadSignedCertificate'])->name('sertifikat.uploadSigned');
         Route::post('/sertifikat/batch-generate', [SertifikatController::class, 'generateBatch'])->name('sertifikat.batchGenerate');
         Route::post('/penilaian/{penilaian}/generate-sertifikat', [SertifikatController::class, 'generateFromPenilaian'])->name('penilaian.generateSertifikat');
         

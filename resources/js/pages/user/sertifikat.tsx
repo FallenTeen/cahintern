@@ -15,6 +15,7 @@ interface SertifikatData {
     tanggal_terbit: string;
     file_path: string;
     approval_status: 'pending' | 'approved' | 'rejected';
+    is_published: boolean;
 }
 
 interface Props {
@@ -73,14 +74,16 @@ export default function Sertifikat() {
                 </p>
 
                 {sertifikatData &&
-                sertifikatData.approval_status === 'approved' ? (
+                sertifikatData.is_published &&
+                sertifikatData.file_path ? (
                     <Card className="w-full rounded-2xl border shadow-sm">
                         <CardContent className="flex flex-col items-center gap-6 py-10 text-center">
-                            <img
-                                src="/mnt/data/e4350eb8-9f24-4e1f-8c32-0c20b1a7758c.png"
-                                alt="Certificate"
-                                className="w-full max-w-3xl rounded-lg shadow-md"
-                            />
+                            <div className="w-full max-w-3xl overflow-hidden rounded-lg border bg-white shadow-md">
+                                <iframe
+                                    src={`/sertifikat/${sertifikatData.id}/preview`}
+                                    className="h-[500px] w-full"
+                                />
+                            </div>
                             <div className="space-y-2">
                                 <p className="text-sm text-gray-600">
                                     Nomor Sertifikat:{' '}

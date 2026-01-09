@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -20,12 +19,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { penilaianDanSertifikat } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
 import { CircleCheckBig, RefreshCw, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Status = 'belum' | 'proses' | 'terbit';
 
@@ -63,6 +63,8 @@ type SertifikatData = {
     nilai_total?: number;
     logbook_completion?: number;
     has_sertifikat?: boolean;
+    generation_disabled?: boolean;
+    is_published?: boolean;
 };
 
 type Row = {
@@ -76,6 +78,8 @@ type Row = {
     nilai_total?: number;
     logbook_completion?: number;
     has_sertifikat?: boolean;
+    generation_disabled?: boolean;
+    is_published?: boolean;
 };
 
 type Props = {
@@ -152,6 +156,8 @@ export default function PenilaianSertifikat() {
                 nilai_total: s.nilai_total,
                 logbook_completion: s.logbook_completion,
                 has_sertifikat: s.has_sertifikat,
+                generation_disabled: s.generation_disabled,
+                is_published: s.is_published,
             }));
         }
         return props.penilaianData.data.map((p) => ({
@@ -299,6 +305,18 @@ export default function PenilaianSertifikat() {
                 },
             },
         );
+    };
+
+    const togglePublish = (sertifikatId: number) => {
+        router.post(`${prefix}/sertifikat/${sertifikatId}/validate`);
+    };
+
+    const uploadSigned = (sertifikatId: number, file: File) => {
+        const fd = new FormData();
+        fd.append('signed_certificate', file);
+        router.post(`${prefix}/sertifikat/${sertifikatId}/upload-signed`, fd, {
+            forceFormData: true,
+        });
     };
 
     const deleteCertificate = (sertifikatId: number) => {
@@ -540,7 +558,8 @@ export default function PenilaianSertifikat() {
                                                             d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
                                                         />
                                                     </svg>
-                                                    Download Safepoint Template Sertifikat
+                                                    Download Safepoint Template
+                                                    Sertifikat
                                                 </Button>
                                             </a>
                                         </div>
@@ -823,38 +842,58 @@ export default function PenilaianSertifikat() {
                             onChange={(e) => setQuery(e.target.value)}
                         />
 
-                        <div className="flex flex-wrap gap-2 items-center">
-                            <Tabs value={statusFilter} onValueChange={(val) => setStatusFilter(val as Status | 'Semua')}>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Tabs
+                                value={statusFilter}
+                                onValueChange={(val) =>
+                                    setStatusFilter(val as Status | 'Semua')
+                                }
+                            >
                                 <TabsList>
-                                    <TabsTrigger value="Semua">Semua</TabsTrigger>
-                                    <TabsTrigger value="belum">Belum</TabsTrigger>
-                                    <TabsTrigger value="proses">Proses</TabsTrigger>
-                                    <TabsTrigger value="terbit">Terbit</TabsTrigger>
+                                    <TabsTrigger value="Semua">
+                                        Semua
+                                    </TabsTrigger>
+                                    <TabsTrigger value="belum">
+                                        Belum
+                                    </TabsTrigger>
+                                    <TabsTrigger value="proses">
+                                        Proses
+                                    </TabsTrigger>
+                                    <TabsTrigger value="terbit">
+                                        Terbit
+                                    </TabsTrigger>
                                 </TabsList>
                             </Tabs>
                             {isCertificateView && (
-                                <div className="flex-1 flex justify-end">
+                                <div className="flex flex-1 justify-end">
                                     <div className="flex gap-2">
                                         <Button
                                             variant="default"
                                             disabled={selected.length === 0}
                                             onClick={() => batchGenerate()}
                                         >
-                                            <RefreshCw className='text-yellow-500'/>Generate Batch
+                                            <RefreshCw className="mr-2 h-4 w-4 text-yellow-500" />
+                                            Generate Batch
                                         </Button>
                                         <Button
                                             variant="default"
                                             disabled={selected.length === 0}
-                                            onClick={() => batchApprove('approve')}
+                                            onClick={() =>
+                                                batchApprove('approve')
+                                            }
                                         >
-                                            <CircleCheckBig className='text-green-600'/>Approve Batch
+                                            <CircleCheckBig className="mr-2 h-4 w-4 text-green-600" />
+                                            Approve Batch
                                         </Button>
                                         <Button
                                             variant="default"
                                             disabled={selected.length === 0}
-                                            onClick={() => batchApprove('reject')}
+                                            onClick={() =>
+                                                batchApprove('reject')
+                                            }
                                         >
-                                            <X className='text-red-600'/>Reject Batch
+                                            <X className="mr-2 h-4 w-4 text-red-600" />
+                                            Reject Batch
                                         </Button>
                                     </div>
                                 </div>
@@ -1005,7 +1044,8 @@ export default function PenilaianSertifikat() {
                                                             )
                                                         }
                                                         disabled={
-                                                            !d.has_sertifikat
+                                                            !d.has_sertifikat ||
+                                                            d.generation_disabled
                                                         }
                                                         title="Regenerate"
                                                     >
@@ -1052,18 +1092,40 @@ export default function PenilaianSertifikat() {
                                                             </svg>
                                                         </Button>
                                                     )}
-                                                    {d.has_sertifikat &&
-                                                        d.file_path && (
+                                                    {d.has_sertifikat && (
+                                                        <>
+                                                            <input
+                                                                id={`upload-signed-${d.id}`}
+                                                                type="file"
+                                                                accept="application/pdf"
+                                                                className="hidden"
+                                                                onChange={(
+                                                                    e,
+                                                                ) => {
+                                                                    const file =
+                                                                        e.target
+                                                                            .files?.[0];
+                                                                    if (file) {
+                                                                        uploadSigned(
+                                                                            d.id,
+                                                                            file,
+                                                                        );
+                                                                        e.target.value =
+                                                                            '';
+                                                                    }
+                                                                }}
+                                                            />
                                                             <Button
                                                                 variant="ghost"
                                                                 size="icon"
-                                                                onClick={() =>
-                                                                    window.open(
-                                                                        `${prefix}/sertifikat/${d.id}/preview`,
-                                                                        '_blank',
-                                                                    )
-                                                                }
-                                                                title="Preview Sertifikat"
+                                                                onClick={() => {
+                                                                    const input =
+                                                                        document.getElementById(
+                                                                            `upload-signed-${d.id}`,
+                                                                        ) as HTMLInputElement | null;
+                                                                    input?.click();
+                                                                }}
+                                                                title="Upload Sertifikat Bertanda Tangan"
                                                             >
                                                                 <svg
                                                                     xmlns="http://www.w3.org/2000/svg"
@@ -1073,20 +1135,89 @@ export default function PenilaianSertifikat() {
                                                                         2
                                                                     }
                                                                     stroke="currentColor"
-                                                                    className="h-5 w-5"
+                                                                    className="h-5 w-5 text-purple-600"
                                                                 >
                                                                     <path
                                                                         strokeLinecap="round"
                                                                         strokeLinejoin="round"
-                                                                        d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                                                                    />
-                                                                    <path
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                                        d="M12 4.5v15m7.5-7.5h-15"
                                                                     />
                                                                 </svg>
                                                             </Button>
+                                                        </>
+                                                    )}
+                                                    {d.has_sertifikat &&
+                                                        d.file_path && (
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() =>
+                                                                        togglePublish(
+                                                                            d.id,
+                                                                        )
+                                                                    }
+                                                                    title="Toggle Publikasi Sertifikat"
+                                                                >
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        fill={
+                                                                            d.is_published
+                                                                                ? 'currentColor'
+                                                                                : 'none'
+                                                                        }
+                                                                        viewBox="0 0 24 24"
+                                                                        strokeWidth={
+                                                                            2
+                                                                        }
+                                                                        stroke="currentColor"
+                                                                        className={
+                                                                            d.is_published
+                                                                                ? 'h-5 w-5 text-green-600'
+                                                                                : 'h-5 w-5 text-gray-500'
+                                                                        }
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                                        />
+                                                                    </svg>
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    onClick={() =>
+                                                                        window.open(
+                                                                            `${prefix}/sertifikat/${d.id}/preview`,
+                                                                            '_blank',
+                                                                        )
+                                                                    }
+                                                                    title="Preview Sertifikat"
+                                                                >
+                                                                    <svg
+                                                                        xmlns="http://www.w3.org/2000/svg"
+                                                                        fill="none"
+                                                                        viewBox="0 0 24 24"
+                                                                        strokeWidth={
+                                                                            2
+                                                                        }
+                                                                        stroke="currentColor"
+                                                                        className="h-5 w-5"
+                                                                    >
+                                                                        <path
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                                                                        />
+                                                                        <path
+                                                                            strokeLinecap="round"
+                                                                            strokeLinejoin="round"
+                                                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                                        />
+                                                                    </svg>
+                                                                </Button>
+                                                            </>
                                                         )}
                                                     {d.has_sertifikat && (
                                                         <Button
@@ -1116,6 +1247,7 @@ export default function PenilaianSertifikat() {
                                                         </Button>
                                                     )}
                                                     {d.has_sertifikat &&
+                                                        d.file_path &&
                                                         d.approval_status ===
                                                             'pending' && (
                                                             <>

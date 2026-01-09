@@ -22,6 +22,7 @@ class Sertifikat extends Model
         'approval_status',
         'approved_at',
         'approved_by',
+        'generation_disabled',
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class Sertifikat extends Model
         'is_published' => 'boolean',
         'approved_at' => 'datetime',
         'approval_status' => 'string',
+        'generation_disabled' => 'boolean',
     ];
 
     public function pesertaProfile()

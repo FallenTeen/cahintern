@@ -57,11 +57,7 @@ interface MhsAktif {
     logbook_link?: string | null;
 }
 
-export default function ShowMhsAktif({
-    pendaftar,
-}: {
-    pendaftar: MhsAktif;
-}) {
+export default function ShowMhsAktif({ pendaftar }: { pendaftar: MhsAktif }) {
     const formatWaLink = (phone?: string) => {
         if (!phone) return null;
         let digits = phone.replace(/[^0-9+]/g, '');
@@ -77,40 +73,53 @@ export default function ShowMhsAktif({
         if (!dateStr) return '-';
         const d = new Date(dateStr);
         try {
-            return d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            return d.toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+            });
         } catch (e) {
             return dateStr.toString();
         }
     };
-    const getStatusColor = (tanggal_mulai?: string | Date | null, tanggal_selesai?: string | Date | null) => {
-        const today = new Date();
-        const startDate = tanggal_mulai ? new Date(tanggal_mulai) : null;
-        const endDate = tanggal_selesai ? new Date(tanggal_selesai) : null;
-        let status: string;
-
-        if (!startDate || !endDate) {
-            status = 'Unknown';
-        } else if (today < startDate) {
-            status = 'Belum Mulai';
-        } else if (today >= startDate && today <= endDate) {
-            status = 'Sedang Berlangsung';
-        } else if (today > endDate) {
-            status = 'Selesai';
-        } else {
-            status = 'Unknown';
+    const getStatusInfo = (
+        tanggal_mulai?: string | Date | null,
+        tanggal_selesai?: string | Date | null,
+    ) => {
+        if (!tanggal_mulai || !tanggal_selesai) {
+            return { label: 'Unknown', className: 'bg-gray-100 text-gray-800' };
         }
 
-        switch (status) {
-            case 'Belum Mulai':
-                return 'bg-red-100 text-red-800';
-            case 'Sedang Berlangsung':
-                return 'bg-green-100 text-green-800';
-            case 'Selesai':
-                return 'bg-yellow-100 text-yellow-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const startDate = new Date(tanggal_mulai);
+        startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(tanggal_selesai);
+        endDate.setHours(23, 59, 59, 999);
+
+        if (today < startDate) {
+            return {
+                label: 'Belum Mulai',
+                className: 'bg-yellow-100 text-yellow-800', 
+            };
+        } else if (today >= startDate && today <= endDate) {
+            return {
+                label: 'Sedang Berlangsung',
+                className: 'bg-green-100 text-green-800', 
+            };
+        } else {
+            return {
+                label: 'Selesai',
+                className: 'bg-blue-100 text-blue-800', 
+            };
         }
     };
+    const statusInfo = getStatusInfo(
+        pendaftar.tanggal_mulai,
+        pendaftar.tanggal_selesai,
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -126,14 +135,14 @@ export default function ShowMhsAktif({
                             Informasi lengkap mahasiswa magang aktif
                         </p>
                     </div>
-                        <Button
-                            variant="outline"
-                            onClick={() => router.visit(dataMahasiswaAktif().url)}
-                            className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 hover:text-white"
-                        >
-                            <Undo2 className="h-4 w-4" />
-                            Kembali
-                        </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => router.visit(dataMahasiswaAktif().url)}
+                        className="flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 hover:text-white"
+                    >
+                        <Undo2 className="h-4 w-4" />
+                        Kembali
+                    </Button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -182,7 +191,11 @@ export default function ShowMhsAktif({
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => window.open(`mailto:${pendaftar.email}`)}
+                                                onClick={() =>
+                                                    window.open(
+                                                        `mailto:${pendaftar.email}`,
+                                                    )
+                                                }
                                                 className="flex items-center gap-2"
                                             >
                                                 <Mail className="h-4 w-4" />
@@ -191,7 +204,13 @@ export default function ShowMhsAktif({
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => window.open(formatWaLink(pendaftar.phone)!)}
+                                                onClick={() =>
+                                                    window.open(
+                                                        formatWaLink(
+                                                            pendaftar.phone,
+                                                        )!,
+                                                    )
+                                                }
                                                 className="flex items-center gap-2"
                                             >
                                                 <Phone className="h-4 w-4 text-green-500" />
@@ -205,7 +224,8 @@ export default function ShowMhsAktif({
                                         Tempat, Tanggal Lahir
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.tempat_lahir || '-'}, {formatDate(pendaftar.tanggal_lahir)}
+                                        {pendaftar.tempat_lahir || '-'},{' '}
+                                        {formatDate(pendaftar.tanggal_lahir)}
                                     </p>
                                 </div>
                                 <div>
@@ -213,7 +233,11 @@ export default function ShowMhsAktif({
                                         Jenis Kelamin
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.jenis_kelamin === 'L' ? 'Laki-laki' : pendaftar.jenis_kelamin === 'P' ? 'Perempuan' : '-'}
+                                        {pendaftar.jenis_kelamin === 'L'
+                                            ? 'Laki-laki'
+                                            : pendaftar.jenis_kelamin === 'P'
+                                              ? 'Perempuan'
+                                              : '-'}
                                     </p>
                                 </div>
                                 <div className="md:col-span-2">
@@ -221,7 +245,9 @@ export default function ShowMhsAktif({
                                         Alamat Lengkap
                                     </label>
                                     <p className="mt-1 text-sm text-gray-900">
-                                        {pendaftar.alamat || '-'}, {pendaftar.kota || '-'}, {pendaftar.provinsi || '-'}
+                                        {pendaftar.alamat || '-'},{' '}
+                                        {pendaftar.kota || '-'},{' '}
+                                        {pendaftar.provinsi || '-'}
                                     </p>
                                 </div>
                             </div>
@@ -324,7 +350,6 @@ export default function ShowMhsAktif({
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">
                                         Durasi Magang
@@ -337,13 +362,17 @@ export default function ShowMhsAktif({
                                     <label className="text-sm font-medium text-gray-500">
                                         Tanggal Mulai
                                     </label>
-                                    <p className="mt-1 text-sm text-gray-900">{formatDate(pendaftar.tanggal_mulai)}</p>
+                                    <p className="mt-1 text-sm text-gray-900">
+                                        {formatDate(pendaftar.tanggal_mulai)}
+                                    </p>
                                 </div>
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">
                                         Tanggal Selesai
                                     </label>
-                                    <p className="mt-1 text-sm text-gray-900">{formatDate(pendaftar.tanggal_selesai)}</p>
+                                    <p className="mt-1 text-sm text-gray-900">
+                                        {formatDate(pendaftar.tanggal_selesai)}
+                                    </p>
                                 </div>
                             </div>
                         </Card>
@@ -427,9 +456,21 @@ export default function ShowMhsAktif({
                             </Card>
                         )}
                         <Card className="border-0 p-6 shadow-sm">
-                            <h2 className="mb-4 text-lg font-semibold text-gray-900">Logbook</h2>
-                            <p className="text-sm text-gray-600 mb-3">Total entries: {pendaftar.logbook_count ?? 0}</p>
-                            <Button variant="outline" onClick={() => window.open(pendaftar.logbook_link)} className="w-full justify-start">Lihat Logbook</Button>
+                            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+                                Logbook
+                            </h2>
+                            <p className="mb-3 text-sm text-gray-600">
+                                Total entries: {pendaftar.logbook_count ?? 0}
+                            </p>
+                            <Button
+                                variant="outline"
+                                onClick={() =>
+                                    window.open(pendaftar.logbook_link)
+                                }
+                                className="w-full justify-start"
+                            >
+                                Lihat Logbook
+                            </Button>
                         </Card>
                     </div>
                     <div className="space-y-6">
@@ -444,9 +485,9 @@ export default function ShowMhsAktif({
                                     </label>
                                     <div className="mt-1">
                                         <span
-                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(pendaftar.tanggal_mulai, pendaftar.tanggal_selesai)}`}
+                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusInfo.className}`}
                                         >
-                                            {pendaftar.status}
+                                            {statusInfo.label}
                                         </span>
                                     </div>
                                 </div>

@@ -2,17 +2,52 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Toggle } from '@/components/ui/toggle';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Toggle } from '@/components/ui/toggle';
 import AppLayout from '@/layouts/app-layout';
 import { penilaianDanSertifikat } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { CircleCheckBig, RefreshCw, X } from 'lucide-react';
+import {
+    CheckCircle,
+    CircleCheckBig,
+    Download,
+    Eye,
+    FilePlus,
+    Globe,
+    Inbox,
+    MoreHorizontal,
+    RefreshCw,
+    Trash,
+    Upload,
+    X,
+    XCircle,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 type Status = 'belum' | 'proses' | 'terbit';
@@ -854,33 +889,38 @@ export default function PenilaianSertifikat() {
                             </Tabs>
                             {isCertificateView && (
                                 <div className="flex flex-1 justify-end">
-                                    <div className="flex gap-2">
+                                    <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
                                         <Button
                                             variant="default"
                                             disabled={selected.length === 0}
                                             onClick={() => batchGenerate()}
+                                            className="w-full md:w-auto"
                                         >
                                             <RefreshCw className="mr-2 h-4 w-4 text-yellow-500" />
                                             Generate Batch
                                         </Button>
+
                                         <Button
                                             variant="default"
                                             disabled={selected.length === 0}
                                             onClick={() =>
                                                 batchApprove('approve')
                                             }
+                                            className="w-full bg-green-600 hover:bg-green-700 md:w-auto"
                                         >
-                                            <CircleCheckBig className="mr-2 h-4 w-4 text-green-600" />
+                                            <CircleCheckBig className="mr-2 h-4 w-4 text-white" />
                                             Approve Batch
                                         </Button>
+
                                         <Button
                                             variant="default"
                                             disabled={selected.length === 0}
                                             onClick={() =>
                                                 batchApprove('reject')
                                             }
+                                            className="w-full bg-red-600 hover:bg-red-700 md:w-auto"
                                         >
-                                            <X className="mr-2 h-4 w-4 text-red-600" />
+                                            <X className="mr-2 h-4 w-4 text-white" />
                                             Reject Batch
                                         </Button>
                                     </div>
@@ -898,465 +938,407 @@ export default function PenilaianSertifikat() {
 
                 <Card>
                     <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    {isCertificateView && (
-                                        <TableHead>
-                                            <Checkbox
-                                                checked={
-                                                    selected.length ===
-                                                        filtered.length &&
-                                                    filtered.length > 0
-                                                }
-                                                onCheckedChange={(checked) => {
-                                                    if (checked)
-                                                        setSelected(
-                                                            filtered.map(
-                                                                (d) => d.id,
-                                                            ),
-                                                        );
-                                                    else setSelected([]);
-                                                }}
-                                            />
-                                        </TableHead>
-                                    )}
-                                    <TableHead>Nama Mahasiswa</TableHead>
-                                    <TableHead>
-                                        {isCertificateView
-                                            ? 'Tanggal Terbit'
-                                            : 'Tanggal Penilaian'}
-                                    </TableHead>
-                                    <TableHead>Nilai Akhir</TableHead>
-                                    {isCertificateView && (
-                                        <TableHead>Logbook</TableHead>
-                                    )}
-                                    <TableHead>Status Sertifikat</TableHead>
-                                    {isCertificateView && (
-                                        <TableHead>Status Approval</TableHead>
-                                    )}
-                                    {isCertificateView && (
-                                        <TableHead>Publikasi</TableHead>
-                                    )}
-                                    <TableHead className="text-center">
-                                        Aksi
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filtered.map((d) => (
-                                    <TableRow key={d.id}>
+                        {filtered.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="mb-4 rounded-full bg-gray-50 p-6">
+                                    <Inbox className="h-10 w-10 text-gray-400" />
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                    Belum ada data sertifikat
+                                </h3>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Data sertifikat akan muncul di sini.
+                                </p>
+                            </div>
+                        ) : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
                                         {isCertificateView && (
-                                            <TableCell>
+                                            <TableHead>
                                                 <Checkbox
-                                                    checked={selected.includes(
-                                                        d.id,
-                                                    )}
+                                                    checked={
+                                                        selected.length ===
+                                                            filtered.length &&
+                                                        filtered.length > 0
+                                                    }
                                                     onCheckedChange={(
                                                         checked,
                                                     ) => {
-                                                        setSelected((prev) =>
-                                                            checked
-                                                                ? [
-                                                                      ...prev,
-                                                                      d.id,
-                                                                  ]
-                                                                : prev.filter(
-                                                                      (x) =>
-                                                                          x !==
-                                                                          d.id,
-                                                                  ),
-                                                        );
+                                                        if (checked)
+                                                            setSelected(
+                                                                filtered.map(
+                                                                    (d) => d.id,
+                                                                ),
+                                                            );
+                                                        else setSelected([]);
                                                     }}
                                                 />
-                                            </TableCell>
+                                            </TableHead>
                                         )}
-                                        <TableCell>{d.nama_peserta}</TableCell>
-                                        <TableCell>{d.tanggal}</TableCell>
-                                        <TableCell>
-                                            {d.nilai_total ?? '-'}
-                                        </TableCell>
+
+                                        <TableHead>Nama Mahasiswa</TableHead>
+                                        <TableHead>
+                                            {isCertificateView
+                                                ? 'Tanggal Terbit'
+                                                : 'Tanggal Penilaian'}
+                                        </TableHead>
+                                        <TableHead>Nilai Akhir</TableHead>
                                         {isCertificateView && (
-                                            <TableCell>
-                                                <Badge
-                                                    className={
-                                                        (d.logbook_completion ||
-                                                            0) >= 80
-                                                            ? 'bg-green-500 text-white'
-                                                            : 'bg-orange-500 text-white'
-                                                    }
-                                                >
-                                                    {d.logbook_completion?.toFixed(
-                                                        0,
-                                                    ) || 0}
-                                                    %
-                                                </Badge>
-                                            </TableCell>
+                                            <TableHead>Logbook</TableHead>
                                         )}
-                                        <TableCell>
-                                            <Badge
-                                                className={getStatusBadgeClass(
-                                                    d.status,
-                                                )}
-                                            >
-                                                {d.status === 'belum'
-                                                    ? 'Belum'
-                                                    : d.status === 'proses'
-                                                      ? 'Proses'
-                                                      : 'Terbit'}
-                                            </Badge>
-                                        </TableCell>
+                                        <TableHead>Status Sertifikat</TableHead>
                                         {isCertificateView && (
-                                            <TableCell>
-                                                <Badge
-                                                    className={getApprovalBadgeClass(
-                                                        d.approval_status ||
-                                                            'pending',
-                                                    )}
-                                                >
-                                                    {getApprovalBadgeText(
-                                                        d.approval_status ||
-                                                            'pending',
-                                                    )}
-                                                </Badge>
-                                            </TableCell>
+                                            <TableHead>
+                                                Status Approval
+                                            </TableHead>
                                         )}
                                         {isCertificateView && (
-                                            <TableCell>
-                                                {d.has_sertifikat &&
-                                                d.file_path ? (
-                                                    <Toggle
-                                                        pressed={Boolean(
-                                                            d.is_published,
+                                            <TableHead>Publikasi</TableHead>
+                                        )}
+                                        <TableHead className="text-center">
+                                            Aksi
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filtered.map((d) => (
+                                        <TableRow key={d.id}>
+                                            {isCertificateView && (
+                                                <TableCell>
+                                                    <Checkbox
+                                                        checked={selected.includes(
+                                                            d.id,
                                                         )}
-                                                        onPressedChange={() =>
-                                                            togglePublish(d.id)
-                                                        }
-                                                        aria-label="Toggle Publikasi"
-                                                    >
-                                                        {d.is_published
-                                                            ? 'Dipublikasikan'
-                                                            : 'Belum'}
-                                                    </Toggle>
-                                                ) : (
-                                                    <span className="text-xs text-muted-foreground">
-                                                        Belum ada sertifikat
-                                                    </span>
-                                                )}
+                                                        onCheckedChange={(
+                                                            checked,
+                                                        ) => {
+                                                            setSelected(
+                                                                (prev) =>
+                                                                    checked
+                                                                        ? [
+                                                                              ...prev,
+                                                                              d.id,
+                                                                          ]
+                                                                        : prev.filter(
+                                                                              (
+                                                                                  x,
+                                                                              ) =>
+                                                                                  x !==
+                                                                                  d.id,
+                                                                          ),
+                                                            );
+                                                        }}
+                                                    />
+                                                </TableCell>
+                                            )}
+                                            <TableCell>
+                                                {d.nama_peserta}
                                             </TableCell>
-                                        )}
-                                        <TableCell className="flex justify-center gap-2">
-                                            {isCertificateView ? (
-                                                <>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() =>
-                                                            regenerateIndividual(
-                                                                d.id,
-                                                                d.has_sertifikat ||
-                                                                    false,
-                                                            )
+                                            <TableCell>{d.tanggal}</TableCell>
+                                            <TableCell>
+                                                {d.nilai_total ?? '-'}
+                                            </TableCell>
+                                            {isCertificateView && (
+                                                <TableCell>
+                                                    <Badge
+                                                        className={
+                                                            (d.logbook_completion ||
+                                                                0) >= 80
+                                                                ? 'bg-green-500 text-white'
+                                                                : 'bg-orange-500 text-white'
                                                         }
-                                                        disabled={
-                                                            !d.has_sertifikat ||
-                                                            d.generation_disabled
-                                                        }
-                                                        title="Regenerate"
                                                     >
-                                                        <svg
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            fill="none"
-                                                            viewBox="0 0 24 24"
-                                                            strokeWidth={2}
-                                                            stroke="currentColor"
-                                                            className="h-5 w-5 text-orange-500"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
-                                                            />
-                                                        </svg>
-                                                    </Button>
-                                                    {d.file_path && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() =>
-                                                                window.open(
-                                                                    `${prefix}/sertifikat/${d.id}/download`,
-                                                                    '_blank',
-                                                                )
-                                                            }
-                                                            title="Download"
-                                                        >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                strokeWidth={2}
-                                                                stroke="currentColor"
-                                                                className="h-5 w-5 text-blue-600"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-                                                                />
-                                                            </svg>
-                                                        </Button>
+                                                        {d.logbook_completion?.toFixed(
+                                                            0,
+                                                        ) || 0}
+                                                        %
+                                                    </Badge>
+                                                </TableCell>
+                                            )}
+                                            <TableCell>
+                                                <Badge
+                                                    className={getStatusBadgeClass(
+                                                        d.status,
                                                     )}
-                                                    {d.has_sertifikat && (
-                                                        <>
-                                                            <input
-                                                                id={`upload-signed-${d.id}`}
-                                                                type="file"
-                                                                accept="application/pdf"
-                                                                className="hidden"
-                                                                onChange={(
-                                                                    e,
-                                                                ) => {
-                                                                    const file =
-                                                                        e.target
-                                                                            .files?.[0];
-                                                                    if (file) {
-                                                                        uploadSigned(
-                                                                            d.id,
-                                                                            file,
-                                                                        );
-                                                                        e.target.value =
-                                                                            '';
-                                                                    }
-                                                                }}
-                                                            />
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => {
-                                                                    const input =
-                                                                        document.getElementById(
-                                                                            `upload-signed-${d.id}`,
-                                                                        ) as HTMLInputElement | null;
-                                                                    input?.click();
-                                                                }}
-                                                                title="Upload Sertifikat Bertanda Tangan"
-                                                            >
-                                                                <svg
-                                                                    xmlns="http://www.w3.org/2000/svg"
-                                                                    fill="none"
-                                                                    viewBox="0 0 24 24"
-                                                                    strokeWidth={
-                                                                        2
-                                                                    }
-                                                                    stroke="currentColor"
-                                                                    className="h-5 w-5 text-purple-600"
-                                                                >
-                                                                    <path
-                                                                        strokeLinecap="round"
-                                                                        strokeLinejoin="round"
-                                                                        d="M12 4.5v15m7.5-7.5h-15"
-                                                                    />
-                                                                </svg>
-                                                            </Button>
-                                                        </>
-                                                    )}
+                                                >
+                                                    {d.status === 'belum'
+                                                        ? 'Belum'
+                                                        : d.status === 'proses'
+                                                          ? 'Proses'
+                                                          : 'Terbit'}
+                                                </Badge>
+                                            </TableCell>
+                                            {isCertificateView && (
+                                                <TableCell>
+                                                    <Badge
+                                                        className={getApprovalBadgeClass(
+                                                            d.approval_status ||
+                                                                'pending',
+                                                        )}
+                                                    >
+                                                        {getApprovalBadgeText(
+                                                            d.approval_status ||
+                                                                'pending',
+                                                        )}
+                                                    </Badge>
+                                                </TableCell>
+                                            )}
+                                            {isCertificateView && (
+                                                <TableCell>
                                                     {d.has_sertifikat &&
-                                                        d.file_path && (
-                                                            <>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() =>
-                                                                        togglePublish(
-                                                                            d.id,
-                                                                        )
-                                                                    }
-                                                                    title="Toggle Publikasi Sertifikat"
-                                                                >
-                                                                    <svg
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        fill={
-                                                                            d.is_published
-                                                                                ? 'currentColor'
-                                                                                : 'none'
-                                                                        }
-                                                                        viewBox="0 0 24 24"
-                                                                        strokeWidth={
-                                                                            2
-                                                                        }
-                                                                        stroke="currentColor"
-                                                                        className={
-                                                                            d.is_published
-                                                                                ? 'h-5 w-5 text-green-600'
-                                                                                : 'h-5 w-5 text-gray-500'
-                                                                        }
-                                                                    >
-                                                                        <path
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                                        />
-                                                                    </svg>
-                                                                </Button>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() =>
-                                                                        window.open(
-                                                                            `${prefix}/sertifikat/${d.id}/preview`,
-                                                                            '_blank',
-                                                                        )
-                                                                    }
-                                                                    title="Preview Sertifikat"
-                                                                >
-                                                                    <svg
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        fill="none"
-                                                                        viewBox="0 0 24 24"
-                                                                        strokeWidth={
-                                                                            2
-                                                                        }
-                                                                        stroke="currentColor"
-                                                                        className="h-5 w-5"
-                                                                    >
-                                                                        <path
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                            d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                                                                        />
-                                                                        <path
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                                        />
-                                                                    </svg>
-                                                                </Button>
-                                                            </>
-                                                        )}
-                                                    {d.has_sertifikat && (
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() =>
-                                                                deleteCertificate(
+                                                    d.file_path ? (
+                                                        <Toggle
+                                                            pressed={Boolean(
+                                                                d.is_published,
+                                                            )}
+                                                            onPressedChange={() =>
+                                                                togglePublish(
                                                                     d.id,
                                                                 )
                                                             }
-                                                            title="Hapus Sertifikat"
+                                                            aria-label="Toggle Publikasi"
                                                         >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                fill="none"
-                                                                viewBox="0 0 24 24"
-                                                                strokeWidth={2}
-                                                                stroke="currentColor"
-                                                                className="h-5 w-5 text-red-600"
-                                                            >
-                                                                <path
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                                                />
-                                                            </svg>
-                                                        </Button>
+                                                            {d.is_published
+                                                                ? 'Dipublikasikan'
+                                                                : 'Belum'}
+                                                        </Toggle>
+                                                    ) : (
+                                                        <span className="text-xs text-muted-foreground">
+                                                            Belum ada sertifikat
+                                                        </span>
                                                     )}
-                                                    {d.has_sertifikat &&
-                                                        d.file_path &&
-                                                        d.approval_status ===
-                                                            'pending' && (
-                                                            <>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() =>
-                                                                        approveCertificate(
-                                                                            d.id,
-                                                                            'approve',
-                                                                        )
-                                                                    }
-                                                                    className="text-green-600 hover:text-green-700"
-                                                                    title="Approve"
-                                                                >
-                                                                    <svg
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        fill="none"
-                                                                        viewBox="0 0 24 24"
-                                                                        strokeWidth={
-                                                                            2
-                                                                        }
-                                                                        stroke="currentColor"
-                                                                        className="h-5 w-5"
-                                                                    >
-                                                                        <path
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                            d="M4.5 12.75l6 6 9-13.5"
-                                                                        />
-                                                                    </svg>
-                                                                </Button>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="icon"
-                                                                    onClick={() =>
-                                                                        approveCertificate(
-                                                                            d.id,
-                                                                            'reject',
-                                                                        )
-                                                                    }
-                                                                    className="text-red-600 hover:text-red-700"
-                                                                    title="Reject"
-                                                                >
-                                                                    <svg
-                                                                        xmlns="http://www.w3.org/2000/svg"
-                                                                        fill="none"
-                                                                        viewBox="0 0 24 24"
-                                                                        strokeWidth={
-                                                                            2
-                                                                        }
-                                                                        stroke="currentColor"
-                                                                        className="h-5 w-5"
-                                                                    >
-                                                                        <path
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                            d="M6 18L18 6M6 6l12 12"
-                                                                        />
-                                                                    </svg>
-                                                                </Button>
-                                                            </>
-                                                        )}
-                                                </>
-                                            ) : (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        generateIndividual(d.id)
-                                                    }
-                                                    title="Generate Sertifikat"
-                                                >
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        fill="none"
-                                                        viewBox="0 0 24 24"
-                                                        strokeWidth={2}
-                                                        stroke="currentColor"
-                                                        className="h-5 w-5 text-blue-600"
-                                                    >
-                                                        <path
-                                                            strokeLinecap="round"
-                                                            strokeLinejoin="round"
-                                                            d="M12 4.5v15m7.5-7.5h-15"
-                                                        />
-                                                    </svg>
-                                                </Button>
+                                                </TableCell>
                                             )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                            <TableCell className="text-center">
+                                                {isCertificateView &&
+                                                    d.has_sertifikat && (
+                                                        <input
+                                                            id={`upload-signed-${d.id}`}
+                                                            type="file"
+                                                            accept="application/pdf"
+                                                            className="hidden"
+                                                            onChange={(e) => {
+                                                                const file =
+                                                                    e.target
+                                                                        .files?.[0];
+                                                                if (file) {
+                                                                    uploadSigned(
+                                                                        d.id,
+                                                                        file,
+                                                                    );
+                                                                    e.target.value =
+                                                                        '';
+                                                                }
+                                                            }}
+                                                        />
+                                                    )}
+
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger
+                                                        asChild
+                                                    >
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="h-8 w-8 p-0"
+                                                        >
+                                                            <span className="sr-only">
+                                                                Open menu
+                                                            </span>
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+
+                                                    <DropdownMenuContent
+                                                        align="end"
+                                                        className="w-56"
+                                                    >
+                                                        <DropdownMenuLabel>
+                                                            Aksi Sertifikat
+                                                        </DropdownMenuLabel>
+                                                        <DropdownMenuSeparator />
+
+                                                        {/* KONDISI 1: Tampilan Utama Certificate View */}
+                                                        {isCertificateView ? (
+                                                            <>
+                                                                {/* Regenerate */}
+                                                                <DropdownMenuItem
+                                                                    onClick={() =>
+                                                                        regenerateIndividual(
+                                                                            d.id,
+                                                                            d.has_sertifikat ||
+                                                                                false,
+                                                                        )
+                                                                    }
+                                                                    disabled={
+                                                                        !d.has_sertifikat ||
+                                                                        d.generation_disabled
+                                                                    }
+                                                                >
+                                                                    <RefreshCw className="mr-2 h-4 w-4 text-orange-500" />
+                                                                    <span>
+                                                                        Regenerate
+                                                                    </span>
+                                                                </DropdownMenuItem>
+
+                                                                {/* Download */}
+                                                                {d.file_path && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() =>
+                                                                            window.open(
+                                                                                `${prefix}/sertifikat/${d.id}/download`,
+                                                                                '_blank',
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Download className="mr-2 h-4 w-4 text-blue-600" />
+                                                                        <span>
+                                                                            Download
+                                                                            PDF
+                                                                        </span>
+                                                                    </DropdownMenuItem>
+                                                                )}
+
+                                                                {/* Preview */}
+                                                                {d.has_sertifikat && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() =>
+                                                                            window.open(
+                                                                                `${prefix}/sertifikat/${d.id}/preview`,
+                                                                                '_blank',
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <Eye className="mr-2 h-4 w-4" />
+                                                                        <span>
+                                                                            Preview
+                                                                        </span>
+                                                                    </DropdownMenuItem>
+                                                                )}
+
+                                                                <DropdownMenuSeparator />
+
+                                                                {/* Upload Signed */}
+                                                                {d.has_sertifikat && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() =>
+                                                                            document
+                                                                                .getElementById(
+                                                                                    `upload-signed-${d.id}`,
+                                                                                )
+                                                                                ?.click()
+                                                                        }
+                                                                    >
+                                                                        <Upload className="mr-2 h-4 w-4 text-purple-600" />
+                                                                        <span>
+                                                                            Upload
+                                                                            Signed
+                                                                        </span>
+                                                                    </DropdownMenuItem>
+                                                                )}
+
+                                                                {/* Toggle Publish */}
+                                                                {d.has_sertifikat &&
+                                                                    d.file_path && (
+                                                                        <DropdownMenuItem
+                                                                            onClick={() =>
+                                                                                togglePublish(
+                                                                                    d.id,
+                                                                                )
+                                                                            }
+                                                                        >
+                                                                            <Globe
+                                                                                className={`mr-2 h-4 w-4 ${d.is_published ? 'text-green-600' : 'text-gray-500'}`}
+                                                                            />
+                                                                            <span>
+                                                                                {d.is_published
+                                                                                    ? 'Unpublish'
+                                                                                    : 'Publish'}
+                                                                            </span>
+                                                                        </DropdownMenuItem>
+                                                                    )}
+
+                                                                {/* Approve / Reject (Pending Approval) */}
+                                                                {d.has_sertifikat &&
+                                                                    d.file_path &&
+                                                                    d.approval_status ===
+                                                                        'pending' && (
+                                                                        <>
+                                                                            <DropdownMenuSeparator />
+                                                                            <DropdownMenuItem
+                                                                                onClick={() =>
+                                                                                    approveCertificate(
+                                                                                        d.id,
+                                                                                        'approve',
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                                                                                <span>
+                                                                                    Approve
+                                                                                </span>
+                                                                            </DropdownMenuItem>
+                                                                            <DropdownMenuItem
+                                                                                onClick={() =>
+                                                                                    approveCertificate(
+                                                                                        d.id,
+                                                                                        'reject',
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                                                                                <span>
+                                                                                    Reject
+                                                                                </span>
+                                                                            </DropdownMenuItem>
+                                                                        </>
+                                                                    )}
+
+                                                                {/* Delete */}
+                                                                {d.has_sertifikat && (
+                                                                    <>
+                                                                        <DropdownMenuSeparator />
+                                                                        <DropdownMenuItem
+                                                                            onClick={() =>
+                                                                                deleteCertificate(
+                                                                                    d.id,
+                                                                                )
+                                                                            }
+                                                                            className="text-red-600 focus:text-red-600"
+                                                                        >
+                                                                            <Trash className="mr-2 h-4 w-4" />
+                                                                            <span>
+                                                                                Hapus
+                                                                                Sertifikat
+                                                                            </span>
+                                                                        </DropdownMenuItem>
+                                                                    </>
+                                                                )}
+                                                            </>
+                                                        ) : (
+                                                            /* KONDISI 2: Bukan Certificate View (Tombol Generate Awal) */
+                                                            <DropdownMenuItem
+                                                                onClick={() =>
+                                                                    generateIndividual(
+                                                                        d.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <FilePlus className="mr-2 h-4 w-4 text-blue-600" />
+                                                                <span>
+                                                                    Generate
+                                                                    Sertifikat
+                                                                </span>
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        )}
                     </CardContent>
                 </Card>
             </div>

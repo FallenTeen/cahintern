@@ -18,7 +18,9 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -28,7 +30,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Toggle } from '@/components/ui/toggle';
 import AppLayout from '@/layouts/app-layout';
 import { penilaianDanSertifikat } from '@/routes';
 import { type BreadcrumbItem, type SharedData } from '@/types';
@@ -1088,21 +1089,30 @@ export default function PenilaianSertifikat() {
                                                 <TableCell>
                                                     {d.has_sertifikat &&
                                                     d.file_path ? (
-                                                        <Toggle
-                                                            pressed={Boolean(
-                                                                d.is_published,
-                                                            )}
-                                                            onPressedChange={() =>
-                                                                togglePublish(
-                                                                    d.id,
-                                                                )
-                                                            }
-                                                            aria-label="Toggle Publikasi"
-                                                        >
-                                                            {d.is_published
-                                                                ? 'Dipublikasikan'
-                                                                : 'Belum'}
-                                                        </Toggle>
+                                                        <div className="flex items-center gap-2">
+                                                            <Switch
+                                                                checked={Boolean(
+                                                                    d.is_published,
+                                                                )}
+                                                                onCheckedChange={() =>
+                                                                    togglePublish(
+                                                                        d.id,
+                                                                    )
+                                                                }
+                                                                aria-label="Toggle Publikasi Sertifikat"
+                                                            />
+                                                            <Label className="text-xs">
+                                                                {d.is_published ? (
+                                                                    <span className="font-medium text-green-600">
+                                                                        Terbitkan
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-gray-500">
+                                                                        Batal Terbitkan
+                                                                    </span>
+                                                                )}
+                                                            </Label>
+                                                        </div>
                                                     ) : (
                                                         <span className="text-xs text-muted-foreground">
                                                             Belum ada sertifikat
@@ -1194,7 +1204,7 @@ export default function PenilaianSertifikat() {
                                                                         <Download className="mr-2 h-4 w-4 text-blue-600" />
                                                                         <span>
                                                                             Download
-                                                                            PDF
+                                                                            Sertifikat
                                                                         </span>
                                                                     </DropdownMenuItem>
                                                                 )}
@@ -1232,7 +1242,7 @@ export default function PenilaianSertifikat() {
                                                                         <Upload className="mr-2 h-4 w-4 text-purple-600" />
                                                                         <span>
                                                                             Upload
-                                                                            Signed
+                                                                            Sertifikat
                                                                         </span>
                                                                     </DropdownMenuItem>
                                                                 )}
@@ -1252,8 +1262,8 @@ export default function PenilaianSertifikat() {
                                                                             />
                                                                             <span>
                                                                                 {d.is_published
-                                                                                    ? 'Unpublish'
-                                                                                    : 'Publish'}
+                                                                                    ? 'Batalkan terbitkan'
+                                                                                    : 'Terbitkan'}
                                                                             </span>
                                                                         </DropdownMenuItem>
                                                                     )}
@@ -1275,7 +1285,7 @@ export default function PenilaianSertifikat() {
                                                                             >
                                                                                 <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
                                                                                 <span>
-                                                                                    Approve
+                                                                                    Disetujui
                                                                                 </span>
                                                                             </DropdownMenuItem>
                                                                             <DropdownMenuItem
@@ -1288,7 +1298,7 @@ export default function PenilaianSertifikat() {
                                                                             >
                                                                                 <XCircle className="mr-2 h-4 w-4 text-red-600" />
                                                                                 <span>
-                                                                                    Reject
+                                                                                    Ditolak
                                                                                 </span>
                                                                             </DropdownMenuItem>
                                                                         </>

@@ -85,7 +85,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function LogbookMahasiswa() {
     const { logbookData } = usePage<Props>().props;
-    const [data] = useState<LogbookData[]>(logbookData.data);
     const [query, setQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<Status | 'Semua'>('Semua');
     const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list');
@@ -98,7 +97,8 @@ export default function LogbookMahasiswa() {
 
     const filtered = useMemo(() => {
         const q = query.trim().toLowerCase();
-        return data.filter((d) => {
+
+        return logbookData.data.filter((d) => {
             if (statusFilter !== 'Semua' && d.status !== statusFilter)
                 return false;
             if (!q) return true;
@@ -107,7 +107,8 @@ export default function LogbookMahasiswa() {
                 d.kegiatan.toLowerCase().includes(q)
             );
         });
-    }, [data, query, statusFilter]);
+
+    }, [logbookData.data, query, statusFilter]);
 
     const sorted = useMemo(() => {
         const sorted = [...filtered];
@@ -301,7 +302,7 @@ export default function LogbookMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-0 text-2xl font-semibold text-yellow-500 md:text-3xl">
-                            {data.filter((d) => d.status === 'pending').length}
+                            {logbookData.data.filter((d) => d.status === 'pending').length}
                         </CardContent>
                     </Card>
                     <Card>
@@ -312,7 +313,7 @@ export default function LogbookMahasiswa() {
                         </CardHeader>
                         <CardContent className="p-4 pt-0 text-2xl font-semibold text-green-500 md:text-3xl">
                             {
-                                data.filter((d) => d.status === 'disetujui')
+                                logbookData.data.filter((d) => d.status === 'disetujui')
                                     .length
                             }
                         </CardContent>
@@ -324,7 +325,7 @@ export default function LogbookMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-0 text-2xl font-semibold text-orange-500 md:text-3xl">
-                            {data.filter((d) => d.status === 'revision').length}
+                            {logbookData.data.filter((d) => d.status === 'revision').length}
                         </CardContent>
                     </Card>
                     <Card>
@@ -334,7 +335,7 @@ export default function LogbookMahasiswa() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-4 pt-0 text-2xl font-semibold text-red-500 md:text-3xl">
-                            {data.filter((d) => d.status === 'ditolak').length}
+                            {logbookData.data.filter((d) => d.status === 'ditolak').length}
                         </CardContent>
                     </Card>
                 </div>
@@ -472,7 +473,8 @@ export default function LogbookMahasiswa() {
                             Belum ada data logbook
                         </h3>
                         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                            Data logbook akan muncul di sini setelah user mengisi logbook.
+                            Data logbook akan muncul di sini setelah user
+                            mengisi logbook.
                         </p>
                     </Card>
                 ) : (

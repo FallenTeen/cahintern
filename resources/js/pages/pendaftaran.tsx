@@ -178,7 +178,7 @@ export default function Pendaftaran() {
                         {/* Header Banner */}
                         <div className="relative px-8 pt-12 pb-8 text-center md:px-16">
                             <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-rose-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-rose-600 ring-1 ring-rose-100">
-                                <Sparkles className="h-3 w-3" /> Program Magang 2025
+                                <Sparkles className="h-3 w-3" /> Program Magang 2026
                             </span>
                             <h1 className="bg-gradient-to-br from-slate-900 to-slate-600 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl">
                                 Ayo Mulai Perjalanan Anda.

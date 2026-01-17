@@ -339,7 +339,7 @@ const LogbookPage = () => {
 
     const renderLogbookList = () => (
         <>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-semibold">Logbook Harian</h1>
                     <p className="mt-1 text-gray-600">
@@ -576,20 +576,22 @@ const LogbookPage = () => {
                     </Table>
                 </CardContent>
             </Card>
-            {logbooks.data.length > 10 && logbooks.links.length > 1 && (
-                <div className="mt-4 flex justify-end">
-                    <Pagination>
-                        <PaginationContent>
-                            {/* Sebelumnya */}
+            {logbooks.links.length > 1 && (
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-muted-foreground">
+                        Menampilkan {logbooks.data.length} data
+                    </p>
+
+                    <Pagination className="justify-center sm:justify-end">
+                        <PaginationContent className="flex flex-wrap gap-1">
+                            {/* Previous */}
                             <PaginationItem>
                                 <PaginationPrevious
                                     href={logbooks.links[0].url ?? '#'}
                                     onClick={(e) => {
-                                        if (!logbooks.links[0].url) {
-                                            e.preventDefault();
-                                            return;
-                                        }
                                         e.preventDefault();
+                                        if (!logbooks.links[0].url) return;
+
                                         router.get(
                                             logbooks.links[0].url,
                                             { tanggal: filterTanggal },
@@ -599,57 +601,49 @@ const LogbookPage = () => {
                                 />
                             </PaginationItem>
 
-                            {/* Nomor halaman */}
-                            {logbooks.links
-                                .slice(1, logbooks.links.length - 1)
-                                .map((link, index) => (
-                                    <PaginationItem key={index}>
-                                        {link.label === '...' ? (
-                                            <PaginationEllipsis />
-                                        ) : (
-                                            <PaginationLink
-                                                href={link.url ?? '#'}
-                                                isActive={link.active}
-                                                onClick={(e) => {
-                                                    if (!link.url) {
+                            {/* Page numbers (SEMBUNYIKAN di MOBILE) */}
+                            <div className="hidden sm:flex gap-1">
+                                {logbooks.links
+                                    .slice(1, logbooks.links.length - 1)
+                                    .map((link, index) => (
+                                        <PaginationItem key={index}>
+                                            {link.label === '...' ? (
+                                                <PaginationEllipsis />
+                                            ) : (
+                                                <PaginationLink
+                                                    href={link.url ?? '#'}
+                                                    isActive={link.active}
+                                                    onClick={(e) => {
                                                         e.preventDefault();
-                                                        return;
-                                                    }
-                                                    e.preventDefault();
-                                                    router.get(
-                                                        link.url,
-                                                        {
-                                                            tanggal:
-                                                                filterTanggal,
-                                                        },
-                                                        { preserveState: true },
-                                                    );
-                                                }}
-                                            >
-                                                {link.label}
-                                            </PaginationLink>
-                                        )}
-                                    </PaginationItem>
-                                ))}
+                                                        if (!link.url) return;
 
-                            {/* Berikutnya */}
+                                                        router.get(
+                                                            link.url,
+                                                            { tanggal: filterTanggal },
+                                                            { preserveState: true },
+                                                        );
+                                                    }}
+                                                >
+                                                    {link.label}
+                                                </PaginationLink>
+                                            )}
+                                        </PaginationItem>
+                                    ))}
+                            </div>
+
+                            {/* Next */}
                             <PaginationItem>
                                 <PaginationNext
                                     href={
-                                        logbooks.links[
-                                            logbooks.links.length - 1
-                                        ].url ?? '#'
+                                        logbooks.links[logbooks.links.length - 1].url ??
+                                        '#'
                                     }
                                     onClick={(e) => {
-                                        const next =
-                                            logbooks.links[
-                                                logbooks.links.length - 1
-                                            ];
-                                        if (!next.url) {
-                                            e.preventDefault();
-                                            return;
-                                        }
                                         e.preventDefault();
+                                        const next =
+                                            logbooks.links[logbooks.links.length - 1];
+                                        if (!next.url) return;
+
                                         router.get(
                                             next.url,
                                             { tanggal: filterTanggal },
@@ -668,7 +662,7 @@ const LogbookPage = () => {
     // edit and create form
     const renderForm = () => (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-semibold">
                         {viewMode === 'edit'

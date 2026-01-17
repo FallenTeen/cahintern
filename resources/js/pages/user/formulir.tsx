@@ -6,13 +6,8 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { formulir } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
@@ -34,14 +29,6 @@ export default function PremiumFormUpload(props: Props) {
     const [uploadType, setUploadType] = useState<DocType | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-
-    const [openPdf, setOpenPdf] = useState<{
-        title: string;
-        uri: string;
-    } | null>(null);
-    const closePdf = () => {
-        setOpenPdf(null);
-    };
 
     const addFile = (files: FileList | null) => {
         const f = files?.[0];
@@ -114,113 +101,119 @@ export default function PremiumFormUpload(props: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dokumen Persyaratan" />
-            <div className="space-y-6 p-6">
-                <div className="space-y-4">
-                    <div>
-                        <h1 className="text-2xl font-semibold">
-                            Penilaian & Sertifikat
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Kelola penilaian mahasiswa dan penerbitan sertifikat
-                        </p>
-                    </div>
+
+            <div className="space-y-6 p-4 sm:p-6">
+                <div>
+                    <h1 className="text-2xl font-semibold">
+                        Dokumen Persyaratan
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Upload dan kelola dokumen persyaratan magang
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <Card>
                         <CardHeader>
                             <CardTitle>Status Dokumen</CardTitle>
+                            <CardDescription>
+                                Dokumen yang sudah diupload
+                            </CardDescription>
+
                             <Button
                                 onClick={downloadTemplate}
-                                className="mt-2 mb-4"
+                                variant="outline"
+                                className="mt-2 w-fit bg-blue-500 text-white"
                             >
                                 Download Template Form Kesanggupan
                             </Button>
-                            <CardDescription>
-                                Upload & lihat dokumen persyaratan
-                            </CardDescription>
                         </CardHeader>
 
                         <CardContent className="space-y-4">
-                            {/* BUTTON PREVIEW */}
-                            <div className="flex flex-wrap gap-2">
-                                {documents.form_kesanggupan && (
-                                    <Button
-                                        variant="outline"
-                                        onClick={() =>
-                                            setOpenPdf({
-                                                title: 'Form Kesanggupan',
-                                                uri: `/storage/${documents.form_kesanggupan}`,
-                                            })
-                                        }
-                                    >
-                                        Form Kesanggupan
-                                    </Button>
-                                )}
-
-                                {documents.cv && (
-                                    <Button
-                                        variant="outline"
-                                        onClick={() =>
-                                            setOpenPdf({
-                                                title: 'CV',
-                                                uri: `/storage/${documents.cv}`,
-                                            })
-                                        }
-                                    >
-                                        CV
-                                    </Button>
-                                )}
-
-                                {documents.surat_pengantar && (
-                                    <Button
-                                        variant="outline"
-                                        onClick={() =>
-                                            setOpenPdf({
-                                                title: 'Surat Pengantar',
-                                                uri: `/storage/${documents.surat_pengantar}`,
-                                            })
-                                        }
-                                    >
-                                        Surat Pengantar
-                                    </Button>
-                                )}
-                            </div>
-
-                            {/* UPLOAD AREA  */}
-                            <div className="space-y-3 border-2 border-dashed p-6 text-center">
-                                <p className="mt-0 text-sm text-red-600">
-                                    Silahkan pilih kategori mana yang mau di
-                                    upload, file harus berupa PDF
-                                </p>
-                                <Tabs
-                                    value={uploadType ?? ''}
-                                    onValueChange={(val) => {
-                                        setUploadType(val as DocType);
-                                        setFile(null);
-                                    }}
-                                    className="w-full"
+                            {[
+                                {
+                                    label: 'Form Kesanggupan',
+                                    value: documents.form_kesanggupan,
+                                },
+                                { label: 'CV', value: documents.cv },
+                                {
+                                    label: 'Surat Pengantar',
+                                    value: documents.surat_pengantar,
+                                },
+                            ].map((doc) => (
+                                <div
+                                    key={doc.label}
+                                    className="flex items-center justify-between rounded-lg border p-4"
                                 >
-                                    <TabsList className="grid w-full grid-cols-3">
-                                        <TabsTrigger
-                                            value="form_kesanggupan"
-                                            className="data-[state=active]:text-red-600"
+                                    <div>
+                                        <p className="font-medium">{doc.label}</p>
+                                        <p
+                                            className={`text-sm ${
+                                                doc.value
+                                                    ? 'text-green-600'
+                                                    : 'text-red-600'
+                                            }`}
                                         >
-                                            Form Kesanggupan
-                                        </TabsTrigger>
+                                            {doc.value
+                                                ? 'Sudah diupload'
+                                                : 'Belum diupload'}
+                                        </p>
+                                    </div>
 
-                                        <TabsTrigger
-                                            value="cv"
-                                            className="data-[state=active]:text-red-600"
+                                    {doc.value && (
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() =>
+                                                window.open(`/storage/${doc.value}`, '_blank')
+                                            }
                                         >
-                                            CV
-                                        </TabsTrigger>
+                                            Lihat
+                                        </Button>
+                                    )}
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
 
-                                        <TabsTrigger
-                                            value="surat_pengantar"
-                                            className="data-[state=active]:text-red-600"
-                                        >
-                                            Surat Pengantar
-                                        </TabsTrigger>
-                                    </TabsList>
-                                </Tabs>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Upload Dokumen</CardTitle>
+                            <CardDescription>
+                                Pilih jenis dokumen dan upload file PDF
+                            </CardDescription>
+                        </CardHeader>
+
+                        <CardContent className="space-y-5">
+                            <RadioGroup
+                                value={uploadType ?? ''}
+                                onValueChange={(val) => {
+                                    setUploadType(val as DocType);
+                                    setFile(null);
+                                }}
+                                className="space-y-3"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="form_kesanggupan" id="form" />
+                                    <Label htmlFor="form">Form Kesanggupan</Label>
+                                </div>
+
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="cv" id="cv" />
+                                    <Label htmlFor="cv">CV</Label>
+                                </div>
+
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="surat_pengantar" id="surat" />
+                                    <Label htmlFor="surat">Surat Pengantar</Label>
+                                </div>
+                            </RadioGroup>
+                            <div className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed p-6 text-center">
+                                <CloudUpload className="h-10 w-10 text-muted-foreground" />
+                                <p className="text-sm text-muted-foreground">
+                                    Upload file PDF (maks. 5MB)
+                                </p>
+
                                 <input
                                     ref={inputRef}
                                     type="file"
@@ -228,55 +221,41 @@ export default function PremiumFormUpload(props: Props) {
                                     accept="application/pdf"
                                     onChange={(e) => addFile(e.target.files)}
                                 />
+
                                 <Button
-                                    onClick={() => inputRef.current?.click()}
+                                    variant="outline"
+                                    onClick={() =>
+                                        inputRef.current?.click()
+                                    }
                                 >
-                                    <CloudUpload className="mr-2 h-4 w-4" />{' '}
                                     Pilih File
                                 </Button>
+
                                 {file && (
-                                    <div className="flex items-center justify-between rounded border p-2">
+                                    <div className="flex w-full items-center justify-between rounded border p-2">
                                         <span className="truncate text-sm">
                                             {file.name}
                                         </span>
                                         <X
-                                            className="cursor-pointer text-red-600 hover:text-gray-600"
+                                            className="cursor-pointer text-red-600"
                                             onClick={() => setFile(null)}
                                         />
                                     </div>
                                 )}
-                                <Button
-                                    className="w-full"
-                                    disabled={!file || !uploadType}
-                                    onClick={upload}
-                                >
-                                    Upload
-                                </Button>
                             </div>
+
+                            <Button
+                                className="w-full"
+                                disabled={!file || !uploadType}
+                                onClick={upload}
+                            >
+                                Upload Dokumen
+                            </Button>
                         </CardContent>
                     </Card>
-
-                    {/* PDF PREVIEW  */}
-                    <Dialog open={!!openPdf} onOpenChange={closePdf}>
-                        <DialogContent className="p-0">
-                            {openPdf && (
-                                <>
-                                    <DialogHeader className="px-4 py-2">
-                                        <DialogTitle>
-                                            {openPdf.title}
-                                        </DialogTitle>
-                                    </DialogHeader>
-
-                                    <iframe
-                                        src={openPdf.uri}
-                                        className="h-[calc(90vh-50px)] w-full border-0"
-                                    />
-                                </>
-                            )}
-                        </DialogContent>
-                    </Dialog>
                 </div>
             </div>
         </AppLayout>
     );
+
 }

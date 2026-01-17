@@ -302,7 +302,7 @@ const AbsensiMagang = () => {
             <Head title="Absensi" />
             <div className="space-y-6 px-6 py-6">
                 <div className="mx-auto max-w-7xl space-y-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">
                                 Absensi Magang
@@ -552,228 +552,201 @@ const AbsensiMagang = () => {
                                 Riwayat Absensi
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="overflow-x-auto">
-                            <Table className="text-center align-middle">
-                                {absensiData.data.length > 0 && (
-                                    <TableHeader>
-                                        <TableRow className="bg-gray-100">
-                                            <TableHead className="text-center align-middle">
-                                                Tanggal
-                                            </TableHead>
-                                            <TableHead className="text-center align-middle">
-                                                Jam Masuk
-                                            </TableHead>
-                                            <TableHead className="text-center align-middle">
-                                                Jam Keluar
-                                            </TableHead>
-                                            <TableHead className="text-center align-middle">
-                                                Keterangan
-                                            </TableHead>
-                                            <TableHead className="text-center align-middle">
-                                                Status
-                                            </TableHead>
-                                            <TableHead className="text-center align-middle">
-                                                Aksi
-                                            </TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                )}
+                        <CardContent>
+                            <div className="relative w-full overflow-x-auto rounded-md border">
+                                <Table className="min-w-[800px] text-center align-middle">
+                                    {absensiData.data.length > 0 && (
+                                        <TableHeader>
+                                            <TableRow className="bg-gray-100">
+                                                <TableHead className="text-center align-middle">
+                                                    Tanggal
+                                                </TableHead>
+                                                <TableHead className="text-center align-middle">
+                                                    Jam Masuk
+                                                </TableHead>
+                                                <TableHead className="text-center align-middle">
+                                                    Jam Keluar
+                                                </TableHead>
+                                                <TableHead className="text-center align-middle">
+                                                    Keterangan
+                                                </TableHead>
+                                                <TableHead className="text-center align-middle">
+                                                    Status
+                                                </TableHead>
+                                                <TableHead className="text-center align-middle">
+                                                    Aksi
+                                                </TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                    )}
 
-                                <TableBody>
-                                    {absensiData.data.length > 0 ? (
-                                        absensiData.data.map((log) => (
-                                            <TableRow key={log.id}>
-                                                <TableCell>
-                                                    {formatTanggal(log.tanggal)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {formatJam(
-                                                        log.jam_masuk ?? '-',
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {formatJam(
-                                                        log.jam_keluar ?? '-',
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.keterangan ?? '-'}
-                                                </TableCell>
-                                                <TableCell className="text-center">
-                                                    {statusAbsensi(log.status)}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="border-transparent text-blue-600"
-                                                        onClick={() =>
-                                                            router.get(
-                                                                `/absensi/${log.id}`,
-                                                            )
-                                                        }
-                                                    >
-                                                        <Eye />
-                                                    </Button>
+                                    <TableBody>
+                                        {absensiData.data.length > 0 ? (
+                                            absensiData.data.map((log) => (
+                                                <TableRow key={log.id}>
+                                                    <TableCell>
+                                                        {formatTanggal(log.tanggal)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {formatJam(
+                                                            log.jam_masuk ?? '-',
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {formatJam(
+                                                            log.jam_keluar ?? '-',
+                                                        )}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        {log.keterangan ?? '-'}
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        {statusAbsensi(log.status)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="border-transparent text-blue-600"
+                                                            onClick={() =>
+                                                                router.get(
+                                                                    `/absensi/${log.id}`,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Eye />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell
+                                                    colSpan={6}
+                                                    className="py-16 text-center"
+                                                >
+                                                    <div className="flex flex-col items-center justify-center">
+                                                        <div className="mb-4 rounded-full bg-gray-50 p-4">
+                                                            <Inbox className="h-10 w-10 text-gray-400" />
+                                                        </div>
+                                                        <h3 className="text-lg font-semibold text-gray-900">
+                                                            Belum ada data logbook
+                                                            harian
+                                                        </h3>
+                                                        <p className="mt-1 text-sm text-gray-500">
+                                                            Data logbook harian akan
+                                                            muncul di sini.
+                                                        </p>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell
-                                                colSpan={6}
-                                                className="py-16 text-center"
-                                            >
-                                                <div className="flex flex-col items-center justify-center">
-                                                    <div className="mb-4 rounded-full bg-gray-50 p-4">
-                                                        <Inbox className="h-10 w-10 text-gray-400" />
-                                                    </div>
-                                                    <h3 className="text-lg font-semibold text-gray-900">
-                                                        Belum ada data logbook
-                                                        harian
-                                                    </h3>
-                                                    <p className="mt-1 text-sm text-gray-500">
-                                                        Data logbook harian akan
-                                                        muncul di sini.
-                                                    </p>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                            {absensiData.links.length > 10 &&
-                                absensiData.links.length > 1 && (
-                                    <div className="mt-4 flex justify-end border-t pt-4">
-                                        <Pagination>
-                                            <PaginationContent>
-                                                {/* Previous */}
-                                                <PaginationItem>
-                                                    <PaginationPrevious
-                                                        href={
-                                                            absensiData.links[0]
-                                                                .url ?? '#'
-                                                        }
-                                                        className={
-                                                            !absensiData
-                                                                .links[0].url
-                                                                ? 'pointer-events-none opacity-50'
-                                                                : ''
-                                                        }
-                                                        onClick={(e) => {
-                                                            if (
-                                                                !absensiData
-                                                                    .links[0]
-                                                                    .url
-                                                            ) {
-                                                                e.preventDefault();
-                                                                return;
-                                                            }
-                                                            e.preventDefault();
-                                                            router.get(
-                                                                absensiData
-                                                                    .links[0]
-                                                                    .url,
-                                                                {
-                                                                    preserveState: true,
-                                                                    preserveScroll: true,
-                                                                },
-                                                            );
-                                                        }}
-                                                    />
-                                                </PaginationItem>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            {absensiData.links.length > 1 && (
+                                <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                                    {/* Info */}
+                                    <p className="text-sm text-muted-foreground">
+                                        Menampilkan {absensiData.data.length} data
+                                    </p>
 
-                                                {/* Page Numbers */}
-                                                {absensiData.links
-                                                    .slice(1, -1)
-                                                    .map((link, index) => (
-                                                        <PaginationItem
-                                                            key={index}
-                                                        >
-                                                            {link.label ===
-                                                            '...' ? (
-                                                                <PaginationEllipsis />
-                                                            ) : (
-                                                                <PaginationLink
-                                                                    href={
-                                                                        link.url ??
-                                                                        '#'
-                                                                    }
-                                                                    isActive={
-                                                                        link.active
-                                                                    }
-                                                                    onClick={(
-                                                                        e,
-                                                                    ) => {
-                                                                        if (
-                                                                            !link.url
-                                                                        ) {
-                                                                            e.preventDefault();
-                                                                            return;
-                                                                        }
-                                                                        e.preventDefault();
-                                                                        router.get(
-                                                                            link.url,
-                                                                            {
-                                                                                preserveState: true,
-                                                                                preserveScroll: true,
-                                                                            },
-                                                                        );
-                                                                    }}
-                                                                >
-                                                                    {link.label}
-                                                                </PaginationLink>
-                                                            )}
-                                                        </PaginationItem>
-                                                    ))}
+                                    <Pagination className="justify-center sm:justify-end">
+                                        <PaginationContent className="flex flex-wrap gap-1">
+                                            {/* PREVIOUS */}
+                                            <PaginationItem>
+                                                <PaginationPrevious
+                                                    href={absensiData.links[0].url ?? '#'}
+                                                    className={
+                                                        !absensiData.links[0].url
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : ''
+                                                    }
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (!absensiData.links[0].url) return;
 
-                                                {/* Next */}
-                                                <PaginationItem>
-                                                    <PaginationNext
-                                                        href={
+                                                        router.get(
+                                                            absensiData.links[0].url,
+                                                            {},
+                                                            {
+                                                                preserveState: true,
+                                                                preserveScroll: true,
+                                                            },
+                                                        );
+                                                    }}
+                                                />
+                                            </PaginationItem>
+
+                                            {/* PAGE NUMBER (SEMBUNYI DI MOBILE) */}
+                                            <div className="hidden sm:flex gap-1">
+                                                {absensiData.links.slice(1, -1).map((link, index) => (
+                                                    <PaginationItem key={index}>
+                                                        {link.label === '...' ? (
+                                                            <PaginationEllipsis />
+                                                        ) : (
+                                                            <PaginationLink
+                                                                href={link.url ?? '#'}
+                                                                isActive={link.active}
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    if (!link.url) return;
+
+                                                                    router.get(
+                                                                        link.url,
+                                                                        {},
+                                                                        {
+                                                                            preserveState: true,
+                                                                            preserveScroll: true,
+                                                                        },
+                                                                    );
+                                                                }}
+                                                            >
+                                                                {link.label}
+                                                            </PaginationLink>
+                                                        )}
+                                                    </PaginationItem>
+                                                ))}
+                                            </div>
+
+                                            {/* NEXT */}
+                                            <PaginationItem>
+                                                <PaginationNext
+                                                    href={
+                                                        absensiData.links[
+                                                            absensiData.links.length - 1
+                                                        ].url ?? '#'
+                                                    }
+                                                    className={
+                                                        !absensiData.links[
+                                                            absensiData.links.length - 1
+                                                        ].url
+                                                            ? 'pointer-events-none opacity-50'
+                                                            : ''
+                                                    }
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        const next =
                                                             absensiData.links[
-                                                                absensiData
-                                                                    .links
-                                                                    .length - 1
-                                                            ].url ?? '#'
-                                                        }
-                                                        className={
-                                                            !absensiData.links[
-                                                                absensiData
-                                                                    .links
-                                                                    .length - 1
-                                                            ].url
-                                                                ? 'pointer-events-none opacity-50'
-                                                                : ''
-                                                        }
-                                                        onClick={(e) => {
-                                                            const nextLink =
-                                                                absensiData
-                                                                    .links[
-                                                                    absensiData
-                                                                        .links
-                                                                        .length -
-                                                                        1
-                                                                ];
-                                                            if (!nextLink.url) {
-                                                                e.preventDefault();
-                                                                return;
-                                                            }
-                                                            e.preventDefault();
-                                                            router.get(
-                                                                nextLink.url,
-                                                                {
-                                                                    preserveState: true,
-                                                                    preserveScroll: true,
-                                                                },
-                                                            );
-                                                        }}
-                                                    />
-                                                </PaginationItem>
-                                            </PaginationContent>
-                                        </Pagination>
-                                    </div>
-                                )}
+                                                                absensiData.links.length - 1
+                                                            ];
+                                                        if (!next.url) return;
+
+                                                        router.get(
+                                                            next.url,
+                                                            {},
+                                                            {
+                                                                preserveState: true,
+                                                                preserveScroll: true,
+                                                            },
+                                                        );
+                                                    }}
+                                                />
+                                            </PaginationItem>
+                                        </PaginationContent>
+                                    </Pagination>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

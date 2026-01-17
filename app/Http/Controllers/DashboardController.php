@@ -238,7 +238,7 @@ class DashboardController extends Controller
                 ['label' => 'Verifikasi Pendaftaran', 'href' => '/pendaftaran'],
                 ['label' => 'Validasi Logbook', 'href' => '/logbook-mahasiswa'],
                 ['label' => 'Kelola Jadwal Absensi', 'href' => '/absen-mahasiswa'],
-                ['label' => 'Kelola Izin', 'href' => '/izin'],
+                // ['label' => 'Kelola Izin', 'href' => '/izin'],
             ]
         ]);
     }

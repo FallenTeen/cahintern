@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { GraduationCap } from 'lucide-react';
+import logoImage from '../../../../public/logoDindik.svg';
 
 const FooterSection = () => {
     return (
@@ -10,7 +10,11 @@ const FooterSection = () => {
                         <div className="mb-4 text-2xl font-bold">
                             <div className="flex items-center gap-3">
                                 <div className="rounded-full bg-red-200 p-2">
-                                    <GraduationCap className="h-8 w-8 text-red-600" />
+                                    <img
+                                        src={logoImage}
+                                        alt="Dinas Pendidikan Banyumas"
+                                        className="h-[40px] w-full rounded-xl object-cover md:h-[40px]"
+                                    />
                                 </div>
                                 <div className="text-gray-900">
                                     <h1 className="text-lg font-semibold">
@@ -147,26 +151,17 @@ const FooterSection = () => {
                         </h3>
                         <ul className="space-y-3">
                             <li>
-                                <a
-                                    href="#"
-                                    className="text-gray-800"
-                                >
+                                <a href="#" className="text-gray-800">
                                     IT & Teknologi
                                 </a>
                             </li>
                             <li>
-                                <a
-                                    href="#"
-                                    className="text-gray-800"
-                                >
+                                <a href="#" className="text-gray-800">
                                     Administrasi
                                 </a>
                             </li>
                             <li>
-                                <a
-                                    href="#"
-                                    className="text-gray-800"
-                                >
+                                <a href="#" className="text-gray-800">
                                     Hubungan Masyarakat
                                 </a>
                             </li>

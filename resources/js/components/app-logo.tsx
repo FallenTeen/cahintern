@@ -4,11 +4,11 @@ export default function AppLogo() {
     return (
         <>
             <div className="flex items-center gap-3">
-                <div className="p-2">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center">
                     <img
                         src={logoImage}
                         alt="Dinas Pendidikan Banyumas"
-                        className="h-[30px] w-full rounded-xl object-cover md:h-[30px]"
+                        className="h-10 w-10 object-contain"
                     />
                 </div>
                 <div>

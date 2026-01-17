@@ -16,11 +16,11 @@ import {
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Data Mahasiswa Aktif',
+        title: 'Data Peserta Aktif',
         href: dashboard().url,
     },
     {
-        title: 'Detail Mahasiswa Aktif',
+        title: 'Detail Peserta Aktif',
         href: '#',
     },
 ];
@@ -52,6 +52,7 @@ interface MhsAktif {
     no_hp_pembimbing?: string | null;
     cv?: string | null;
     surat_pengantar?: string | null;
+    form_kesanggupan?: string | null;
     alasan_tolak?: string | null;
     logbook_count?: number | null;
     logbook_link?: string | null;
@@ -123,16 +124,16 @@ export default function ShowMhsAktif({ pendaftar }: { pendaftar: MhsAktif }) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Detail Mahasiswa Aktif" />
+            <Head title="Detail Peserta Aktif" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold">
-                            Detail Mahasiswa Aktif
+                            Detail Peserta Aktif
                         </h1>
                         <p className="text-sm text-gray-500 md:text-base">
-                            Informasi lengkap mahasiswa magang aktif
+                            Informasi lengkap peserta magang aktif
                         </p>
                     </div>
                     <Button
@@ -157,7 +158,7 @@ export default function ShowMhsAktif({ pendaftar }: { pendaftar: MhsAktif }) {
                                         Informasi Pribadi
                                     </h2>
                                     <p className="text-sm text-gray-600">
-                                        Data pribadi pendaftar
+                                        Data pribadi peserta
                                     </p>
                                 </div>
                             </div>
@@ -377,7 +378,7 @@ export default function ShowMhsAktif({ pendaftar }: { pendaftar: MhsAktif }) {
                             </div>
                         </Card>
 
-                        {(pendaftar.cv || pendaftar.surat_pengantar) && (
+                        {(pendaftar.cv || pendaftar.surat_pengantar || pendaftar.form_kesanggupan) && (
                             <Card className="border-0 p-6 shadow-sm">
                                 <div className="mb-6 flex items-center gap-3">
                                     <div className="rounded-lg bg-orange-100 p-3">
@@ -388,7 +389,7 @@ export default function ShowMhsAktif({ pendaftar }: { pendaftar: MhsAktif }) {
                                             Dokumen
                                         </h2>
                                         <p className="text-sm text-gray-600">
-                                            File yang diunggah pendaftar
+                                            File yang diunggah peserta
                                         </p>
                                     </div>
                                 </div>
@@ -452,6 +453,35 @@ export default function ShowMhsAktif({ pendaftar }: { pendaftar: MhsAktif }) {
                                             </Button>
                                         </div>
                                     )}
+                                    {pendaftar.form_kesanggupan && (
+                                        <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
+                                            <div className="flex items-center gap-3">
+                                                <FileText className="h-5 w-5 text-gray-500" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">
+                                                        Form Kesanggupan
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        PDF Document
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    window.open(
+                                                        pendaftar.form_kesanggupan!,
+                                                        '_blank',
+                                                    )
+                                                }
+                                                className="flex items-center gap-2"
+                                            >
+                                                <Download className="h-4 w-4" />
+                                                Lihat
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             </Card>
                         )}
@@ -476,7 +506,7 @@ export default function ShowMhsAktif({ pendaftar }: { pendaftar: MhsAktif }) {
                     <div className="space-y-6">
                         <Card className="border-0 p-6 shadow-sm">
                             <h2 className="mb-4 text-lg font-semibold text-gray-900">
-                                Status Pendaftaran
+                                Status Peserta
                             </h2>
                             <div className="space-y-3">
                                 <div>

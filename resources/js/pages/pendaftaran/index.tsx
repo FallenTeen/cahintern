@@ -48,7 +48,7 @@ import Swal from 'sweetalert2';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Data Pendaftaran',
+        title: 'Data Peserta',
         href: dataPendaftaran().url,
     },
 ];
@@ -212,13 +212,13 @@ export default function DataPendaftaran({
     };
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Data Pendaftaran" />
+            <Head title="Data Peserta" />
 
             <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold">Data Pendaftaran</h1>
+                    <h1 className="text-2xl font-semibold">Data Peserta</h1>
                     <p className="text-sm text-gray-500 md:text-base">
-                        Kelola data pendaftar magang ke Dinas Pendidikan
+                        Kelola data peserta magang ke Dinas Pendidikan
                         Banyumas
                     </p>
                 </div>
@@ -260,7 +260,7 @@ export default function DataPendaftaran({
                     <Link href="data-pendaftaran/create">
                         <Button className="flex w-full items-center justify-center gap-2 bg-red-600 text-white hover:bg-red-700 sm:w-auto">
                             <Plus className="h-4 w-4" />
-                            <span>Tambah Pendaftar</span>
+                            <span>Tambah Peserta</span>
                         </Button>
                     </Link>
                 </div>

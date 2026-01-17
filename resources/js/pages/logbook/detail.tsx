@@ -126,7 +126,7 @@ export default function DetailLogbook() {
 
   const breadcrumbs: BreadcrumbItem[] = [
     { title: "Dashboard", href: dashboard().url },
-    { title: "Logbook Mahasiswa", href: logbookMahasiswa().url },
+    { title: "Logbook Peserta", href: logbookMahasiswa().url },
     { title: logbook.peserta.nama, href: showLogbookMahasiswa(logbook.peserta.id).url },
     { title: "Detail Logbook", href: "#" },
   ];

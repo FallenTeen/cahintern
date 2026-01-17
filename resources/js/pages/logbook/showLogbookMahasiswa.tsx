@@ -128,7 +128,7 @@ export default function ShowLogbookMahasiswa() {
 
     const breadcrumbs: BreadcrumbItem[] = [
         { title: 'Dashboard', href: dashboard().url },
-        { title: 'Logbook Mahasiswa', href: logbookMahasiswa().url },
+        { title: 'Logbook Peserta', href: logbookMahasiswa().url },
         { title: pesertaProfile.nama, href: showLogbookMahasiswa(pesertaProfile.id).url },
     ];
 

@@ -103,11 +103,11 @@ export default function Create() {
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: 'Data Pendaftaran',
+            title: 'Data Peserta',
             href: dataPendaftaran().url,
         },
         {
-            title: 'Tambah Pendaftaran',
+            title: 'Tambah Peserta',
             href: '#',
         },
     ];
@@ -706,80 +706,6 @@ export default function Create() {
                                 </div>
                             </CardContent>
                         </Card>
-
-                        {/* Card: Upload Berkas */}
-                        {/* <Card>
-                            <CardHeader>
-                                <div className="flex items-center gap-3">
-                                    <div className="rounded-lg bg-pink-100 p-2">
-                                        <Upload className="h-6 w-6 text-pink-600" />
-                                    </div>
-                                    <div>
-                                        <CardTitle>Upload Berkas</CardTitle>
-                                        <CardDescription>
-                                            Unggah dokumen pendukung (format
-                                            PDF, max 2MB)
-                                        </CardDescription>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <Label>Upload CV</Label>
-                                        <span className="text-red-600">*</span>
-                                        <div className="relative">
-                                            <Input
-                                                className="h-12 cursor-pointer"
-                                                type="file"
-                                                accept="application/pdf"
-                                                onChange={(e) =>
-                                                    setData(
-                                                        'cv',
-                                                        e.target.files[0],
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                        {errors.cv && (
-                                            <p className="text-sm text-red-500">
-                                                {errors.cv}
-                                            </p>
-                                        )}
-                                        <p className="text-xs text-gray-500">
-                                            Format: PDF, Maksimal 2MB
-                                        </p>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label>Surat Pengantar</Label>
-                                        <span className="text-red-600">*</span>
-                                        <div className="relative">
-                                            <Input
-                                                className="h-12 cursor-pointer"
-                                                type="file"
-                                                accept="application/pdf"
-                                                onChange={(e) =>
-                                                    setData(
-                                                        'surat_pengantar',
-                                                        e.target.files[0],
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                        {errors.surat_pengantar && (
-                                            <p className="text-sm text-red-500">
-                                                {errors.surat_pengantar}
-                                            </p>
-                                        )}
-                                        <p className="text-xs text-gray-500">
-                                            Format: PDF, Maksimal 2MB
-                                        </p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card> */}
-
                         {/* Submit Button */}
                         <div className="flex justify-end gap-4 pt-4">
                             <Button
@@ -796,7 +722,7 @@ export default function Create() {
                             >
                                 {processing
                                     ? 'Menyimpan...'
-                                    : 'Simpan Pendaftaran'}
+                                    : 'Simpan '}
                             </Button>
                         </div>
                     </form>

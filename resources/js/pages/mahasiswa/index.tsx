@@ -114,7 +114,7 @@ export default function DataMahasiswaAktif({
                         Data Peserta Aktif
                     </h2>
                     <p className="text-sm text-gray-500 md:text-base">
-                        Kelola data pendaftar magang ke Dinas Pendidikan
+                        Kelola data peserta magang ke Dinas Pendidikan
                         Banyumas
                     </p>
                 </div>
@@ -140,10 +140,10 @@ export default function DataMahasiswaAktif({
                                 <Inbox className="h-10 w-10 text-gray-400" />
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900">
-                                Belum ada data pendaftaran aktif
+                                Belum ada data peserta aktif
                             </h3>
                             <p className="mt-1 text-sm text-gray-500">
-                                Data mahasiswa magang akan muncul di sini.
+                                Data peserta magang akan muncul di sini.
                             </p>
                         </div>
                     ) : (

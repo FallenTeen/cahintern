@@ -394,18 +394,23 @@ export default function PenilaianSertifikat() {
     };
 
     const filtered = useMemo(() => {
-        if (isCertificateView) {
-            return rows;
-        }
-
         const q = query.trim().toLowerCase();
+
         return rows.filter((d) => {
-            if (statusFilter !== 'Semua' && d.status !== statusFilter)
+            // Filter status
+            if (statusFilter !== 'Semua' && d.status !== statusFilter) {
                 return false;
-            if (!q) return true;
-            return d.nama_peserta.toLowerCase().includes(q) || false;
+            }
+
+            // Filter search
+            if (q && !d.nama_peserta.toLowerCase().includes(q)) {
+                return false;
+            }
+
+            return true;
         });
-    }, [rows, query, statusFilter, isCertificateView]);
+    }, [rows, query, statusFilter]);
+
 
     const getStatusBadgeClass = (status: Status): string => {
         switch (status) {
@@ -518,7 +523,7 @@ export default function PenilaianSertifikat() {
                             Penilaian & Sertifikat
                         </h1>
                         <p className="text-muted-foreground">
-                            Kelola penilaian mahasiswa dan penerbitan sertifikat
+                            Kelola penilaian peserta dan penerbitan sertifikat
                         </p>
                     </div>
                 </div>
@@ -828,7 +833,7 @@ export default function PenilaianSertifikat() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Total Mahasiswa</CardTitle>
+                            <CardTitle>Total Peserta</CardTitle>
                         </CardHeader>
                         <CardContent className="text-3xl font-semibold text-gray-700">
                             {rows.length}
@@ -932,7 +937,7 @@ export default function PenilaianSertifikat() {
                         <Separator />
 
                         <p className="text-sm text-muted-foreground">
-                            Menampilkan {filtered.length} mahasiswa
+                            Menampilkan {filtered.length} peserta
                         </p>
                     </CardContent>
                 </Card>
@@ -978,7 +983,7 @@ export default function PenilaianSertifikat() {
                                             </TableHead>
                                         )}
 
-                                        <TableHead>Nama Mahasiswa</TableHead>
+                                        <TableHead>Nama Peserta</TableHead>
                                         <TableHead>
                                             {isCertificateView
                                                 ? 'Tanggal Terbit'

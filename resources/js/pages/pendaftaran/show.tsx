@@ -302,7 +302,7 @@ export default function ShowPendaftaran({
                             </div>
                         </Card>
 
-                        {(pendaftar.cv || pendaftar.surat_pengantar) && (
+                        {(pendaftar.cv || pendaftar.surat_pengantar || pendaftar.form_kesanggupan) && (
                             <Card className="border-0 p-6 shadow-sm">
                                 <div className="mb-6 flex items-center gap-3">
                                     <div className="rounded-lg bg-orange-100 p-3">
@@ -313,7 +313,7 @@ export default function ShowPendaftaran({
                                             Dokumen
                                         </h2>
                                         <p className="text-sm text-gray-600">
-                                            File yang diunggah pendaftar
+                                            File yang diunggah peserta
                                         </p>
                                     </div>
                                 </div>

@@ -85,10 +85,6 @@
             margin-bottom: 10px;
         }
 
-        /* .duration {
-            font-weight: bold;
-        } */
-
         .result-category {
             font-size: 36px;
             margin-top: 20px;
@@ -101,7 +97,6 @@
             margin-top: 6px;
             font-size: 25.4px;
             letter-spacing: 1px;
-            /* transform: translate(420px, 5.2px); */
             transform: translate(398px, 5.2px);
             font-family: ArialMT;
         }
@@ -125,8 +120,6 @@
         @else
         <div class="background" style="background:#f2f2f2;"></div>
         @endif
-
-
 
         <div class="content">
             @php

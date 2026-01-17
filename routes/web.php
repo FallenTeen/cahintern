@@ -79,7 +79,7 @@ Route::middleware(['auth', 'role:admin,pic'])->group(function () {
     Route::get('/data-mahasiswa-aktif', [MahasiswaController::class, 'index'])->name('dataMahasiswaAktif');
     Route::get('/data-mahasiswa-aktif/{id}', [MahasiswaController::class, 'show'])->name('dataMahasiswaAktif.show');
 
-    // PIC
+    // PIC      
     Route::get('/data-pic', [PICCOntroller::class, 'index'])->name('dataPIC');
 
     // ABSEN MAHASISWA

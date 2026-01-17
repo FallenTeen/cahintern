@@ -31,13 +31,13 @@ import {
     CalendarCheck,
     Clock,
     FileText,
+    House,
     LayoutGrid,
     Medal,
     Megaphone,
     NotebookPen,
     NotebookText,
     Settings,
-    Undo2,
     User,
     Users,
 } from 'lucide-react';
@@ -54,7 +54,7 @@ const commonNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
     {
-        title: 'Data Pendaftaran',
+        title: 'Data Peserta',
         href: dataPendaftaran(),
         icon: FileText,
     },
@@ -83,11 +83,11 @@ const adminNavItems: NavItem[] = [
         href: '/admin/sertifikat',
         icon: NotebookPen,
     },
-    {
-        title: 'Pengumuman & Konten',
-        href: pengumumanKonten(),
-        icon: Megaphone,
-    },
+    // {
+    //     title: 'Pengumuman & Konten',
+    //     href: pengumumanKonten(),
+    //     icon: Megaphone,
+    // },
 ];
 
 const pesertaNavItems: NavItem[] = [
@@ -122,7 +122,7 @@ const footerNavItems: NavItem[] = [
     {
         title: 'HomePage',
         href: '/',
-        icon: Undo2,
+        icon: House,
     },
 ];
 

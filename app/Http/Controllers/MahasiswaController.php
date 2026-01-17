@@ -100,6 +100,7 @@ class MahasiswaController extends Controller
             'status' => $statusLabels[$peserta->user->status] ?? 'Tidak Diketahui',
             'cv' => $peserta->getCv(),
             'surat_pengantar' => $peserta->getSuratPengantar(),
+            'form_kesanggupan' => $peserta->getFormKesanggupan(),
             'alasan_tolak' => $peserta->alasan_tolak ?? '',
             'nilai_akhir' => $peserta->penilaianAkhir ? $peserta->penilaianAkhir->nilai_total : null,
             'predikat' => $peserta->penilaianAkhir ? $peserta->penilaianAkhir->predikat : null,

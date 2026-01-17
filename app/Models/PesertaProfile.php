@@ -93,6 +93,11 @@ class PesertaProfile extends Model
         return $this->surat_pengantar ? asset('storage/' . $this->surat_pengantar) : null;
     }
 
+    public function getFormKesanggupan(): ?string
+    {
+        return $this->form_kesanggupan ? asset('storage/' . $this->form_kesanggupan) : null;
+    }
+
     public function getEmail(): string
     {
         return $this->user->email ?? '';
